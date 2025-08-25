@@ -1,0 +1,46 @@
+import mongoose from "mongoose";
+
+// ✅ Review Schema
+const reviewSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    stars: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    category: { type: mongoose.ObjectId, ref: "category", required: true },
+    quantity: { type: Number, required: true },
+    photo: {
+      data: Buffer,
+      contentType: String,
+    },
+    shipping: { type: Boolean },
+
+    // ⭐ New fields
+    reviews: [reviewSchema],
+    averageRating: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+// ✅ Helper function to calculate average rating
+productSchema.methods.calculateAverageRating = function () {
+  if (this.reviews.length === 0) {
+    this.averageRating = 0;
+  } else {
+    const sum = this.reviews.reduce((acc, r) => acc + r.stars, 0);
+    this.averageRating = (sum / this.reviews.length).toFixed(1);
+  }
+  return this.averageRating;
+};
+
+export default mongoose.model("Product", productSchema);
