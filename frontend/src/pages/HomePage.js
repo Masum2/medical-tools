@@ -9,6 +9,10 @@ import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { IoCartOutline } from "react-icons/io5";
 import { FaRegHeart } from "react-icons/fa";
+
+// ✅ BASE URL from environment variable
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [auth, setAuth] = useAuth();
@@ -24,7 +28,7 @@ const HomePage = () => {
   // Get all categories
   const getAllCategory = async () => {
     try {
-      const { data } = await axios.get("/api/v1/category/get-category");
+      const { data } = await axios.get(`${BASE_URL}/api/v1/category/get-category`);
       if (data?.success) setCategories(data?.category);
     } catch (error) {
       console.log(error);
@@ -34,7 +38,7 @@ const HomePage = () => {
   // Get total count
   const getTotal = async () => {
     try {
-      const { data } = await axios.get("/api/v1/product/product-count");
+      const { data } = await axios.get(`${BASE_URL}/api/v1/product/product-count`);
       setTotal(data?.total);
     } catch (error) {
       console.log(error);
@@ -44,7 +48,7 @@ const HomePage = () => {
   const getAllProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      const { data } = await axios.get(`${BASE_URL}/api/v1/product/product-list/${page}`);
       setLoading(false);
       setProducts(data.products);
     } catch (error) {
@@ -56,7 +60,7 @@ const HomePage = () => {
   const loadMore = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      const { data } = await axios.get(`${BASE_URL}/api/v1/product/product-list/${page}`);
       setLoading(false);
       setProducts([...products, ...data?.products]);
     } catch (error) {
@@ -67,7 +71,7 @@ const HomePage = () => {
 
   const filterProduct = async () => {
     try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
+      const { data } = await axios.post(`${BASE_URL}/api/v1/product/product-filters`, {
         checked,
         radio,
       });
@@ -129,9 +133,7 @@ const HomePage = () => {
               <div className="d-flex flex-column">
                 <Radio.Group onChange={(e) => setRadio(e.target.value)} >
                   {Prices?.map((p) => (
-                    <Radio key={p._id} value={p.array} className="mb-2"  style={{ 
-    '--antd-wave-shadow-color': 'red' // sometimes helps with focus border
-  }} >
+                    <Radio key={p._id} value={p.array} className="mb-2">
                       {p.name}
                     </Radio>
                   ))}
@@ -150,18 +152,10 @@ const HomePage = () => {
 
           {/* Products List */}
           <div className="col-md-9">
-            {/* <h2 className="mb-4 text-center">All Products</h2> */}
             <div className="row">
               {products?.map((p) => (
                 <div key={p._id} className="col-sm-6 col-md-3 mb-3">
                   <div className="product-card shadow-sm rounded-lg border bg-white h-100 d-flex flex-column">
-                    {/* Favorite (Heart) */}
-                    {/* <div className="d-flex justify-content-end p-2">
-                      <button className="btn btn-light btn-sm rounded-circle border-0">
-                        <FaRegHeart />
-                      </button>
-                    </div> */}
-
                     {/* Product Image */}
                     <div
                       className="d-flex justify-content-center align-items-center"
@@ -169,7 +163,7 @@ const HomePage = () => {
                       onClick={() => navigate(`/product/${p.slug}`)}
                     >
                       <img
-                        src={`/api/v1/product/product-photo/${p._id}`}
+                        src={`${BASE_URL}/api/v1/product/product-photo/${p._id}`}
                         alt={p.name}
                         className="img-fluid"
                         style={{ maxHeight: "150px", objectFit: "contain" }}
@@ -182,45 +176,32 @@ const HomePage = () => {
                         {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}
                       </p>
 
-
-                    <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "8px",
-            paddingBottom:'10px'
-          }}
-        >
-          <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
-            ৳ {p.price}
-          </h6>
-          <div
-            style={{ cursor: "pointer", color: "#FFF", fontWeight: "bold",backgroundColor:'#00a297',padding:'4px',borderRadius:'2px' }}
-            onClick={() => {
-              setCart([...cart, p]);
-              localStorage.setItem("cart", JSON.stringify([...cart, p]));
-              toast.success("Item added to cart");
-            }}
-          >
-            <IoCartOutline />
-          </div>
-        </div>
-
-                      {/* Add to Cart */}
-                      {/* <button
-                        className="btn  w-100 mt-auto"
-                        style={{ backgroundColor: '#00a297', color: '#FFF' }}
-                     
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginTop: "8px",
+                          paddingBottom:'10px'
+                        }}
                       >
-                        
-                      </button> */}
-
+                        <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
+                          ৳ {p.price}
+                        </h6>
+                        <div
+                          style={{ cursor: "pointer", color: "#FFF", fontWeight: "bold",backgroundColor:'#00a297',padding:'4px',borderRadius:'2px' }}
+                          onClick={() => {
+                            setCart([...cart, p]);
+                            localStorage.setItem("cart", JSON.stringify([...cart, p]));
+                            toast.success("Item added to cart");
+                          }}
+                        >
+                          <IoCartOutline />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-
               ))}
             </div>
 
