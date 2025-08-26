@@ -4,55 +4,47 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoute.js";
-import categoryRoutes from './routes/categoryRoutes.js'
-import productRoutes from './routes/productRoutes.js'
-import orderRoutes from './routes/orderRoutes.js'
-import reviewRoutes from './routes/reviewRoutes.js'
-import formidable from "express-formidable";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import cors from "cors";
-//configure env
+
+// configure env
 dotenv.config();
 
-//databse config
+// database config
 connectDB();
 
-//rest object
+// rest object
 const app = express();
 
-//middelwares
-// মিডলওয়্যার (formidable এখানে **নেই**)
+// ✅ Middlewares
 app.use(cors({
-  origin: ["https://medical-tools.vercel.app/"], // Vercel এর frontend link
+  origin: "https://medical-tools.vercel.app", // 🔥 এখানে array বা trailing slash নেই
   credentials: true
 }));
-app.use(express.json()); // JSON রিকোয়েস্ট পার্স করার জন্য
-app.use(express.urlencoded({ extended: true })); // Form ডাটা পার্স করার জন্য
+
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-
-
-//routes auth
+// ✅ Routes
 app.use("/api/v1/auth", authRoutes);
-// routes for category
-app.use("/api/v1/category",categoryRoutes);
-// routes for product
-app.use("/api/v1/product",productRoutes);
-// routes for order
-app.use("/api/v1/order",orderRoutes);
-// Routes
+app.use("/api/v1/category", categoryRoutes);
+app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 
-
-
-//rest api
+// root route
 app.get("/", (req, res) => {
   res.send("<h1>Welcome to ecommerce app</h1>");
 });
 
-//PORT
+// PORT
 const PORT = process.env.PORT || 8080;
 
-//run listen
+// run listen
 app.listen(PORT, () => {
   console.log(
     `Server Running on ${process.env.NODE_MODE} mode on port ${PORT}`.bgCyan
