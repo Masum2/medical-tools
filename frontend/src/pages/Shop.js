@@ -19,7 +19,7 @@ const Shop = () => {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useCart();
   const categories = useCategory();
-
+    const API = process.env.REACT_APP_API;
   // Main hero slider settings
   const heroSettings = {
     dots: true,
@@ -54,7 +54,7 @@ const Shop = () => {
   const getAllProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      const { data } = await axios.get(`${API}/api/v1/product/product-list/${page}`);
       setLoading(false);
       if (page === 1) {
         setProducts(data?.products);
@@ -70,7 +70,7 @@ const Shop = () => {
   // --- Fetch total product count
   const getTotal = async () => {
     try {
-      const { data } = await axios.get("/api/v1/product/product-count");
+      const { data } = await axios.get(`${API}/api/v1/product/product-count`);
       setTotal(data?.total);
     } catch (err) {
       console.log(err);
@@ -293,7 +293,7 @@ const Shop = () => {
                   onClick={() => navigate(`/product/${p.slug}`)}
                 >
                   <img
-                    src={`/api/v1/product/product-photo/${p._id}`}
+                    src={`${API}/api/v1/product/product-photo/${p._id}`}
                     alt={p.name}
                     style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
                   />

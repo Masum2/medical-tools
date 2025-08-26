@@ -13,7 +13,7 @@ const Profile = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-
+ const API = process.env.REACT_APP_API;
   //get user data
 useEffect(() => {
   const { email, name, phone, address } = auth?.user || {};
@@ -29,7 +29,7 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.put("/api/v1/auth/profile", {
+      const { data } = await axios.put(`${API}/api/v1/auth/profile`, {
         name,
         email,
         password,

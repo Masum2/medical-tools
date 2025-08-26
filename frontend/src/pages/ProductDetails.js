@@ -14,7 +14,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [cart, setCart] = useCart();
-
+  const API = process.env.REACT_APP_API;
   // States
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0); // dynamic rating
@@ -28,7 +28,7 @@ const ProductDetails = () => {
 
   const getProduct = async () => {
     try {
-      const { data } = await axios.get(`/api/v1/product/get-product/${params.slug}`);
+      const { data } = await axios.get(`${API}/api/v1/product/get-product/${params.slug}`);
       setProduct(data?.product);
       getSimilarProduct(data?.product._id, data?.product.category._id);
     } catch (error) {
@@ -38,7 +38,7 @@ const ProductDetails = () => {
 
   const getSimilarProduct = async (pid, cid) => {
     try {
-      const { data } = await axios.get(`/api/v1/product/related-product/${pid}/${cid}`);
+      const { data } = await axios.get(`${API}/api/v1/product/related-product/${pid}/${cid}`);
       setRelatedProducts(data?.products);
     } catch (error) {
       console.log(error);
@@ -54,7 +54,7 @@ const ProductDetails = () => {
 
   const fetchReviews = async () => {
     try {
-      const { data } = await axios.get(`/api/v1/reviews/${product._id}`);
+      const { data } = await axios.get(`${API}/api/v1/reviews/${product._id}`);
       if (data.success) {
         setReviews(data.reviews);
         setRating(data.averageRating);
@@ -90,7 +90,7 @@ const ProductDetails = () => {
     }
 
     try {
-      const { data } = await axios.post(`/api/v1/reviews/${product._id}`, newReview);
+      const { data } = await axios.post(`${API}/api/v1/reviews/${product._id}`, newReview);
       if (data.success) {
         setReviews(data.reviews);        // update reviews
         setRating(data.averageRating);    // update average rating
@@ -111,7 +111,7 @@ const ProductDetails = () => {
           {/* LEFT IMAGE */}
           <div className="col-md-4 d-flex justify-content-center align-items-center bg-white rounded p-3 shadow-sm">
             <img
-              src={`/api/v1/product/product-photo/${product._id}`}
+              src={`${API}/api/v1/product/product-photo/${product._id}`}
               alt={product.name}
               className="img-fluid rounded"
             />
@@ -259,7 +259,7 @@ const ProductDetails = () => {
           {relatedProducts?.map(p => (
             <div key={p._id} className="col-6 col-md-3 mb-4">
               <div className="card h-100 shadow-sm border-0" onClick={() => navigate(`/product/${p.slug}`)}>
-                <img src={`/api/v1/product/product-photo/${p._id}`} className="card-img-top" alt={p.name} />
+                <img src={`${API}/api/v1/product/product-photo/${p._id}`} className="card-img-top" alt={p.name} />
                 <div className="card-body text-center">
                   <h6 className="fw-semibold">{p.name}</h6>
                   <div className="text-warning small">{renderStars(p.rating || 4)}</div>

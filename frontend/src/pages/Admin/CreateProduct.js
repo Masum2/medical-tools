@@ -18,11 +18,12 @@ const CreateProduct = () => {
   const [quantity, setQuantity] = useState("");
   const [shipping, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
+  const API = process.env.REACT_APP_API;
 const [auth] = useAuth();
   //get all category
   const getAllCategory = async () => {
     try {
-      const { data } = await axios.get("/api/v1/category/get-category");
+      const { data } = await axios.get(`${API}/api/v1/category/get-category`);
       if (data?.success) {
         setCategories(data?.category);
       }
@@ -49,7 +50,7 @@ const handleCreate = async (e) => {
     productData.append("category", category);
 
     const { data } = await axios.post(
-      "/api/v1/product/create-product",
+      `${API}/api/v1/product/create-product`,
       productData,
       {
         headers: {
@@ -61,7 +62,7 @@ const handleCreate = async (e) => {
 
     if (data.success) {
       toast.success("Product create successfully");
-      navigate("/admin/products");
+      navigate("/");
     }
   } catch (error) {
     toast.error("একটি সমস্যা হয়েছে!");

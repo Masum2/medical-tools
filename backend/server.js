@@ -21,7 +21,10 @@ const app = express();
 
 //middelwares
 // মিডলওয়্যার (formidable এখানে **নেই**)
-app.use(cors({ origin: ["http://localhost:3000","https://medical-tools.vercel.app/"], credentials: true }))
+app.use(cors({
+  origin: ["https://medical-tools.vercel.app/"], // Vercel এর frontend link
+  credentials: true
+}));
 app.use(express.json()); // JSON রিকোয়েস্ট পার্স করার জন্য
 app.use(express.urlencoded({ extended: true })); // Form ডাটা পার্স করার জন্য
 app.use(morgan("dev"));

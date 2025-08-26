@@ -11,7 +11,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
+ const API = process.env.REACT_APP_API;
   // Color mapping
   const paymentStatusColor = { completed: "success", pending: "secondary" };
   const orderStatusColor = { pending: "secondary", processing: "info", shipped: "warning", delivered: "success", cancelled: "danger" };
@@ -20,7 +20,7 @@ const Orders = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `/api/v1/order/get-orders?page=${page}&limit=${pagination.limit || 10}`,
+        `${API}/api/v1/order/get-orders?page=${page}&limit=${pagination.limit || 10}`,
         { headers: { Authorization: auth?.token } }
       );
       if (data?.success) {

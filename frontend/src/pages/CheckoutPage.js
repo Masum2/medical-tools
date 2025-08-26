@@ -10,7 +10,7 @@ const CheckoutPage = () => {
   const [cart, setCart] = useCart();
   const [auth] = useAuth();
   const navigate = useNavigate();
-
+  const API = process.env.REACT_APP_API;
   // Form State
   const [formData, setFormData] = useState({
     firstName: "",
@@ -37,7 +37,7 @@ const CheckoutPage = () => {
   const handleOrder = async () => {
     try {
       const { data } = await axios.post(
-        "/api/v1/order/create-order",
+        `${API}/api/v1/order/create-order`,
         { cart, ...formData }, 
         {
           headers: { Authorization: auth?.token },

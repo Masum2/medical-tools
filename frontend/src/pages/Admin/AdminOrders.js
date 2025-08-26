@@ -18,7 +18,7 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 const [showModal, setShowModal] = useState(false);
-
+const API = process.env.REACT_APP_API;
 const navigate = useNavigate();
   const fetchOrders = async (page = 1) => {
     try {
@@ -30,7 +30,7 @@ const navigate = useNavigate();
         ...(filters.paymentMethod ? { paymentMethod: filters.paymentMethod } : {}),
         ...(filters.buyerEmail ? { buyerEmail: filters.buyerEmail } : {}),
       });
-      const { data } = await axios.get(`/api/v1/order/get-orders/all?${params.toString()}`, {
+      const { data } = await axios.get(`${API}/api/v1/order/get-orders/all?${params.toString()}`, {
         headers: {  Authorization: auth?.token, },
       });
       if (data?.success) {
@@ -49,7 +49,7 @@ const navigate = useNavigate();
 
   const updateStatus = async (id, body) => {
     try {
-      const { data } = await axios.patch(`/api/v1/order/${id}/status`, body, {
+      const { data } = await axios.patch(`${API}/api/v1/order/${id}/status`, body, {
           headers: {  Authorization: auth?.token, },
       });
       if (data?.success) {
@@ -169,7 +169,7 @@ const navigate = useNavigate();
   className="btn btn-sm btn-outline-primary"
   onClick={async () => {
     try {
-      const { data } = await axios.get(`/api/v1/order/${o._id}`, {
+      const { data } = await axios.get(`${API}/api/v1/order/${o._id}`, {
         headers: { Authorization: auth?.token },
       });
       if (data?.success) {

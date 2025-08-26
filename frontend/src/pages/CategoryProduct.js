@@ -15,13 +15,14 @@ const CategoryProduct = () => {
   const [page, setPage] = useState(1);
   const [cart, setCart] = useCart();
   const [loading, setLoading] = useState(false);
+  const API = process.env.REACT_APP_API;
   useEffect(() => {
     if (params?.slug) getPrductsByCat();
   }, [params?.slug]);
   const getPrductsByCat = async () => {
     try {
       const { data } = await axios.get(
-        `/api/v1/product/product-category/${params.slug}`
+        `${API}/api/v1/product/product-category/${params.slug}`
       );
       setProducts(data?.products);
       setCategory(data?.category);
@@ -55,7 +56,7 @@ const CategoryProduct = () => {
                     onClick={() => navigate(`/product/${p.slug}`)}
                   >
                     <img
-                      src={`/api/v1/product/product-photo/${p._id}`}
+                      src={`${API}/api/v1/product/product-photo/${p._id}`}
                       alt={p.name}
                       className="img-fluid"
                       style={{ maxHeight: "150px", objectFit: "contain" }}

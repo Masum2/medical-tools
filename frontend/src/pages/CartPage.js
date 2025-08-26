@@ -11,7 +11,7 @@ const CartPage = () => {
   const [auth] = useAuth();
   const [cart, setCart] = useCart();
   const navigate = useNavigate();
-
+const API = process.env.REACT_APP_API;
   const incrementQty = (pid) => {
     const newCart = cart.map((item) =>
       item._id === pid ? { ...item, quantity: (item.quantity || 1) + 1 } : item
@@ -88,7 +88,7 @@ const CartPage = () => {
                     {/* Product Info */}
                     <div className="d-flex align-items-center" style={{ flex: 1 }}>
                       <img
-                        src={`/api/v1/product/product-photo/${item._id}`}
+                        src={`${API}/api/v1/product/product-photo/${item._id}`}
                         alt={item.name}
                         style={{
                           width: "90px",

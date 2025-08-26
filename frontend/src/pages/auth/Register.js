@@ -12,11 +12,11 @@ const Register = () => {
   const [address, setAddress] = useState("");
   const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
-
+const API = process.env.REACT_APP_API;
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/api/v1/auth/register", {
+      const res = await axios.post(`${API}/api/v1/auth/register`, {
         name,
         email,
         password,
