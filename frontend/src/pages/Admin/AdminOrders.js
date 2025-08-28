@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../context/auth";
 import Layout from "../../components/Layout/Layout";
 import { useNavigate } from "react-router-dom";
+import AdminMenu from "../../components/Layout/AdminMenu";
 
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const PAYMENT_STATUSES = ["pending", "completed"];
@@ -65,8 +66,22 @@ const navigate = useNavigate();
   };
 
   return (
-    <Layout>
-      <div className="container py-4">
+    // <Layout>
+    <div className="container-fluid">
+
+        <div className="row">
+     {/* Sidebar */}
+            <div className="col-md-2 p-0">
+              <AdminMenu />
+            </div>
+            <div
+            className="col-md-10"
+            style={{
+              backgroundColor: "#f4f5f7",
+              minHeight: "100vh",
+              padding: "20px",
+            }}
+          >
         <div className="d-flex flex-wrap align-items-end gap-2 mb-3">
           <h4 className="me-auto">All Orders</h4>
 
@@ -274,9 +289,12 @@ const navigate = useNavigate();
   </div>
 )}
 
+            </div>
+        </div>
+
 
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

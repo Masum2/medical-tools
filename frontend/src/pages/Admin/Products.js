@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const API = process.env.REACT_APP_API;
+
   // get all products
   const getAllProducts = async () => {
     try {
@@ -19,50 +20,82 @@ const Products = () => {
     }
   };
 
-  // lifecycle method
   useEffect(() => {
     getAllProducts();
   }, []);
 
   return (
-    <Layout>
+
+    <div className="container-fluid">
       <div className="row">
-        <div className="col-md-3">
+        {/* Sidebar */}
+        <div className="col-md-2 p-0">
           <AdminMenu />
         </div>
-        <div className="col-md-9">
-          <h1 className="text-center mb-4">All Products List</h1>
-          <div className="row">
-            {products?.map((p) => (
-              <div
-                key={p._id}
-                className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"
-              >
-                <Link
-                  to={`/dashboard/admin/product/${p.slug}`}
-                  className="text-decoration-none text-dark"
-                >
-                  <div className="card h-100 shadow-sm">
-                    <img
-                      src={`${API}/api/v1/product/product-photo/${p._id}`}
-                      className="card-img-top img-fluid"
-                      alt={p.name}
-                      style={{ objectFit: "cover", height: "200px" }}
-                    />
-                    <div className="card-body d-flex flex-column">
-                      <h5 className="card-title">{p.name}</h5>
-                      <p className="card-text flex-grow-1">
-                        {p.description?.slice(0, 60)}...
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
+
+        {/* Main Content */}
+        <div className="col-md-10">
+          {/* Header start */}
+          <div className="container d-flex justify-content-center align-items-center text-white flex-wrap " style={{ background: "#007580", padding: '5px' }}>
+
+            <p><strong>All Product</strong> </p>
+
+          </div>
+          {/* Header end */}
+          <div className="table-responsive">
+            <table className="table table-bordered table-hover align-middle">
+              <thead className="table-info text-center">
+                <tr>
+                  <th>SN</th>
+                  <th>Product Id</th>
+                  <th>Name</th>
+                  {/* <th>Description</th> */}
+                  <th>Image</th>
+
+                  <th>Quantity</th>
+                  {/* <th>Shipping</th> */}
+                  <th>Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-center">
+                {products?.map((p, index) => (
+                  <tr key={p._id}>
+                    <td>{index + 1}</td>
+                    <td>{p._id}</td>
+                    <td>{p.name?.substring(0, 20)}</td>
+                    {/* <td>{p.description?.replace(/<[^>]+>/g, '').substring(0, 50)}...</td> */}
+
+                    <td>
+                      <img
+                        src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
+                        alt={p.name}
+                        style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                        className="rounded"
+                      />
+                    </td>
+
+                    <td>{p.quantity}</td>
+                    {/* <td>{p.shipping ? "Yes" : "No"}</td> */}
+                    <td>{p.price}</td>
+                    <td>
+                      <Link
+                        to={`/dashboard/admin/product/${p.slug}`}
+                        className="btn btn-sm btn-info me-2"
+                      >
+                        👁 View
+                      </Link>
+
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    </Layout>
+    </div>
+
   );
 };
 

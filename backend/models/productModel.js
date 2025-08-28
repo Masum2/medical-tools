@@ -14,18 +14,22 @@ const reviewSchema = new mongoose.Schema(
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    slug: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    category: { type: mongoose.ObjectId, ref: "category", required: true },
+    discountPrice: { type: Number, default: 0 }, // optional
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true }, // proper ref
     quantity: { type: Number, required: true },
-    photo: {
-      data: Buffer,
-      contentType: String,
-    },
-    shipping: { type: Boolean },
+    brand: { type: String, required: false }, // optional
+    color: { type: String, required: false }, // optional
+    size: { type: String, required: false }, // optional
+photos: [{ data: Buffer, contentType: String }],
+categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+subcategories: [String],
 
-    // ⭐ New fields
+    shipping: { type: Boolean, default: false },
+
+    // ⭐ Reviews
     reviews: [reviewSchema],
     averageRating: { type: Number, default: 0 },
   },
@@ -38,7 +42,7 @@ productSchema.methods.calculateAverageRating = function () {
     this.averageRating = 0;
   } else {
     const sum = this.reviews.reduce((acc, r) => acc + r.stars, 0);
-    this.averageRating = (sum / this.reviews.length).toFixed(1);
+    this.averageRating = parseFloat((sum / this.reviews.length).toFixed(1));
   }
   return this.averageRating;
 };

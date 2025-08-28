@@ -15,11 +15,13 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
+
   // States
   const [quantity, setQuantity] = useState(1);
-  const [rating, setRating] = useState(0); // dynamic rating
-  const [reviews, setReviews] = useState([]); // dynamic reviews
+  const [rating, setRating] = useState(0);
+  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ name: "", stars: 0, comment: "" });
+  const [activeTab, setActiveTab] = useState("details");
 
   // Fetch product
   useEffect(() => {
@@ -47,9 +49,7 @@ const ProductDetails = () => {
 
   // Fetch reviews after product loads
   useEffect(() => {
-    if (product._id) {
-      fetchReviews();
-    }
+    if (product._id) fetchReviews();
   }, [product._id]);
 
   const fetchReviews = async () => {
@@ -88,12 +88,11 @@ const ProductDetails = () => {
       toast.error("Please fill out all fields");
       return;
     }
-
     try {
       const { data } = await axios.post(`${API}/api/v1/reviews/${product._id}`, newReview);
       if (data.success) {
-        setReviews(data.reviews);        // update reviews
-        setRating(data.averageRating);    // update average rating
+        setReviews(data.reviews);
+        setRating(data.averageRating);
         setNewReview({ name: "", stars: 0, comment: "" });
         toast.success("Review submitted!");
       }
@@ -105,38 +104,54 @@ const ProductDetails = () => {
 
   return (
     <Layout>
-      {/* PRODUCT DETAILS */}
       <div className="container py-4">
         <div className="row g-4">
-          {/* LEFT IMAGE */}
-          <div className="col-md-4 d-flex justify-content-center align-items-center bg-white rounded p-3 shadow-sm">
-            <img
-              src={`${API}/api/v1/product/product-photo/${product._id}`}
-              alt={product.name}
-              className="img-fluid rounded"
-            />
+          {/* LEFT IMAGE GALLERY */}
+          <div className="col-md-4">
+            <div className="bg-white rounded shadow-sm p-3">
+              <img
+                src={`${API}/api/v1/product/product-photo/${product._id}`}
+                alt={product.name}
+                className="img-fluid mb-3 rounded"
+              />
+              <div className="d-flex gap-2 justify-content-center">
+                {/* Placeholder thumbnails */}
+                {[1, 2, 3].map((t) => (
+                  <img
+                    key={t}
+                    src={`${API}/api/v1/product/product-photo/${product._id}`}
+                    alt="thumb"
+                    className="img-thumbnail"
+                    style={{ width: "70px", height: "70px", objectFit: "cover" }}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* CENTER DETAILS */}
           <div className="col-md-5">
-            <h2 className="fw-bold mb-3">{product.name}</h2>
+            <h3 className="fw-bold mb-2">{product.name}</h3>
             <div className="d-flex align-items-center gap-2 mb-2">
               {renderStars()} <span className="text-muted">{rating.toFixed(1)}</span>
               <span className="text-secondary">({reviews.length} reviews)</span>
             </div>
-            <p className="text-muted">{product.description}</p>
+            <h4 className="text-danger fw-bold mb-3">
+              ৳ {product.price}
+              {product.oldPrice && (
+                <small className="text-muted text-decoration-line-through ms-2">৳ {product.oldPrice}</small>
+              )}
+              {product.discount && <span className="badge bg-danger ms-2">{product.discount}% OFF</span>}
+            </h4>
 
-            {/* Price */}
-            <div className="h4 text-primary mb-3">
-              {product?.price?.toLocaleString("en-US", { style: "currency", currency: "USD" })}
-            </div>
+            <p className="text-muted">{product.description}</p>
 
             {/* Quantity Selector */}
             <div className="d-flex align-items-center mb-3">
               <span className="me-2">Quantity:</span>
-              <button onClick={() => handleQuantityChange("dec")} className="btn btn-outline-secondary">-</button>
+              <button onClick={() => handleQuantityChange("dec")} className="btn btn-outline-secondary btn-sm">-</button>
               <input type="text" value={quantity} readOnly className="form-control text-center mx-2" style={{ width: "60px" }} />
-              <button onClick={() => handleQuantityChange("inc")} className="btn btn-outline-secondary">+</button>
+              <button onClick={() => handleQuantityChange("inc")} className="btn btn-outline-secondary btn-sm">+</button>
             </div>
 
             {/* Stock */}
@@ -146,9 +161,9 @@ const ProductDetails = () => {
 
             {/* Buttons */}
             <div className="d-flex gap-3">
-              <button className="btn btn-primary px-4">Buy Now</button>
+              <button className="btn btn-danger px-4">Buy Now</button>
               <button
-                className="btn btn-dark d-flex align-items-center gap-2 px-4"
+                className="btn btn-outline-dark px-4 d-flex align-items-center gap-2"
                 onClick={() => {
                   setCart([...cart, product]);
                   localStorage.setItem("cart", JSON.stringify([...cart, product]));
@@ -161,102 +176,94 @@ const ProductDetails = () => {
           </div>
 
           {/* RIGHT DELIVERY INFO */}
-          <div className="col-md-3 bg-light rounded p-3 shadow-sm">
-            <h5 className="fw-bold">Delivery</h5>
-            <p className="text-muted">Fast delivery available in your area</p>
-            <h5 className="fw-bold">Return Policy</h5>
-            <p className="text-muted">Free return within 7 days of delivery</p>
+          <div className="col-md-3">
+            <div className="bg-light rounded p-3 shadow-sm">
+              <h6 className="fw-bold">Delivery</h6>
+              <p className="text-muted small">Fast delivery available in your area</p>
+              <h6 className="fw-bold">Return Policy</h6>
+              <p className="text-muted small">Free return within 7 days of delivery</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* CUSTOMER REVIEWS */}
-      <div className="container my-5">
-        <h3 className="section-title mb-4">Rating & Reviews</h3>
-        <div className="row">
-          {/* Left Side - Average Rating */}
-          <div className="col-md-4 text-center border-end">
-            <h1 className="display-3 fw-bold">{rating.toFixed(1)}</h1>
-            <div className="d-flex justify-content-center mb-2">{renderStars(rating)}</div>
-            <p className="text-muted">({reviews.length} Reviews)</p>
+      {/* TABS SECTION */}
+      <div className="container mt-5">
+        <ul className="nav nav-tabs">
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === "details" ? "active" : ""}`} onClick={() => setActiveTab("details")}>Product Details</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === "specs" ? "active" : ""}`} onClick={() => setActiveTab("specs")}>Specifications</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === "seller" ? "active" : ""}`} onClick={() => setActiveTab("seller")}>Seller</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === "reviews" ? "active" : ""}`} onClick={() => setActiveTab("reviews")}>Reviews</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === "questions" ? "active" : ""}`} onClick={() => setActiveTab("questions")}>Questions</button>
+          </li>
+        </ul>
 
-            {/* Star Breakdown */}
-            {[5,4,3,2,1].map(star => {
-              const count = reviews.filter(r => r.stars === star).length;
-              const percent = (count / reviews.length) * 100 || 0;
-              return (
-                <div key={star} className="d-flex align-items-center mb-1">
-                  <span className="me-2">{star} ★</span>
-                  <div className="progress flex-grow-1" style={{ height: "6px" }}>
-                    <div className="progress-bar bg-warning" style={{ width: `${percent}%` }}></div>
-                  </div>
-                  <span className="ms-2">{count}</span>
+        <div className="tab-content border p-4 bg-white shadow-sm">
+          {activeTab === "details" && <p>{product.description}</p>}
+          {activeTab === "specs" && <p>Specifications will go here...</p>}
+          {activeTab === "seller" && <p>Seller info will go here...</p>}
+          {activeTab === "reviews" && (
+            <>
+              <h5 className="fw-bold mb-3">Customer Reviews</h5>
+              {reviews.map((r, idx) => (
+                <div key={idx} className="border-bottom pb-3 mb-3">
+                  <strong>{r.name}</strong>
+                  <div className="text-warning">{renderStars(r.stars)}</div>
+                  <p className="mb-1">{r.comment}</p>
+                  <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Right Side - Reviews */}
-          <div className="col-md-8 ps-4">
-            {reviews.map((r, idx) => (
-              <div key={idx} className="card mb-3 shadow-sm border-0">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                      <strong>{r.name}</strong>
-                      <div className="text-warning d-flex align-items-center mb-1">{renderStars(r.stars)}</div>
-                    </div>
-                    <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
-                  </div>
-                  <p className="mb-0">{r.comment}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Review Form */}
-        <div className="bg-white p-4 rounded shadow-sm mt-4">
-          <h5 className="fw-medium mb-3">Leave a Review</h5>
-          <form onSubmit={handleReviewSubmit}>
-            <input
-              type="text"
-              className="form-control mb-3"
-              placeholder="Your Name"
-              value={newReview.name}
-              onChange={e => setNewReview({...newReview, name: e.target.value})}
-              required
-            />
-            <div className="mb-3">
-              {[1,2,3,4,5].map(star => (
-                <span
-                  key={star}
-                  onClick={() => setNewReview({...newReview, stars: star})}
-                  className={`me-1 fs-4 ${newReview.stars >= star ? "text-warning" : "text-secondary"}`}
-                  style={{ cursor: "pointer" }}
-                >
-                  ★
-                </span>
               ))}
-            </div>
-            <textarea
-              className="form-control mb-3"
-              placeholder="Write your review..."
-              rows="4"
-              value={newReview.comment}
-              onChange={e => setNewReview({...newReview, comment: e.target.value})}
-              required
-            ></textarea>
-            <button type="submit" className="btn btn-primary">Submit Review</button>
-          </form>
+
+              {/* Review Form */}
+              <form onSubmit={handleReviewSubmit} className="mt-3">
+                <input
+                  type="text"
+                  className="form-control mb-2"
+                  placeholder="Your Name"
+                  value={newReview.name}
+                  onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                />
+                <div className="mb-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      onClick={() => setNewReview({ ...newReview, stars: star })}
+                      className={`me-1 fs-4 ${newReview.stars >= star ? "text-warning" : "text-secondary"}`}
+                      style={{ cursor: "pointer" }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <textarea
+                  className="form-control mb-2"
+                  placeholder="Write your review..."
+                  rows="3"
+                  value={newReview.comment}
+                  onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                ></textarea>
+                <button type="submit" className="btn btn-primary">Submit Review</button>
+              </form>
+            </>
+          )}
+          {activeTab === "questions" && <p>No questions yet. Be the first to ask!</p>}
         </div>
       </div>
 
       {/* SIMILAR PRODUCTS */}
       <div className="similar-products container my-5">
-        <h3 className="section-title mb-4">You might also like</h3>
+        <h4 className="fw-bold mb-4">You might also like</h4>
         <div className="row">
-          {relatedProducts?.map(p => (
+          {relatedProducts?.map((p) => (
             <div key={p._id} className="col-6 col-md-3 mb-4">
               <div className="card h-100 shadow-sm border-0" onClick={() => navigate(`/product/${p.slug}`)}>
                 <img src={`${API}/api/v1/product/product-photo/${p._id}`} className="card-img-top" alt={p.name} />
@@ -269,7 +276,6 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-            
           ))}
           {relatedProducts.length < 1 && <p>No Similar Products found</p>}
         </div>

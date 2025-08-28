@@ -6,7 +6,8 @@ import {
   productCountController,
   productFiltersController,
  productListController,
- realtedProductController,
+
+ relatedProductController,
  searchProductController
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
@@ -51,9 +52,10 @@ router.get("/product-list/:page", productListController);
 router.get("/search/:keyword", searchProductController);
 
 //similar product
-router.get("/related-product/:pid/:cid", realtedProductController);
+router.get("/related-product/:pid/:cid", relatedProductController);
 //category wise product
 router.get("/product-category/:slug", productCategoryController);
 
 // router.post("/create-order", requireSignIn, createOrderController);
+
 export default router;

@@ -21,7 +21,7 @@ const app = express();
 
 // ✅ Middlewares
 app.use(cors({
-  origin: "https://medical-tools.vercel.app", // 🔥 এখানে array বা trailing slash নেই
+  // origin: "https://medical-tools.vercel.app", // 🔥 এখানে array বা trailing slash নেই
   credentials: true
 }));
 

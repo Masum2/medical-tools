@@ -1,55 +1,92 @@
 import slugify from "slugify";
 import categoryModel from "../models/categoryModel.js";
 
+import fs from "fs";
+
+// Create Category
 export const createCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, subcategories } = req.fields;
+    const { photo } = req.files;
+
     if (!name) {
-      return res.status(401).send({ message: "Name is required" });
+      return res.status(400).send({ message: "Name is required" });
     }
-    const existingCategory = await categoryModel.findOne({ name });
-    if (existingCategory) {
-      return res.status(200).send({
-        success: true,
-        message: "Category Already Exisits",
-      });
+
+    // parse subcategories
+    let parsedSubcategories = [];
+    if (subcategories) {
+      try {
+        parsedSubcategories = JSON.parse(subcategories);
+      } catch {
+        parsedSubcategories = subcategories.split(",").map((s) => s.trim());
+      }
     }
-    const category = await new categoryModel({
+
+    const category = new categoryModel({
       name,
       slug: slugify(name),
-    }).save();
+      subcategories: parsedSubcategories,
+    });
+
+    if (photo) {
+      category.photo.data = fs.readFileSync(photo.path);
+      category.photo.contentType = photo.type;
+    }
+
+    await category.save();
     res.status(201).send({
       success: true,
-      message: "new category created",
+      message: "Category created successfully",
       category,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      errro,
-      message: "Errro in Category",
+      error,
+      message: "Error in Category",
     });
   }
 };
 
-//update category
+// Update Category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, subcategories } = req.fields;
+    const { photo } = req.files;
     const { id } = req.params;
-    const category = await categoryModel.findByIdAndUpdate(
-      id,
-      { name, slug: slugify(name) },
-      { new: true }
-    );
+
+    let updateData = {};
+    if (name) updateData.name = name;
+    if (name) updateData.slug = slugify(name);
+
+    if (subcategories) {
+      try {
+        updateData.subcategories = JSON.parse(subcategories);
+      } catch {
+        updateData.subcategories = subcategories.split(",").map((s) => s.trim());
+      }
+    }
+
+    if (photo) {
+      updateData.photo = {
+        data: fs.readFileSync(photo.path),
+        contentType: photo.type,
+      };
+    }
+
+    const category = await categoryModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
     res.status(200).send({
       success: true,
-      messsage: "Category Updated Successfully",
+      message: "Category updated successfully",
       category,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({
       success: false,
       error,
@@ -58,8 +95,7 @@ export const updateCategoryController = async (req, res) => {
   }
 };
 
-// get all category
-
+// get all categories
 export const categoryControlller = async (req, res) => {
   try {
     const category = await categoryModel.find({});
@@ -77,6 +113,7 @@ export const categoryControlller = async (req, res) => {
     });
   }
 };
+
 
 // single category
 export const singleCategoryController = async (req, res) => {
