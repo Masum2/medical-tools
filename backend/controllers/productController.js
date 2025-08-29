@@ -138,7 +138,6 @@ export const deleteProductController = async (req, res) => {
 };
 
 // ------------------ UPDATE PRODUCT ------------------
-// ------------------ UPDATE PRODUCT ------------------
 export const updateProductController = async (req, res) => {
   try {
     const {
@@ -153,6 +152,7 @@ export const updateProductController = async (req, res) => {
       color,
       size,
       discountPrice,
+      replaceIndex // 👉 ফ্রন্টএন্ড থেকে index পাঠাবে (যেমন 4)
     } = req.fields;
 
     const { photos } = req.files || {};
@@ -171,17 +171,20 @@ export const updateProductController = async (req, res) => {
         return res.status(400).send({ error: "Quantity is Required" });
     }
 
-    // Prepare updateData
+    // আগের প্রোডাক্ট বের করো
+    const existingProduct = await productModel.findById(req.params.pid);
+    if (!existingProduct) {
+      return res.status(404).send({ error: "Product not found" });
+    }
+
+    // Update data তৈরি করো
     const updateData = {
       name,
       slug: slugify(name),
       description,
       price,
-      // 👉 প্রথম category main হিসেবে রাখছি
       category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0],
-      // 👉 multiple categories
       categories: Array.isArray(categories) ? categories : JSON.parse(categories),
-      // 👉 multiple subcategories
       subcategories: subcategories
         ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories))
         : [],
@@ -191,25 +194,32 @@ export const updateProductController = async (req, res) => {
       color: color || "",
       size: size || "",
       discountPrice: discountPrice || 0,
+      photos: existingProduct.photos, // আগের সব ছবি রেখে দাও
     };
 
-    // Photos handle (normalize করে array বানালাম)
+    // ✅ নতুন ছবি এলে শুধু নির্দিষ্ট index replace করো
     if (photos) {
       const files = Array.isArray(photos) ? photos : [photos];
-      // file size check
       for (let file of files) {
-        if (file.size > 5000000) {
+        if (file.size > 5 * 1024 * 1024) {
           return res.status(400).send({ error: "Each photo should be less than 5MB" });
         }
       }
 
-      updateData.photos = files.map((file) => ({
-        data: fs.readFileSync(file.path),
-        contentType: file.type,
-      }));
+      // index undefined হলে push করে দাও, নাহলে replace করো
+      const fileData = {
+        data: fs.readFileSync(files[0].path),
+        contentType: files[0].type,
+      };
+
+      if (replaceIndex !== undefined && updateData.photos[replaceIndex]) {
+        updateData.photos[replaceIndex] = fileData; // replace নির্দিষ্ট index
+      } else {
+        updateData.photos.push(fileData); // নতুন ছবি add হবে
+      }
     }
 
-    // Update DB
+    // DB Update
     const product = await productModel.findByIdAndUpdate(
       req.params.pid,
       updateData,
@@ -230,6 +240,9 @@ export const updateProductController = async (req, res) => {
     });
   }
 };
+
+
+
 
 
 

@@ -22,13 +22,20 @@ const router = express.Router();
 
 //routes for create product
 // Apply formidable only to specific routes
-router.post("/create-product", requireSignIn, isAdmin, formidable(), createProductController);
+router.post(
+  "/create-product",
+  requireSignIn,
+  isAdmin,
+  formidable({ multiples: true, keepExtensions: true }),
+  createProductController
+);
+
 //routes
 router.put(
   "/update-product/:pid",
   requireSignIn,
   isAdmin,
-  formidable(),
+  formidable({ multiples: true, keepExtensions: true }),
   updateProductController
 );
 // get all product

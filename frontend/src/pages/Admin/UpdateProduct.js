@@ -112,49 +112,53 @@ const UpdateProduct = () => {
   };
 
   // ✅ Update product
-  const handleUpdate = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("quantity", quantity);
-      formData.append("brand", brand);
-      formData.append("color", color);
-      formData.append("size", size);
-      formData.append("shipping", shipping);
+  // ✅ Update product
+const handleUpdate = async () => {
+  try {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("quantity", quantity);
+    formData.append("brand", brand);
+    formData.append("color", color);
+    formData.append("size", size);
+    formData.append("shipping", shipping);
 
-      if (selectedCategories.length > 0)
-        formData.append("categories", JSON.stringify(selectedCategories));
-      if (selectedSubcategories.length > 0)
-        formData.append("subcategories", JSON.stringify(selectedSubcategories));
+    if (selectedCategories.length > 0)
+      formData.append("categories", JSON.stringify(selectedCategories));
+    if (selectedSubcategories.length > 0)
+      formData.append("subcategories", JSON.stringify(selectedSubcategories));
 
-      photos.forEach((photo) => {
-        if (photo instanceof File) {
-          formData.append("photos", photo);
-        }
-      });
-
-      const { data } = await axios.put(
-        `${API}/api/v1/product/update-product/${id}`,
-        formData,
-        {
-          headers: {
-            Authorization: auth?.token,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (data.success) {
-        toast.success("✅ Product updated");
-        navigate("/dashboard/admin/products");
+    // ✅ check কোন index এ File আছে
+    photos.forEach((photo, index) => {
+      if (photo instanceof File) {
+        formData.append("photos", photo);
+        formData.append("replaceIndex", index); // 🔑 backend এ জানিয়ে দিলাম কোন slot replace হবে
       }
-    } catch (error) {
-      console.log(error);
-      toast.error("Error updating product");
+    });
+
+    const { data } = await axios.put(
+      `${API}/api/v1/product/update-product/${id}`,
+      formData,
+      {
+        headers: {
+          Authorization: auth?.token,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (data.success) {
+      toast.success("✅ Product updated");
+      navigate("/dashboard/admin/products");
     }
-  };
+  } catch (error) {
+    console.log(error);
+    toast.error("Error updating product");
+  }
+};
+
 
   // ✅ Delete product
   const handleDelete = async () => {
