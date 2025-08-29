@@ -17,24 +17,26 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    discountPrice: { type: Number, default: 0 }, // optional
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true }, // proper ref
-    quantity: { type: Number, required: true },
-    brand: { type: String, required: false }, // optional
-    color: { type: String, required: false }, // optional
-    size: { type: String, required: false }, // optional
-photos: [{ data: Buffer, contentType: String }],
-categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
-subcategories: [String],
+    discountPrice: { type: Number, default: 0 },
 
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    subcategories: [String],
+
+    quantity: { type: Number, required: true },
+    brand: [{ type: String }],   // ⬅️ Array করে দিলাম
+    color: [{ type: String }],   // ⬅️ Array করে দিলাম
+    size: [{ type: String }],    // ⬅️ Array করে দিলাম
+
+    photos: [{ data: Buffer, contentType: String }],
     shipping: { type: Boolean, default: false },
 
-    // ⭐ Reviews
     reviews: [reviewSchema],
     averageRating: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
+
 
 // ✅ Helper function to calculate average rating
 productSchema.methods.calculateAverageRating = function () {

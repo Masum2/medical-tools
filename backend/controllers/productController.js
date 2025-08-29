@@ -13,21 +13,22 @@ export const createProductController = async (req, res) => {
       return res.status(400).send({ error: "Name, Price, Quantity, and Category are required" });
     }
 
-    const product = new productModel({
-      name,
-      slug: slugify(name), // ✅ slug add করা
-      description,
-      price,
-      quantity,
-      brand,
-      color,
-      size,
-      shipping,
-      category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0], // main category assign
-      categories: Array.isArray(categories) ? categories : JSON.parse(categories), // multiple categories
-      subcategories: subcategories ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories)) : [],
-    });
+  
 
+const product = new productModel({
+  name,
+  slug: slugify(name),
+  description,
+  price,
+  quantity,
+  brand: Array.isArray(brand) ? brand : JSON.parse(brand || "[]"),
+  color: Array.isArray(color) ? color : JSON.parse(color || "[]"),
+  size: Array.isArray(size) ? size : JSON.parse(size || "[]"),
+  shipping,
+  category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0],
+  categories: Array.isArray(categories) ? categories : JSON.parse(categories),
+  subcategories: subcategories ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories)) : [],
+});
 
     // photos handle
     if (req.files.photos) {
@@ -190,9 +191,10 @@ export const updateProductController = async (req, res) => {
         : [],
       quantity,
       shipping: shipping || false,
-      brand: brand || "",
-      color: color || "",
-      size: size || "",
+    brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand)) : [],
+color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
+size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
+
       discountPrice: discountPrice || 0,
       photos: existingProduct.photos, // আগের সব ছবি রেখে দাও
     };

@@ -26,12 +26,14 @@ const UpdateProduct = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [brand, setBrand] = useState("");
-  const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
+const [brand, setBrand] = useState([]);
+const [color, setColor] = useState([]);
+const [size, setSize] = useState([]);
   const [shipping, setShipping] = useState("");
   const [id, setId] = useState("");
-
+const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
+const colorOptions = ["Red", "Blue", "Green", "Black", "White"];
+const sizeOptions = ["S", "M", "L", "XL", "XXL"];
   // ✅ Load categories
   useEffect(() => {
     const getAllCategory = async () => {
@@ -58,9 +60,9 @@ const UpdateProduct = () => {
           setDescription(data.product.description);
           setPrice(data.product.price);
           setQuantity(data.product.quantity);
-          setBrand(data.product.brand);
-          setColor(data.product.color);
-          setSize(data.product.size);
+        setBrand(data.product.brand || []);
+setColor(data.product.color || []);
+setSize(data.product.size || []);
           setShipping(data.product.shipping ? "1" : "0");
           setSelectedCategories(data.product.categories || []);
           setSelectedSubcategories(data.product.subcategories || []);
@@ -120,9 +122,9 @@ const handleUpdate = async () => {
     formData.append("description", description);
     formData.append("price", price);
     formData.append("quantity", quantity);
-    formData.append("brand", brand);
-    formData.append("color", color);
-    formData.append("size", size);
+formData.append("brand", JSON.stringify(brand));
+formData.append("color", JSON.stringify(color));
+formData.append("size", JSON.stringify(size));
     formData.append("shipping", shipping);
 
     if (selectedCategories.length > 0)
@@ -291,27 +293,53 @@ const handleUpdate = async () => {
                   onChange={(e) => setQuantity(e.target.value)}
                   className="form-control mb-3"
                 />
-                <input
-                  type="text"
-                  placeholder="Brand"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  className="form-control mb-3"
-                />
-                <input
-                  type="text"
-                  placeholder="Color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="form-control mb-3"
-                />
-                <input
-                  type="text"
-                  placeholder="Size"
-                  value={size}
-                  onChange={(e) => setSize(e.target.value)}
-                  className="form-control mb-3"
-                />
+      {/* ✅ Brand Select */}
+<Select
+  mode="tags"
+  style={{ width: "100%" }}
+  placeholder="Select or add brands"
+  value={brand}
+  onChange={(val) => setBrand(val)}
+  className="mb-3"
+>
+  {brandOptions.map((b) => (
+    <Option key={b} value={b}>
+      {b}
+    </Option>
+  ))}
+</Select>
+
+{/* ✅ Color Select */}
+<Select
+  mode="tags"
+  style={{ width: "100%" }}
+  placeholder="Select or add colors"
+  value={color}
+  onChange={(val) => setColor(val)}
+  className="mb-3"
+>
+  {colorOptions.map((c) => (
+    <Option key={c} value={c}>
+      {c}
+    </Option>
+  ))}
+</Select>
+
+{/* ✅ Size Select */}
+<Select
+  mode="tags"
+  style={{ width: "100%" }}
+  placeholder="Select or add sizes"
+  value={size}
+  onChange={(val) => setSize(val)}
+  className="mb-3"
+>
+  {sizeOptions.map((s) => (
+    <Option key={s} value={s}>
+      {s}
+    </Option>
+  ))}
+</Select>
 
                 <Select
                   value={shipping}
