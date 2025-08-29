@@ -15,13 +15,32 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
-
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  console.log("Product list",product)
   // States
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ name: "", stars: 0, comment: "" });
   const [activeTab, setActiveTab] = useState("details");
+  const [selectedImage, setSelectedImage] = useState("");
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    if (product._id) {
+      const imgs = product.photos?.length
+        ? product.photos.map((_, index) =>
+          `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
+        )
+        : [`${API}/api/v1/product/product-photo/${product._id}`];
+
+      setImages(imgs);
+      setSelectedImage(imgs[0]);
+    }
+  }, [product]);
+
 
   // Fetch product
   useEffect(() => {
@@ -33,6 +52,7 @@ const ProductDetails = () => {
       const { data } = await axios.get(`${API}/api/v1/product/get-product/${params.slug}`);
       setProduct(data?.product);
       getSimilarProduct(data?.product._id, data?.product.category._id);
+
     } catch (error) {
       console.log(error);
     }
@@ -104,38 +124,79 @@ const ProductDetails = () => {
 
   return (
     <Layout>
-      <div className="container py-4">
+      <div className="container py-4 bg-white">
         <div className="row g-4">
           {/* LEFT IMAGE GALLERY */}
-          <div className="col-md-4">
-            <div className="bg-white rounded shadow-sm p-3">
-              <img
-                src={`${API}/api/v1/product/product-photo/${product._id}`}
-                alt={product.name}
-                className="img-fluid mb-3 rounded"
-              />
-              <div className="d-flex gap-2 justify-content-center">
-                {/* Placeholder thumbnails */}
-                {[1, 2, 3].map((t) => (
+          {/* LEFT IMAGE GALLERY */}
+          <div className="col-md-5">
+            <div className="bg-white rounded shadow-sm p-3 text-center">
+              {/* Main Image with Zoom */}
+              <div className="position-relative">
+                <img
+                  src={selectedImage}
+                  alt={product.name}
+                  className="img-fluid mb-3 rounded main-image"
+                  style={{
+                    maxHeight: "400px",
+                    objectFit: "contain",
+                    transition: "transform 0.3s ease",
+                    cursor: "zoom-in",
+                  }}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    e.currentTarget.style.transformOrigin = `${x}% ${y}%`;
+                    e.currentTarget.style.transform = "scale(1.8)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                />
+              </div>
+
+              {/* Thumbnails */}
+              <div className="d-flex gap-2 justify-content-center mt-3">
+                {images.slice(0, 5).map((img, index) => (
                   <img
-                    key={t}
-                    src={`${API}/api/v1/product/product-photo/${product._id}`}
-                    alt="thumb"
-                    className="img-thumbnail"
-                    style={{ width: "70px", height: "70px", objectFit: "cover" }}
+                    key={index}
+                    src={img}
+                    alt={`thumb-${index}`}
+                    className={`img-thumbnail ${selectedImage === img ? "border border-danger" : ""}`}
+                    style={{
+                      width: "70px",
+                      height: "70px",
+                      objectFit: "cover",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setSelectedImage(img)}
                   />
                 ))}
               </div>
             </div>
           </div>
 
+
           {/* CENTER DETAILS */}
-          <div className="col-md-5">
+          <div className="col-md-6">
             <h3 className="fw-bold mb-2">{product.name}</h3>
-            <div className="d-flex align-items-center gap-2 mb-2">
+
+            {/* Rating */}
+            <div className="d-flex justify-content-between ">
+     <div className="d-flex align-items-center gap-2 mb-2">
               {renderStars()} <span className="text-muted">{rating.toFixed(1)}</span>
               <span className="text-secondary">({reviews.length} reviews)</span>
             </div>
+            <div>
+          <p>Free shipping</p>
+            </div>
+            </div>
+       
+
+            {/* Price */}
+            <div className="d-flex justify-content-between">
+
+        
             <h4 className="text-danger fw-bold mb-3">
               ৳ {product.price}
               {product.oldPrice && (
@@ -143,8 +204,82 @@ const ProductDetails = () => {
               )}
               {product.discount && <span className="badge bg-danger ms-2">{product.discount}% OFF</span>}
             </h4>
+       {/* Stock */}
+            <div className={`fw-medium mb-3 ${product.stock && product.stock <= 5 ? "text-danger" : "text-success"}`}>
+              {product.stock && product.stock <= 5 ? <><FaFire /> Only {product.stock} left — order soon!</> : "In Stock"}
+            </div>
+    </div>
+          
 
-            <p className="text-muted">{product.description}</p>
+            {/* Optional brand/color/size */}
+            {/* Color Selector */}
+            {product.color && (
+              <div className="mb-3">
+                <strong>Color:</strong>
+                <div className="d-flex gap-2 mt-1">
+                  {product.color.map((c, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedColor(c)}
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        backgroundColor: c,
+                        cursor: "pointer",
+                        border: selectedColor === c ? "2px solid red" : "1px solid #ccc",
+                        transition: "0.2s",
+                      }}
+                    ></div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Brand Selector */}
+            {product.brand && (
+              <div className="mb-3 d-flex">
+                <strong style={{marginRight:'15px'}} >Brand:</strong>
+                <div className="d-flex gap-2 mt-1">
+                  {product.brand.map((b, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedBrand(b)}
+                      className={`btn btn-outline-secondary btn-sm`}
+                      style={{
+                        borderColor: selectedBrand === b ? "red" : "#ccc",
+                        backgroundColor: selectedBrand === b ? "#ffe6e6" : "#fff",
+                      }}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Size Selector */}
+            {product.size && (
+              <div className="mb-3 d-flex">
+                <strong style={{marginRight:'15px'}}>Size:</strong>
+                <div className="d-flex gap-2 mt-1 ">
+                  {product.size.map((s, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedSize(s)}
+                      className={`btn btn-outline-secondary btn-sm`}
+                      style={{
+                        borderColor: selectedSize === s ? "red" : "#ccc",
+                        backgroundColor: selectedSize === s ? "#ffe6e6" : "#fff",
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
 
             {/* Quantity Selector */}
             <div className="d-flex align-items-center mb-3">
@@ -154,10 +289,7 @@ const ProductDetails = () => {
               <button onClick={() => handleQuantityChange("inc")} className="btn btn-outline-secondary btn-sm">+</button>
             </div>
 
-            {/* Stock */}
-            <div className={`fw-medium mb-3 ${product.stock && product.stock <= 5 ? "text-danger" : "text-success"}`}>
-              {product.stock && product.stock <= 5 ? <><FaFire /> Only {product.stock} left — order soon!</> : "In Stock"}
-            </div>
+       
 
             {/* Buttons */}
             <div className="d-flex gap-3">
@@ -176,25 +308,16 @@ const ProductDetails = () => {
           </div>
 
           {/* RIGHT DELIVERY INFO */}
-          <div className="col-md-3">
-            <div className="bg-light rounded p-3 shadow-sm">
-              <h6 className="fw-bold">Delivery</h6>
-              <p className="text-muted small">Fast delivery available in your area</p>
-              <h6 className="fw-bold">Return Policy</h6>
-              <p className="text-muted small">Free return within 7 days of delivery</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* TABS SECTION */}
+        </div>
+             {/* TABS SECTION */}
       <div className="container mt-5">
         <ul className="nav nav-tabs">
           <li className="nav-item">
             <button className={`nav-link ${activeTab === "details" ? "active" : ""}`} onClick={() => setActiveTab("details")}>Product Details</button>
           </li>
           <li className="nav-item">
-            <button className={`nav-link ${activeTab === "specs" ? "active" : ""}`} onClick={() => setActiveTab("specs")}>Specifications</button>
+            <button className={`nav-link ${activeTab === "policy" ? "active" : ""}`} onClick={() => setActiveTab("policy")}>Policy</button>
           </li>
           <li className="nav-item">
             <button className={`nav-link ${activeTab === "seller" ? "active" : ""}`} onClick={() => setActiveTab("seller")}>Seller</button>
@@ -209,7 +332,12 @@ const ProductDetails = () => {
 
         <div className="tab-content border p-4 bg-white shadow-sm">
           {activeTab === "details" && <p>{product.description}</p>}
-          {activeTab === "specs" && <p>Specifications will go here...</p>}
+          {activeTab === "policy" && <div className="bg-light rounded p-3 shadow-sm">
+            <h6 className="fw-bold">Delivery</h6>
+            <p className="text-muted small">Fast delivery available in your area</p>
+            <h6 className="fw-bold">Return Policy</h6>
+            <p className="text-muted small">Free return within 7 days of delivery</p>
+          </div>}
           {activeTab === "seller" && <p>Seller info will go here...</p>}
           {activeTab === "reviews" && (
             <>
@@ -258,8 +386,7 @@ const ProductDetails = () => {
           {activeTab === "questions" && <p>No questions yet. Be the first to ask!</p>}
         </div>
       </div>
-
-      {/* SIMILAR PRODUCTS */}
+            {/* SIMILAR PRODUCTS */}
       <div className="similar-products container my-5">
         <h4 className="fw-bold mb-4">You might also like</h4>
         <div className="row">
@@ -280,6 +407,11 @@ const ProductDetails = () => {
           {relatedProducts.length < 1 && <p>No Similar Products found</p>}
         </div>
       </div>
+      </div>
+
+ 
+
+
     </Layout>
   );
 };

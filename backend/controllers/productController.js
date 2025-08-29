@@ -54,8 +54,8 @@ export const getProductController = async (req, res) => {
   try {
     const products = await productModel
       .find({})
-      .populate("category")
-      .select("-photo")
+      .populate("category", "name slug") // শুধু দরকারি ফিল্ড
+      .select("-photos.data")            // buffer বাদ দিলাম
       .limit(12)
       .sort({ createdAt: -1 });
 

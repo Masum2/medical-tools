@@ -24,6 +24,7 @@ const CreateProduct = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+    const [discountPrice, setDiscountPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [color, setColor] = useState("");
@@ -96,6 +97,7 @@ const sizeOptions = ["S", "M", "L", "XL", "XXL"];
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("discountPrice", discountPrice);
       formData.append("quantity", quantity);
      formData.append("brand", JSON.stringify(brand));
 formData.append("color", JSON.stringify(color));
@@ -253,6 +255,13 @@ formData.append("size", JSON.stringify(size));
                   placeholder="Price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
+                  className="form-control mb-3"
+                />
+                   <input
+                  type="number"
+                  placeholder="Discount Price"
+                  value={discountPrice}
+                  onChange={(e) => setDiscountPrice(e.target.value)}
                   className="form-control mb-3"
                 />
                 <input
