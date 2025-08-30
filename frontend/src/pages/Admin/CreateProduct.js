@@ -8,7 +8,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { Editor } from "@tinymce/tinymce-react";
-
+import { AiOutlineCloseCircle } from "react-icons/ai"; // ✅ React Icons close
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -32,7 +32,34 @@ const CreateProduct = () => {
   const [shipping, setShipping] = useState("");
 // Predefined values
 const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
-const colorOptions = ["Red", "Blue", "Green", "Black", "White"];
+const colorOptions = [
+  "Red",
+  "Blue",
+  "Green",
+  "Black",
+  "White",
+  "Yellow",
+  "Orange",
+  "Pink",
+  "Purple",
+  "Brown",
+  "Gray",
+  "Silver",
+  "Gold",
+  "Navy Blue",
+  "Sky Blue",
+  "Maroon",
+  "Olive",
+  "Teal",
+  "Beige",
+  "Cream",
+  "Peach",
+  "Violet",
+  "Turquoise",
+  "Lavender",
+  "Charcoal"
+];
+
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
   // Load categories
@@ -155,54 +182,85 @@ formData.append("size", JSON.stringify(size));
             <div className="row" style={{ marginLeft: "10px" }}>
               <div className="col-md-9">
                 {/* Product Images Upload */}
-                <div className="mb-3 ">
-                  <h5 className="mb-2">
-                    Product Images <span className="text-danger">*</span>
-                  </h5>
-                  <small className="text-muted d-block mb-3">
-                    Upload between 1 to 5 images
-                  </small>
+             {/* Product Images Upload */}
+<div className="mb-3 ">
+  <h5 className="mb-2">
+    Product Images <span className="text-danger">*</span>
+  </h5>
+  <small className="text-muted d-block mb-3">
+    Upload between 1 to 5 images
+  </small>
 
-                  <div className="d-flex flex-wrap gap-3">
-                    {[...Array(5)].map((_, i) => (
-                      <label
-                        key={i}
-                        className="rounded d-flex align-items-center justify-content-center"
-                        style={{
-                          width: "100px",
-                          height: "120px",
-                          cursor: "pointer",
-                          border: "2px dashed #00a297",
-                        }}
-                      >
-                        {photos[i] ? (
-                          <img
-                            src={URL.createObjectURL(photos[i])}
-                            alt="preview"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              borderRadius: "6px",
-                            }}
-                          />
-                        ) : (
-                          <PlusOutlined
-                            style={{ fontSize: "28px", color: "#555" }}
-                          />
-                        )}
+  <div className="d-flex flex-wrap gap-3">
+    {[...Array(5)].map((_, i) => (
+      <div
+        key={i}
+        style={{
+          position: "relative",
+          width: "100px",
+          height: "120px",
+        }}
+      >
+        <label
+          className="rounded d-flex align-items-center justify-content-center"
+          style={{
+            width: "100%",
+            height: "100%",
+            cursor: "pointer",
+            border: "2px dashed #00a297",
+            borderRadius: "6px",
+            overflow: "hidden",
+          }}
+        >
+          {photos[i] ? (
+            <img
+              src={URL.createObjectURL(photos[i])}
+              alt="preview"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <PlusOutlined
+              style={{ fontSize: "28px", color: "#555" }}
+            />
+          )}
 
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          hidden
-                          onChange={(e) => handlePhotoChange(e, i)}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => handlePhotoChange(e, i)}
+          />
+        </label>
+
+        {/* ✅ React Icons close button */}
+        {photos[i] && (
+          <AiOutlineCloseCircle
+            style={{
+              position: "absolute",
+              top: "-8px",
+              right: "-8px",
+              fontSize: "22px",
+              color: "red",
+              cursor: "pointer",
+              background: "white",
+              borderRadius: "50%",
+            }}
+            onClick={() => {
+              const updatedPhotos = [...photos];
+              updatedPhotos[i] = null;
+              setPhotos(updatedPhotos);
+            }}
+          />
+        )}
+      </div>
+    ))}
+  </div>
+</div>
 
                 <input
                   type="text"

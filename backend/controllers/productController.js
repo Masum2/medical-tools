@@ -7,7 +7,7 @@ import slugify from "slugify";
 // Create Product
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price, quantity, brand, color, size, shipping, categories, subcategories } = req.fields;
+    const { name, description, price,discountPrice, quantity, brand, color, size, shipping, categories, subcategories } = req.fields;
 
     if (!name || !price || !quantity || !categories) {
       return res.status(400).send({ error: "Name, Price, Quantity, and Category are required" });
@@ -20,6 +20,7 @@ const product = new productModel({
   slug: slugify(name),
   description,
   price,
+  discountPrice,
   quantity,
   brand: Array.isArray(brand) ? brand : JSON.parse(brand || "[]"),
   color: Array.isArray(color) ? color : JSON.parse(color || "[]"),

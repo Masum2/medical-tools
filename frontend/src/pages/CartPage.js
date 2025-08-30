@@ -11,7 +11,7 @@ const CartPage = () => {
   const [auth] = useAuth();
   const [cart, setCart] = useCart();
   const navigate = useNavigate();
-const API = process.env.REACT_APP_API;
+  const API = process.env.REACT_APP_API;
   const incrementQty = (pid) => {
     const newCart = cart.map((item) =>
       item._id === pid ? { ...item, quantity: (item.quantity || 1) + 1 } : item
@@ -48,7 +48,7 @@ const API = process.env.REACT_APP_API;
 
   return (
     <Layout>
-      <div className="container py-5 " 
+      <div className="container py-5 "
       // style={{backgroundColor:'#F5FAFA'}} 
       >
         <div className="row">
@@ -67,6 +67,7 @@ const API = process.env.REACT_APP_API;
                   }}
                 >
                   <div style={{ flex: 1 }}>Product</div>
+                  <div style={{ width: "80px", textAlign: "center" }}>Color</div>
                   <div style={{ width: "80px", textAlign: "center" }}>Price</div>
                   <div style={{ width: "100px", textAlign: "center" }}>Quantity</div>
                   <div style={{ width: "90px", textAlign: "right" }}>Total</div>
@@ -107,9 +108,24 @@ const API = process.env.REACT_APP_API;
                     </div>
 
                     {/* Price */}
+                    {/* Price */}
                     <div style={{ width: "80px", textAlign: "center", fontSize: "14px" }}>
-                      ${item.price.toFixed(2)}
+
+                      {item.color}
                     </div>
+
+                    {/* Total Price */}
+                    <div
+                      style={{
+                        width: "90px",
+                        textAlign: "right",
+                        fontWeight: "500",
+                        color: "#42BAC9",
+                      }}
+                    >
+                      ${((Number(item.price) || 0) * (item.quantity || 1)).toFixed(2)}
+                    </div>
+
 
                     {/* Quantity */}
                     <div
@@ -142,16 +158,16 @@ const API = process.env.REACT_APP_API;
                     </div>
 
                     {/* Total Price */}
+                    {/* Total Price */}
                     <div
                       style={{
                         width: "90px",
                         textAlign: "right",
                         fontWeight: "500",
                         color: "#42BAC9",
-                     
                       }}
                     >
-                      ${(item.price * (item.quantity || 1)).toFixed(2)}
+                      ${((Number(item.price) || 0) * (item.quantity || 1)).toFixed(2)}
                     </div>
 
                     {/* Remove Button */}
@@ -179,7 +195,7 @@ const API = process.env.REACT_APP_API;
           {/* RIGHT: Order Summary */}
           <div className="col-md-4"
           //  style={{   marginTop:"45px"}}
-           >
+          >
             {cart.length > 0 && (
               <div
                 className="p-4"

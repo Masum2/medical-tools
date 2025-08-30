@@ -30,7 +30,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["bkash", "nogod", "cod"],
+      enum: ["bkash", "nogod", "cod","bank"],
       required: true,
     },
     paymentStatus: {

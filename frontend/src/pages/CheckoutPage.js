@@ -164,7 +164,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Method */}
-              <div className="mb-3">
+              {/* <div className="mb-3">
                 <label className="form-label d-block">Select Payment Method</label>
                 <div className="d-flex gap-3 flex-wrap">
                   {[
@@ -214,7 +214,110 @@ const CheckoutPage = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
+              {/* Payment Method */}
+{/* Payment Method */}
+<div className="mb-3">
+  <label className="form-label d-block">Select Payment Method</label>
+  <div className="d-flex gap-3 flex-wrap">
+    {[
+      { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
+      { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
+      { id: "bank", label: "Bank", img: "/images/bank.jpg" },
+      { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
+    ].map((pm) => (
+      <div
+        key={pm.id}
+        className="p-3 rounded-3 text-center flex-fill"
+        style={{
+          cursor: "pointer",
+          width: "180px",
+          border:
+            formData.paymentMethod === pm.id
+              ? "2px solid #42BAC9"
+              : "1px solid #e5e7eb",
+          boxShadow:
+            formData.paymentMethod === pm.id
+              ? "12px 4px 12px rgba(66,186,201,0.4)"
+              : "0 2px 6px rgba(0,0,0,0.05)",
+          transition: "all 0.2s ease-in-out",
+        }}
+        onClick={() =>
+          setFormData({ ...formData, paymentMethod: pm.id })
+        }
+      >
+        <img
+          src={pm.img}
+          alt={pm.label}
+          style={{
+            width: "100%",
+            height: "80px",
+            objectFit: "contain",
+            marginBottom: "6px",
+          }}
+        />
+        <span
+          style={{
+            fontSize: "14px",
+            fontWeight:
+              formData.paymentMethod === pm.id ? "600" : "400",
+            color:
+              formData.paymentMethod === pm.id ? "#42BAC9" : "#333",
+          }}
+        >
+          {pm.label}
+        </span>
+      </div>
+    ))}
+  </div>
+
+  {/* Smooth extra info */}
+  <div
+    style={{
+      maxHeight:
+        formData.paymentMethod === "bkash" ||
+        formData.paymentMethod === "nogod" ||
+        formData.paymentMethod === "bank"
+          ? "300px"
+          : "0",
+      overflow: "hidden",
+      transition: "max-height 0.4s ease",
+    }}
+    className="mt-3"
+  >
+    {formData.paymentMethod === "bkash" && (
+      <div className="p-3 border rounded bg-light">
+        <h6>Bkash Payment Information</h6>
+        <p>Merchant Number: <strong>017XXXXXXXX</strong></p>
+        <p>Account Type: <strong>Personal</strong></p>
+        <p>Address: <strong>Dhaka, Bangladesh</strong></p>
+      </div>
+    )}
+
+    {formData.paymentMethod === "nogod" && (
+      <div className="p-3 border rounded bg-light">
+        <h6>Nagad Payment Information</h6>
+        <p>Merchant Number: <strong>018XXXXXXXX</strong></p>
+        <p>Account Type: <strong>Business</strong></p>
+        <p>Address: <strong>Chattogram, Bangladesh</strong></p>
+      </div>
+    )}
+
+    {formData.paymentMethod === "bank" && (
+      <div className="p-3 border rounded bg-light">
+        <h6>Bank Payment Information</h6>
+        <p>Bank Name: <strong>City Bank Limited.</strong></p>
+         <p>Account Name: <strong> NF KART.COM.</strong></p>
+        <p>Account Number: <strong>1781910005699</strong></p>
+        <p>Branch: <strong>cityislamic (Bijoy Nagar Paltion Dhaka-1000)</strong></p>
+        <p>Routing Number: <strong>225272868</strong></p>
+     
+      </div>
+    )}
+  </div>
+</div>
+
+
             </div>
           </div>
 
