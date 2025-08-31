@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema(
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     subcategories: [String],
 
-    quantity: { type: Number, required: true },
+    quantity: { type: Number, required: false },
     brand: [{ type: String }],   // ⬅️ Array করে দিলাম
     color: [{ type: String }],   // ⬅️ Array করে দিলাম
     size: [{ type: String }],    // ⬅️ Array করে দিলাম

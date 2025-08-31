@@ -108,7 +108,7 @@ const Shop = () => {
                 <div className="flex-1 flex justify-center relative">
                   <div className="category-tag">Health Tools</div>
                   <img
-                    src="/images/slider2.jpg"
+                    src="/images/slider7.jpg"
                     alt="Health Tools"
                     className="w-full max-w-md object-contain"
                     style={{ height: "400px" }}
@@ -317,11 +317,28 @@ const Shop = () => {
                     </h6>
                     <div
                       style={{ cursor: "pointer", color: "#FFF", fontWeight: "bold", backgroundColor: '#00a297', padding: '4px', borderRadius: '2px' }}
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem("cart", JSON.stringify([...cart, p]));
-                        toast.success("Item added to cart");
-                      }}
+                     onClick={() => {
+                            const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+                            // Check if product already exists
+                            const found = existingCart.find((item) => item._id === p._id);
+
+                            if (found) {
+                              toast.error("Item already added to cart");
+                            } else {
+                              const cartItem = {
+                                _id: p._id,
+                                name: p.name,
+                                price: p.price,
+                                quantity: 1,
+                                image: `${API}/api/v1/product/product-photo/${p._id}`,
+                              };
+                              const updatedCart = [...existingCart, cartItem];
+                              setCart(updatedCart);
+                              localStorage.setItem("cart", JSON.stringify(updatedCart));
+                              toast.success("Item added to cart");
+                            }
+                          }}
                     >
                       <IoCartOutline />
                     </div>

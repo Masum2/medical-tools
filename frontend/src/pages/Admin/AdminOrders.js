@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import axios from "axios";
-
+import { useRef } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/auth";
 import Layout from "../../components/Layout/Layout";
@@ -18,7 +18,13 @@ const AdminOrders = () => {
   const [filters, setFilters] = useState({ status: "", paymentMethod: "", buyerEmail: "" });
   const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  console.log("selectedOrder",selectedOrder)
 const [showModal, setShowModal] = useState(false);
+
+ const handlePrint = () => {
+    window.print();
+  };
+console.log("All order",orders)
 const API = process.env.REACT_APP_API;
 const navigate = useNavigate();
   const fetchOrders = async (page = 1) => {
@@ -236,51 +242,196 @@ const navigate = useNavigate();
   <div
     className="modal show d-block"
     tabIndex="-1"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }} // backdrop color
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
     onClick={() => setShowModal(false)}
   >
     <div
       className="modal-dialog modal-lg modal-dialog-centered"
-      style={{ maxWidth: "700px" }}
+      style={{ maxWidth: "800px" }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="modal-content shadow-lg rounded-3">
+        
         {/* Header */}
-        <div className="modal-header bg-primary text-white">
-          <h5 className="modal-title">Order #{selectedOrder._id}</h5>
+        <div className="modal-header text-black">
+          <h5 className="modal-title">Print Invoice for selected items</h5>
           <button
             type="button"
-            className="btn-close btn-close-white"
+            className="btn-close btn-close-black"
             onClick={() => setShowModal(false)}
           ></button>
         </div>
 
-        {/* Body */}
-        <div className="modal-body" style={{ maxHeight: "400px", overflowY: "auto" }}>
-          {selectedOrder.products.map((p, idx) => (
-            <div
-              key={idx}
-              className="d-flex justify-content-between align-items-center border-bottom py-2"
-            >
-              <div>
-                <strong>{p.product?.name || "Deleted Product"}</strong> x {p.quantity}
-                {p.product?.description && (
-                  <div className="text-muted small">{p.product.description}</div>
-                )}
-              </div>
-              <div>${(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}</div>
-            </div>
-          ))}
+        {/* Print Button */}
+        <div style={{ padding: "10px" }}>
+          <button className="btn btn-primary" onClick={() => window.print()}>
+            Print
+          </button>
+        </div>
 
-          {/* Total */}
-          <div className="text-end mt-3 fs-5 fw-bold">
-            Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+        {/* Print CSS */}
+        <style>
+          {`
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              .print-section, .print-section * {
+                visibility: visible;
+              }
+              .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                box-sizing: border-box;
+              }
+
+              /* Force background colors to print */
+              .print-section * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+
+              /* Remove modal restrictions */
+              .modal, .modal-dialog, .modal-content, .modal-body {
+                all: unset;
+              }
+
+              /* Set proper A4 page size */
+              @page {
+                size: A4;
+                margin: 20mm;
+              }
+            }
+          `}
+        </style>
+<div style={{margin:'mx-4'}}>
+    {/* Print Section Start */}
+        <div className="print-section p-4" >
+          {/* Banner */}
+          <div
+            style={{
+              margin: "20px 0",
+              backgroundColor: "rgb(0, 162, 151)",
+              padding: "10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              borderRadius: "5px"
+            }}
+            className="text-white"
+          >
+            <img
+              src="/images/newlogo.png"
+              style={{ width: "50px", height: "50px" }}
+              alt="logo"
+            />
+            <div>
+              <p style={{ margin: 0, fontWeight: "bold" }}>HealthProo</p>
+              <p style={{ margin: 0 }}>Purchase Summary</p>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div>
+            {/* Order Details */}
+            <h6 className="fw-bold mb-2">Order Details</h6>
+            <table className="table table-bordered table-sm">
+              <tbody>
+                <tr>
+                  <th>Order Id</th>
+                  <td>{selectedOrder._id}</td>
+                  <th>Order Date</th>
+                  <td>{new Date(selectedOrder.createdAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Paid By</th>
+                  <td>{selectedOrder.paymentMethod || "Cash on Delivery"}</td>
+                  <th>Phone</th>
+                  <td>{selectedOrder?.shippingInfo?.phone}</td>
+                </tr>
+                <tr>
+                  <th>Deliver To</th>
+                  <td>
+                    {selectedOrder?.shippingInfo?.firstName}{" "}
+                    {selectedOrder?.shippingInfo?.lastName}
+                  </td>
+                  <th>Email</th>
+                  <td>{selectedOrder?.shippingInfo?.email}</td>
+                </tr>
+                <tr>
+                  <th>Deliver Address</th>
+                  <td colSpan="3">
+                    {selectedOrder?.shippingInfo?.address},{" "}
+                    {selectedOrder?.shippingInfo?.city},{" "}
+                    {selectedOrder?.shippingInfo?.postalCode}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Items Table */}
+            <h6 className="fw-bold mt-4 mb-2">Items</h6>
+            <table className="table table-bordered table-striped">
+              <thead className="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>SKU</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Item Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedOrder.products.map((p, idx) => (
+                  <tr key={idx}>
+                    <td>{idx + 1}</td>
+                    <td>{p.product?.name || "Deleted Product"}</td>
+                    <td>{p.product?.sku || "-"}</td>
+                    <td>{p.quantity}</td>
+                    <td>${(p.product?.price || 0).toFixed(2)}</td>
+                    <td>
+                      ${(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Totals */}
+            <div className="d-flex flex-column align-items-end mt-3">
+              <div>
+                <strong>Subtotal:</strong> $
+                {Number(selectedOrder.subTotal || 0).toFixed(2)}
+              </div>
+              <div>
+                <strong>Shipping Fee:</strong> $
+                {Number(selectedOrder.shippingFee || 0).toFixed(2)}
+              </div>
+              <div>
+                <strong>Discount:</strong> -$
+                {Number(selectedOrder.discount || 0).toFixed(2)}
+              </div>
+              <div className="fs-5 fw-bold border-top pt-2">
+                Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+              </div>
+            </div>
           </div>
         </div>
+        {/* Print Section End */}
+</div>
+      
 
         {/* Footer */}
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowModal(false)}
+          >
             Close
           </button>
         </div>
@@ -288,6 +439,7 @@ const navigate = useNavigate();
     </div>
   </div>
 )}
+
 
             </div>
         </div>
