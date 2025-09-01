@@ -3,8 +3,8 @@ import AdminMenu from "../../components/Layout/AdminMenu";
 import Layout from "./../../components/Layout/Layout";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
-import { TiEyeOutline } from "react-icons/ti";import { RiDeleteBinLine } from "react-icons/ri";
+import { Link, NavLink } from "react-router-dom";
+import { TiEyeOutline } from "react-icons/ti"; import { RiDeleteBinLine } from "react-icons/ri";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,94 +57,113 @@ const Products = () => {
   };
 
   return (
-    <div className="container-fluid">
-      <div className="row">
+    <div className="container-fluid p-0">
+      <div className="row g-0">
         {/* Sidebar */}
-        <div className="col-md-2 p-0">
+        <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
           <AdminMenu />
         </div>
 
+
         {/* Main Content */}
-        <div className="col-md-10">
-          {/* Header start */}
+        {/* Main Content */}
+        <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+          {/* Top Header */}
           <div
-            className="container d-flex justify-content-center align-items-center text-white flex-wrap"
-            style={{ background: "#007580", padding: "5px" }}
+            className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
+            style={{
+              background: "#001219", position: "sticky",
+              top: 0,
+              overflowY: "auto",
+            }}
           >
-            <p>
-              <strong>All Product</strong>
-            </p>
+            <NavLink
+              to="/"
+              style={{
+
+                fontSize: "18px",
+                margin: "6px 0 6px 20px",
+                textDecoration: 'none',
+
+                color: '#FFF', backgroundColor: '#0d1b2a'
+
+              }}
+            >
+              All Product
+            </NavLink>
+
           </div>
           {/* Header end */}
-
-          <div className="table-responsive">
-            {loading ? (
-              <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ height: "200px" }}
-              >
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
+          <div style={{ padding: '20px' }}>
+            <div className="table-responsive" >
+              {loading ? (
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{ height: "200px" }}
+                >
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <table className="table table-bordered table-hover align-middle">
-                <thead className="table-info text-center">
-                  <tr>
-                    <th>SN</th>
-                    <th>Product Code</th>
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Brand</th>
-                    <th>Color</th>
-                    <th>Size</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="text-center">
-                  {products?.map((p, index) => (
-                    <tr key={p._id}>
-                      <td>{index + 1}</td>
-                      <td>{`HP-${1000 + index + 1}`}</td>
-                      <td>{p.name?.substring(0, 20)}</td>
-                      <td>
-                        <img
-                          src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
-                          alt={p.name}
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            objectFit: "cover",
-                          }}
-                          className="rounded"
-                        />
-                      </td>
-                      <td>{p.brand?.join(", ")}</td>
-                      <td>{p.color?.join(", ")}</td>
-                      <td>{p.size?.join(", ")}</td>
-                      <td>{p.quantity}</td>
-                      <td>{p.price}</td>
-                      <td>
-                        <Link
-                          to={`/dashboard/admin/product/${p.slug}`}
-                          className="btn btn-sm btn-info me-2"
-                        >
-                         <TiEyeOutline />
-                        </Link>
-                        <button
-                          onClick={() => openDeleteModal(p._id)}
-                          className="btn btn-sm btn-danger"
-                        >
-                         <RiDeleteBinLine />
-                        </button>
-                      </td>
+              ) : (
+                <table className="table table-bordered table-hover align-middle">
+                  <thead className="table-info text-center">
+                    <tr>
+                      <th>SN</th>
+                      <th>Product Code</th>
+                      <th>Name</th>
+                      <th>Image</th>
+                      <th>Brand</th>
+                      <th>Color</th>
+                      <th>Size</th>
+                      <th>Quantity</th>
+                      <th>Price</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody className="text-center">
+                    {products?.map((p, index) => (
+                      <tr key={p._id}>
+                        <td>{index + 1}</td>
+                        <td>{`HP-${1000 + index + 1}`}</td>
+                        <td>{p.name?.substring(0, 20)}</td>
+                        <td>
+                          <img
+                            src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
+                            alt={p.name}
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                            }}
+                            className="rounded"
+                          />
+                        </td>
+                        <td>{p.brand?.join(", ")}</td>
+                        <td>{p.color?.join(", ")}</td>
+                        <td>{p.size?.join(", ")}</td>
+                        <td>{p.quantity}</td>
+                        <td>{p.price}</td>
+                        <td>
+                          <Link
+                            to={`/dashboard/admin/product/${p.slug}`}
+                            className="btn btn-sm btn-info me-2"
+                          >
+                            <TiEyeOutline />
+                          </Link>
+                          <button
+                            onClick={() => openDeleteModal(p._id)}
+                            className="btn btn-sm btn-danger"
+                          >
+                            <RiDeleteBinLine />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       </div>

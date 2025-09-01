@@ -14,28 +14,29 @@ export const createOrderController = async (req, res) => {
       postalCode,
       district,
       paymentMethod,
-    } = req.body;
+    } = req.fields;  // 🟢 req.fields instead of req.body
 
-    if (!cart || cart.length === 0) {
+    const { paymentScreenshot } = req.files; // 🟢 file আলাদা জায়গায় থাকবে
+
+    if (!cart) {
       return res.status(400).send({ success: false, error: "Cart is empty" });
     }
 
-    if (!firstName || !lastName || !email || !phone || !address || !city || !postalCode || !district) {
-      return res.status(400).send({ success: false, error: "All fields are required" });
-    }
-
-    if (!paymentMethod) {
-      return res.status(400).send({ success: false, error: "Payment method is required" });
+    let parsedCart = [];
+    try {
+      parsedCart = JSON.parse(cart); // 🟢 কারণ frontend থেকে string পাঠাবে
+    } catch (err) {
+      return res.status(400).send({ success: false, error: "Invalid cart format" });
     }
 
     // calculate total
-    const totalAmount = cart.reduce(
+    const totalAmount = parsedCart.reduce(
       (acc, item) => acc + item.price * (item.quantity || 1),
       0
     );
 
     const order = await orderModel.create({
-      products: cart.map((item) => ({
+      products: parsedCart.map((item) => ({
         product: item._id,
         quantity: item.quantity || 1,
       })),
@@ -51,6 +52,7 @@ export const createOrderController = async (req, res) => {
         district,
       },
       paymentMethod,
+      paymentScreenshot: paymentScreenshot?.path || null, // লোকাল path save
       totalAmount,
     });
 
@@ -64,6 +66,7 @@ export const createOrderController = async (req, res) => {
     res.status(500).send({ success: false, error: "Failed to create order" });
   }
 };
+
 // get user orders
 export const getOrdersController = async (req, res) => {
   try {

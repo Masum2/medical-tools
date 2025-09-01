@@ -5,11 +5,11 @@ import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 import { createOrderController, getAllOrdersController, getOrdersController, updateOrderStatusController } from "../controllers/orderController.js";
 import orderModel from "../models/orderModel.js";
 
-
+import formidable from "express-formidable";
 const router = express.Router();
 
 // create order route
-router.post("/create-order", requireSignIn, createOrderController);
+router.post("/create-order", requireSignIn,formidable(), createOrderController);
 // get my orders
 router.get("/get-orders", requireSignIn, getOrdersController);
 

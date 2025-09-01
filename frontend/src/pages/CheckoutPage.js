@@ -10,6 +10,19 @@ const CheckoutPage = () => {
   const [cart, setCart] = useCart();
   const [auth] = useAuth();
   const navigate = useNavigate();
+  const [screenshot, setScreenshot] = useState(null);
+  const [screenshotPreview, setScreenshotPreview] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState("");
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setScreenshot(file);
+      setScreenshotPreview(URL.createObjectURL(file));
+    }
+  };
+
   const API = process.env.REACT_APP_API;
   // Form State
   const [formData, setFormData] = useState({
@@ -34,29 +47,52 @@ const CheckoutPage = () => {
   };
 
   // handle order
-  const handleOrder = async () => {
-    try {
-      const { data } = await axios.post(
-        `${API}/api/v1/order/create-order`,
-        { cart, ...formData }, 
-        {
-          headers: { Authorization: auth?.token },
-        }
-      );
+// handle order
+const handleOrder = async (paymentMethod) => {
+  try {
+    const formDataToSend = new FormData();
 
-      if (data?.success) {
-        toast.success("Order placed successfully");
-        setCart([]);
-        localStorage.removeItem("cart");
-        navigate("/");
-      } else {
-        toast.error(data?.error || "Something went wrong");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Order failed");
+    formDataToSend.append("cart", JSON.stringify(cart));
+    formDataToSend.append("firstName", formData.firstName);
+    formDataToSend.append("lastName", formData.lastName);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("phone", formData.phone);
+    formDataToSend.append("address", formData.address);
+    formDataToSend.append("city", formData.city);
+    formDataToSend.append("postalCode", formData.postalCode);
+    formDataToSend.append("district", formData.district);
+    formDataToSend.append("paymentMethod", paymentMethod);
+
+    // শুধুমাত্র cod না হলে screenshot লাগবে
+    if (paymentMethod !== "cod" && screenshot) {
+      formDataToSend.append("paymentScreenshot", screenshot);
     }
-  };
+
+    const { data } = await axios.post(
+      `${API}/api/v1/order/create-order`,
+      formDataToSend,
+      {
+        headers: {
+          Authorization: auth?.token,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (data?.success) {
+      toast.success("Order placed successfully");
+      setCart([]);
+      localStorage.removeItem("cart");
+      navigate("/");
+    } else {
+      toast.error(data?.error || "Something went wrong");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Order failed");
+  }
+};
+
 
   return (
     <Layout>
@@ -129,11 +165,22 @@ const CheckoutPage = () => {
 
               <div className="row">
                 <div className="col-md-4 mb-3">
-                  <label className="form-label">City</label>
+                  <label className="form-label">District</label>
+                  <input
+                    type="text"
+                    name="district"
+                    placeholder="District"
+                    className="form-control"
+                    value={formData.district}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="col-md-4 mb-3">
+                  <label className="form-label">Upozila/Thana</label>
                   <input
                     type="text"
                     name="city"
-                    placeholder="City"
+                    placeholder="Upozila/Thana"
                     className="form-control"
                     value={formData.city}
                     onChange={handleChange}
@@ -150,174 +197,8 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="col-md-4 mb-3">
-                  <label className="form-label">District</label>
-                  <input
-                    type="text"
-                    name="district"
-                    placeholder="District"
-                    className="form-control"
-                    value={formData.district}
-                    onChange={handleChange}
-                  />
-                </div>
+
               </div>
-
-              {/* Payment Method */}
-              {/* <div className="mb-3">
-                <label className="form-label d-block">Select Payment Method</label>
-                <div className="d-flex gap-3 flex-wrap">
-                  {[
-                    { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
-                    { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
-                    { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
-                  ].map((pm) => (
-                    <div
-                      key={pm.id}
-                      className={`p-3  rounded-3 text-center flex-fill`}
-                      style={{
-                        cursor: "pointer",
-                        width: "180px",
-                        border:
-                          formData.paymentMethod === pm.id
-                            ? "2px solid #42BAC9"
-                            : "1px solid #e5e7eb",
-                        boxShadow:
-                          formData.paymentMethod === pm.id
-                            ? "12px 4px 12px rgba(66,186,201,0.4)"
-                            : "0 2px 6px rgba(0,0,0,0.05)",
-                        transition: "all 0.2s ease-in-out",
-                      }}
-                      onClick={() => setFormData({ ...formData, paymentMethod: pm.id })}
-                    >
-                      <img
-                        src={pm.img}
-                        alt={pm.label}
-                        style={{
-                          width: "100%",
-                          height: "80px",
-                          objectFit: "contain",
-                          marginBottom: "6px",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight:
-                            formData.paymentMethod === pm.id ? "600" : "400",
-                          color:
-                            formData.paymentMethod === pm.id ? "#42BAC9" : "#333",
-                        }}
-                      >
-                        {pm.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div> */}
-              {/* Payment Method */}
-{/* Payment Method */}
-<div className="mb-3">
-  <label className="form-label d-block">Select Payment Method</label>
-  <div className="d-flex gap-3 flex-wrap">
-    {[
-      { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
-      { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
-      { id: "bank", label: "Bank", img: "/images/bank.jpg" },
-      { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
-    ].map((pm) => (
-      <div
-        key={pm.id}
-        className="p-3 rounded-3 text-center flex-fill"
-        style={{
-          cursor: "pointer",
-          width: "180px",
-          border:
-            formData.paymentMethod === pm.id
-              ? "2px solid #42BAC9"
-              : "1px solid #e5e7eb",
-          boxShadow:
-            formData.paymentMethod === pm.id
-              ? "12px 4px 12px rgba(66,186,201,0.4)"
-              : "0 2px 6px rgba(0,0,0,0.05)",
-          transition: "all 0.2s ease-in-out",
-        }}
-        onClick={() =>
-          setFormData({ ...formData, paymentMethod: pm.id })
-        }
-      >
-        <img
-          src={pm.img}
-          alt={pm.label}
-          style={{
-            width: "100%",
-            height: "80px",
-            objectFit: "contain",
-            marginBottom: "6px",
-          }}
-        />
-        <span
-          style={{
-            fontSize: "14px",
-            fontWeight:
-              formData.paymentMethod === pm.id ? "600" : "400",
-            color:
-              formData.paymentMethod === pm.id ? "#42BAC9" : "#333",
-          }}
-        >
-          {pm.label}
-        </span>
-      </div>
-    ))}
-  </div>
-
-  {/* Smooth extra info */}
-  <div
-    style={{
-      maxHeight:
-        formData.paymentMethod === "bkash" ||
-        formData.paymentMethod === "nogod" ||
-        formData.paymentMethod === "bank"
-          ? "300px"
-          : "0",
-      overflow: "hidden",
-      transition: "max-height 0.4s ease",
-    }}
-    className="mt-3"
-  >
-    {formData.paymentMethod === "bkash" && (
-      <div className="p-3 border rounded bg-light">
-        <h6>Bkash Payment Information</h6>
-        <p>Merchant Number: <strong>017XXXXXXXX</strong></p>
-        <p>Account Type: <strong>Personal</strong></p>
-        <p>Address: <strong>Dhaka, Bangladesh</strong></p>
-      </div>
-    )}
-
-    {formData.paymentMethod === "nogod" && (
-      <div className="p-3 border rounded bg-light">
-        <h6>Nagad Payment Information</h6>
-        <p>Merchant Number: <strong>018XXXXXXXX</strong></p>
-        <p>Account Type: <strong>Business</strong></p>
-        <p>Address: <strong>Chattogram, Bangladesh</strong></p>
-      </div>
-    )}
-
-    {formData.paymentMethod === "bank" && (
-      <div className="p-3 border rounded bg-light">
-        <h6>Bank Payment Information</h6>
-        <p>Bank Name: <strong>City Bank Limited.</strong></p>
-         <p>Account Name: <strong> NF KART.COM.</strong></p>
-        <p>Account Number: <strong>1781910005699</strong></p>
-        <p>Branch: <strong>cityislamic (Bijoy Nagar Paltion Dhaka-1000)</strong></p>
-        <p>Routing Number: <strong>225272868</strong></p>
-     
-      </div>
-    )}
-  </div>
-</div>
-
-
             </div>
           </div>
 
@@ -346,13 +227,15 @@ const CheckoutPage = () => {
                 <span>Total</span>
                 <span>${subtotal().toFixed(2)}</span>
               </div>
+
+              {/* PLACE ORDER BUTTON */}
               <button
                 className="btn w-100 mt-3 text-white"
                 style={{
                   backgroundColor: "#42BAC9",
                   borderRadius: "6px",
                 }}
-                onClick={handleOrder}
+                onClick={() => setShowModal(true)}
                 disabled={
                   !formData.firstName ||
                   !formData.lastName ||
@@ -361,8 +244,7 @@ const CheckoutPage = () => {
                   !formData.address ||
                   !formData.city ||
                   !formData.postalCode ||
-                  !formData.district ||
-                  !formData.paymentMethod
+                  !formData.district
                 }
               >
                 Place Order
@@ -370,6 +252,185 @@ const CheckoutPage = () => {
             </div>
           </div>
         </div>
+
+        {/* PAYMENT MODAL */}
+        {/* PAYMENT MODAL */}
+        {/* PAYMENT MODAL */}
+        {/* PAYMENT MODAL */}
+        {showModal && (
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content p-3">
+                <div className="modal-header">
+                  <h5 className="modal-title">Select Payment Method</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  ></button>
+                </div>
+
+                <div className="modal-body">
+                  {/* Single Row for All Payment Methods */}
+                  <div
+                    className="d-flex justify-content-center"
+                    style={{ gap: "15px", flexWrap: "nowrap" }}
+                  >
+                    {[
+                      { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
+                      { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
+                      { id: "bank", label: "Bank", img: "/images/bank.jpg" },
+                      { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
+                    ].map((pm) => (
+                      <div
+                        key={pm.id}
+                        className="p-2 rounded-3 text-center"
+                        style={{
+                          cursor: "pointer",
+                          width: "120px",
+                          border:
+                            selectedPayment === pm.id
+                              ? "2px solid #42BAC9"
+                              : "1px solid #e5e7eb",
+                        }}
+                        onClick={() => setSelectedPayment(pm.id)}
+                      >
+                        <img
+                          src={pm.img}
+                          alt={pm.label}
+                          style={{
+                            width: "100%",
+                            height: "50px",
+                            objectFit: "contain",
+                            marginBottom: "4px",
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: selectedPayment === pm.id ? "600" : "400",
+                            color: selectedPayment === pm.id ? "#42BAC9" : "#333",
+                          }}
+                        >
+                          {pm.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Payment Info + Screenshot (hide for COD) */}
+                  {selectedPayment && selectedPayment !== "cod" && (
+                    <div className="mt-3 p-3 border rounded bg-light">
+                      {selectedPayment === "bkash" && (
+                        <>
+                          <h6>Bkash Payment Info</h6>
+                          <p>
+                            Bkash Number: <strong>01723-826946</strong>
+                          </p>
+                          <p>
+                            Type: <strong>Personal</strong>
+                          </p>
+                        </>
+                      )}
+                      {selectedPayment === "nogod" && (
+                        <>
+                          <h6>Nagad Payment Info</h6>
+                          <p>
+                            Nagad Number: <strong>01723-826946</strong>
+                          </p>
+                          <p>
+                            Type: <strong>Personal</strong>
+                          </p>
+                        </>
+                      )}
+                      {selectedPayment === "bank" && (
+                        <>
+                          <h6>Bank Payment Info</h6>
+                          <p>
+                            Bank: <strong>City Bank Ltd.</strong>
+                          </p>
+                          <p>
+                            Account Name: <strong>NF KART.COM</strong>
+                          </p>
+                          <p>
+                            Account Number: <strong>1781910005699</strong>
+                          </p>
+                        </>
+                      )}
+
+                      <label className="form-label">Upload Transaction Screenshot</label>
+                      <div
+                        className="border rounded d-flex flex-column align-items-center justify-content-center p-3"
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                          cursor: "pointer",
+                          backgroundColor: "#f8f9fa",
+                          borderStyle: "dashed",
+                        }}
+                        onClick={() =>
+                          document.getElementById("modalScreenshotInput").click()
+                        }
+                      >
+                        {!screenshotPreview ? (
+                          <>
+                            <i className="bi bi-cloud-upload fs-2 text-secondary"></i>
+                            <span className="text-muted">Click to Upload</span>
+                          </>
+                        ) : (
+                          <img
+                            src={screenshotPreview}
+                            alt="screenshot preview"
+                            style={{
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        id="modalScreenshotInput"
+                        className="d-none"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Close
+                  </button>
+             <button
+  type="button"
+  className="btn btn-primary"
+  disabled={!selectedPayment}
+  onClick={() => {
+    setShowModal(false);
+    handleOrder(selectedPayment);
+  }}
+>
+  Pay & Confirm
+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+
       </div>
     </Layout>
   );

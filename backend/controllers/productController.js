@@ -400,3 +400,30 @@ export const productCategoryController = async (req, res) => {
     });
   }
 };
+export const productSubcategoryController = async (req, res) => {
+  try {
+    const { subSlug } = req.params; // URL থেকে subcategory slug / name
+    console.log("Subcategory received:", subSlug);
+
+    // Case-insensitive match
+    const products = await productModel
+      .find({ subcategories: { $regex: `^${subSlug}$`, $options: "i" } })
+      .select("-photos.data") // buffer বাদ দিলাম
+      .populate("category", "name slug"); // category info
+
+    console.log("Products found:", products.length);
+
+    res.status(200).send({
+      success: true,
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: "Error fetching products by subcategory",
+      error: error.message,
+    });
+  }
+};

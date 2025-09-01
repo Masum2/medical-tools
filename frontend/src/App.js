@@ -27,6 +27,7 @@ import CartPage from './pages/CartPage.js'
 import Shop from './pages/Shop.js'
 import CheckoutPage from './pages/CheckoutPage.js'
 import AdminOrders from './pages/Admin/AdminOrders.js'
+import SubcategoryProducts from './pages/SubcategoryProduct.js'
 
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
               <Route path="/categories" element={<Categories />} />
                   <Route path="/cart" element={<CartPage />} />
                <Route path="/category/:slug" element={<CategoryProduct />} />
+                  <Route path="/subcategory/:subSlug" element={<SubcategoryProducts />} />
               <Route path="/search" element={<Search />} />
                  <Route path="/shop" element={<Shop />} />
                  <Route path="/checkout" element={<CheckoutPage />} />
@@ -54,7 +56,7 @@ const App = () => {
      <Route path="products" element={<Products />} />
      <Route path="product/:slug" element={<UpdateProduct />} />
     <Route path="create-product" element={<CreateProduct />} />
-    <Route path="users" element={<Users />} />
+    <Route path="all-users" element={<Users />} />
      <Route path="orders" element={<AdminOrders />} />
       
     

@@ -7,6 +7,8 @@ import {
   productFiltersController,
  productListController,
 
+ productSubcategoryController,
+
  relatedProductController,
  searchProductController
 } from "../controllers/productController.js";
@@ -64,5 +66,5 @@ router.get("/related-product/:pid/:cid", relatedProductController);
 router.get("/product-category/:slug", productCategoryController);
 
 // router.post("/create-order", requireSignIn, createOrderController);
-
+router.get("/subcategory/:subSlug", productSubcategoryController);
 export default router;

@@ -5,7 +5,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Checkbox, Select } from "antd";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { Editor } from "@tinymce/tinymce-react";
 import { AiOutlineCloseCircle } from "react-icons/ai"; // ✅ React Icons close
@@ -164,22 +164,40 @@ formData.append("size", JSON.stringify(size));
 
   return (
  
-      <div className="container-fluid">
-        <div className="row">
-          <div className="col-md-2 p-0">
-            <AdminMenu />
-          </div>
-          <div className="col-md-10 ">
-                    <div className="container d-flex justify-content-between align-items-center text-white flex-wrap " style={{     background: "#007580",padding:'10px'}}>
-          <p className="mb-0 small">
-            Get upto <strong>25% cashback</strong> on first order:{" "}
-            <strong>GET25OFF</strong> - SHOP NOW
-          </p>
-          <div className="text-end small">
-            <p className="mb-0">Need Help? +8801718777229</p>
-          </div>
+      <div className="container-fluid p-0">
+          <div className="row g-0">
+          {/* Sidebar */}
+      <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
+          <AdminMenu />
         </div>
-            <div className="row" style={{ marginLeft: "10px" }}>
+      {/* Main Content */}
+           <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+          {/* Top Header */}
+          <div
+            className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
+            style={{
+              background: "#001219", position: "sticky",
+              top: 0,
+              overflowY: "auto",
+            }}
+          >
+            <NavLink
+              to="/"
+              style={{
+
+                fontSize: "18px",
+                margin: "6px 0 6px 20px",
+                textDecoration: 'none',
+
+                color: '#FFF', backgroundColor: '#0d1b2a'
+
+              }}
+            >
+              Create Product
+            </NavLink>
+
+          </div>
+            <div className="row" style={{ padding: "20px",marginLeft:'20px' }}>
               <div className="col-md-9">
                 {/* Product Images Upload */}
              {/* Product Images Upload */}

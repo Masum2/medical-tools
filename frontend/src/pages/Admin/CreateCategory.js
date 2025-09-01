@@ -6,6 +6,7 @@ import axios from "axios";
 import { Modal } from "antd";
 import { useAuth } from "../../context/auth.js";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { NavLink } from "react-router-dom";
 
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -118,24 +119,41 @@ const CreateCategory = () => {
 
   return (
    
-      <div className="container-fluid" title="Admin - Manage Categories">
-        <div className="row">
+      <div className="container-fluid p-0" title="Admin - Manage Categories">
+        <div className="row g-0">
           {/* Sidebar */}
-          <div className="col-md-2 p-0">
-            <AdminMenu />
-          </div>
+      <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
+          <AdminMenu />
+        </div>
 
           {/* Main Content */}
-          <div className="col-md-10">
-                         <div className="container d-flex justify-content-between align-items-center text-white flex-wrap " style={{     background: "#007580",padding:'10px'}}>
-          <p className="mb-0 small">
-            Get upto <strong>25% cashback</strong> on first order:{" "}
-            <strong>GET25OFF</strong> - SHOP NOW
-          </p>
-          <div className="text-end small">
-            <p className="mb-0">Need Help? +8801718777229</p>
+           <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+          {/* Top Header */}
+          <div
+            className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
+            style={{
+              background: "#001219", position: "sticky",
+              top: 0,
+              overflowY: "auto",
+            }}
+          >
+            <NavLink
+              to="/"
+              style={{
+
+                fontSize: "18px",
+                margin: "6px 0 6px 20px",
+                textDecoration: 'none',
+
+                color: '#FFF', backgroundColor: '#0d1b2a'
+
+              }}
+            >
+              Create Category
+            </NavLink>
+
           </div>
-        </div>
+          <div style={{padding:'20px'}}>
             <div className="card shadow-sm mb-4">
               <div className="card-body">
                 <h4 className="card-title mb-4">Add New Category</h4>
@@ -174,7 +192,7 @@ const CreateCategory = () => {
                 <h4 className="card-title mb-4">All Categories</h4>
                 <div className="table-responsive">
                   <table className="table table-hover align-middle">
-                    <thead className="table-dark">
+                    <thead className="table-info">
                       <tr>
                         <th>#</th>
                         <th>Category</th>
@@ -224,7 +242,7 @@ const CreateCategory = () => {
                 </div>
               </div>
             </div>
-
+</div>
             {/* Update Modal */}
             <Modal
               title="Update Category"

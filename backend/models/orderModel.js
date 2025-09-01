@@ -38,6 +38,12 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "completed"],
       default: "pending",
     },
+    paymentScreenshot: {
+  type: String, // আমরা URL বা file path store করব
+  required: function () {
+    return this.paymentMethod !== "cod"; // cod হলে required না
+  },
+},
     orderStatus: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered"],
@@ -48,6 +54,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
   },
+  
   { timestamps: true }
 );
 
