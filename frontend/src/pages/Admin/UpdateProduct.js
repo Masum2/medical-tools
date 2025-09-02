@@ -25,6 +25,7 @@ const UpdateProduct = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+    const [discountPrice, setDiscountPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState([]);
   const [color, setColor] = useState([]);
@@ -59,6 +60,7 @@ const UpdateProduct = () => {
           setName(data.product.name);
           setDescription(data.product.description);
           setPrice(data.product.price);
+           setDiscountPrice(data.product.discountPrice);
           setQuantity(data.product.quantity);
           setBrand(data.product.brand || []);
           setColor(data.product.color || []);
@@ -121,6 +123,7 @@ const UpdateProduct = () => {
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("discountPrice", discountPrice);
       formData.append("quantity", quantity);
       formData.append("brand", JSON.stringify(brand));
       formData.append("color", JSON.stringify(color));
@@ -288,7 +291,7 @@ const UpdateProduct = () => {
               />
 
               {/* ✅ TinyMCE Editor */}
-              <div style={{ marginBottom: "1rem" }}>
+              {/* <div style={{ marginBottom: "1rem" }}>
                 <Editor
                   apiKey="1oqyhk7scnb7xognnnvt8fv0r5y2zvdyt26lko7yi2cgmqx2"
                   init={{
@@ -305,13 +308,29 @@ const UpdateProduct = () => {
                   value={description}
                   onEditorChange={(newValue) => setDescription(newValue)}
                 />
-              </div>
-
+              </div> */}
+<div style={{ marginBottom: "1rem" }}>
+  <textarea
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+    className="form-control"
+    placeholder="Enter product description"
+    rows={6}
+    style={{ resize: "vertical" }}
+  />
+</div>
               <input
                 type="number"
                 placeholder="Price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                className="form-control mb-3"
+              />
+                    <input
+                type="number"
+                placeholder="Discount Price"
+                value={discountPrice}
+                onChange={(e) => setDiscountPrice(e.target.value)}
                 className="form-control mb-3"
               />
               <input

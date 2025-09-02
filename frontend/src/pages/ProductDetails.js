@@ -105,25 +105,42 @@ const ProductDetails = () => {
   };
 
   // Submit Review
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!newReview.name || !newReview.stars || !newReview.comment) {
-      toast.error("Please fill out all fields");
-      return;
-    }
-    try {
-      const { data } = await axios.post(`${API}/api/v1/reviews/${product._id}`, newReview);
-      if (data.success) {
-        setReviews(data.reviews);
-        setRating(data.averageRating);
-        setNewReview({ name: "", stars: 0, comment: "" });
-        toast.success("Review submitted!");
+// Submit Review
+const handleReviewSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!newReview.stars || !newReview.comment) {
+    toast.error("Please select rating and write comment");
+    return;
+  }
+
+  try {
+    const { data } = await axios.post(
+      `${API}/api/v1/reviews/${product._id}`,
+      {
+        stars: newReview.stars,
+        comment: newReview.comment,
+      },
+      {
+        headers: {
+          Authorization: auth?.token, // ✅ token must be sent
+        },
       }
-    } catch (error) {
-      console.log("Error submitting review:", error);
-      toast.error("Failed to submit review");
+    );
+
+    if (data.success) {
+      setReviews(data.reviews); // update reviews in UI
+      setRating(data.averageRating); // update rating
+      setNewReview({ stars: 0, comment: "" }); // reset form
+      toast.success(data.message);
     }
-  };
+  } catch (error) {
+    console.error("Error submitting review:", error);
+    toast.error("Failed to submit review");
+  }
+};
+
+
 
   return (
     <Layout>
@@ -556,17 +573,26 @@ const ProductDetails = () => {
             {activeTab === "reviews" && (
               <>
                 <h5 className="fw-bold mb-3">Customer Reviews</h5>
-                {reviews.map((r, idx) => (
-                  <div key={idx} className="border-bottom pb-3 mb-3">
-                    <strong>{r.name}</strong>
-                    {/* Fix stars inline */}
-                    <div className="d-flex align-items-center text-warning" style={{ gap: "2px" }}>
-                      {renderStars(r.stars)}
-                    </div>
-                    <p className="mb-1">{r.comment}</p>
-                    <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
-                  </div>
-                ))}
+{reviews.map((r) => (
+  <div key={r._id} className="border-bottom pb-3 mb-3">
+    <strong>{r.name}</strong>
+    <div className="d-flex align-items-center text-warning" style={{ gap: "2px" }}>
+      {renderStars(r.stars)}
+    </div>
+    <p className="mb-1">{r.comment}</p>
+
+    {/* Admin reply */}
+    {r.reply && (
+      <div className="mt-1 p-2 bg-light rounded">
+        <strong>Admin Reply:</strong>
+        <p className="mb-0">{r.reply}</p>
+      </div>
+    )}
+
+    <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
+  </div>
+))}
+
 
                 {/* Review Form */}
                 <form onSubmit={handleReviewSubmit} className="mt-3">

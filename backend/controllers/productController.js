@@ -196,7 +196,9 @@ export const updateProductController = async (req, res) => {
 color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
 size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
 
-      discountPrice: discountPrice || 0,
+      discountPrice: discountPrice !== undefined 
+  ? Number(discountPrice) 
+  : existingProduct.discountPrice,
       photos: existingProduct.photos, // আগের সব ছবি রেখে দাও
     };
 

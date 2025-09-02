@@ -1,22 +1,22 @@
 import JWT from "jsonwebtoken";
-
 import userModels from "../models/userModels.js";
 
-//Protected Routes token base
+// ✅ Protected Routes token base
 export const requireSignIn = async (req, res, next) => {
   try {
     const decode = JWT.verify(
       req.headers.authorization,
       process.env.JWT_SECRET
     );
-    req.user = decode;
+    req.user = decode; // { _id, name, ... }
     next();
   } catch (error) {
-    console.log(error);
+    console.log("Auth error:", error);
+    res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
-//admin acceess
+// ✅ Admin access
 export const isAdmin = async (req, res, next) => {
   try {
     const user = await userModels.findById(req.user._id);
@@ -33,7 +33,7 @@ export const isAdmin = async (req, res, next) => {
     res.status(401).send({
       success: false,
       error,
-      message: "Error in admin middelware",
+      message: "Error in admin middleware",
     });
   }
 };

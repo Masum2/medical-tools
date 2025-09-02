@@ -1,13 +1,16 @@
 import express from "express";
-import { addReview, getReviews } from "../controllers/reviewController.js";
-
+import { addReview, getReviews, replyToReview } from "../controllers/reviewController.js";
+import { requireSignIn, isAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// Add review
-router.post("/:productId", addReview);
+// ✅ Add review (only signed-in user)
+router.post("/:productId", requireSignIn, addReview);
 
-// Get reviews of a product
+// ✅ Get reviews (public)
 router.get("/:productId", getReviews);
+
+// ✅ Admin reply to a review
+router.post("/:productId/review/:reviewId/reply", requireSignIn, isAdmin, replyToReview);
 
 export default router;

@@ -32,3 +32,17 @@ router.get("/:id", requireSignIn, isAdmin, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+// get image
+router.get("/payment-screenshot/:id", async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id).select("paymentScreenshot");
+    if (!order || !order.paymentScreenshot?.data) {
+      return res.status(404).send("No screenshot found");
+    }
+    res.set("Content-Type", order.paymentScreenshot.contentType);
+    res.send(order.paymentScreenshot.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to fetch screenshot");
+  }
+});

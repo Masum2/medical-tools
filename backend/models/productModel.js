@@ -3,12 +3,14 @@ import mongoose from "mongoose";
 // ✅ Review Schema
 const reviewSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // User ID (required)
+    name: { type: String, required: true }, // Display name
     stars: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true },
+    reply: { type: String, default: "" }, // Admin reply
     createdAt: { type: Date, default: Date.now },
   },
-  { _id: false }
+  { _id: true }
 );
 
 const productSchema = new mongoose.Schema(
@@ -23,10 +25,10 @@ const productSchema = new mongoose.Schema(
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     subcategories: [String],
 
-    quantity: { type: Number, required: false },
-    brand: [{ type: String }],   // ⬅️ Array করে দিলাম
-    color: [{ type: String }],   // ⬅️ Array করে দিলাম
-    size: [{ type: String }],    // ⬅️ Array করে দিলাম
+    quantity: { type: Number },
+    brand: [{ type: String }],
+    color: [{ type: String }],
+    size: [{ type: String }],
 
     photos: [{ data: Buffer, contentType: String }],
     shipping: { type: Boolean, default: false },
@@ -36,7 +38,6 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 
 // ✅ Helper function to calculate average rating
 productSchema.methods.calculateAverageRating = function () {

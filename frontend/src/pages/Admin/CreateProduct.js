@@ -24,43 +24,43 @@ const CreateProduct = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-    const [discountPrice, setDiscountPrice] = useState("");
+  const [discountPrice, setDiscountPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
   const [shipping, setShipping] = useState("");
-// Predefined values
-const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
-const colorOptions = [
-  "Red",
-  "Blue",
-  "Green",
-  "Black",
-  "White",
-  "Yellow",
-  "Orange",
-  "Pink",
-  "Purple",
-  "Brown",
-  "Gray",
-  "Silver",
-  "Gold",
-  "Navy Blue",
-  "Sky Blue",
-  "Maroon",
-  "Olive",
-  "Teal",
-  "Beige",
-  "Cream",
-  "Peach",
-  "Violet",
-  "Turquoise",
-  "Lavender",
-  "Charcoal"
-];
+  // Predefined values
+  const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
+  const colorOptions = [
+    "Red",
+    "Blue",
+    "Green",
+    "Black",
+    "White",
+    "Yellow",
+    "Orange",
+    "Pink",
+    "Purple",
+    "Brown",
+    "Gray",
+    "Silver",
+    "Gold",
+    "Navy Blue",
+    "Sky Blue",
+    "Maroon",
+    "Olive",
+    "Teal",
+    "Beige",
+    "Cream",
+    "Peach",
+    "Violet",
+    "Turquoise",
+    "Lavender",
+    "Charcoal"
+  ];
 
-const sizeOptions = ["S", "M", "L", "XL", "XXL"];
+  const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
   // Load categories
   useEffect(() => {
@@ -126,9 +126,9 @@ const sizeOptions = ["S", "M", "L", "XL", "XXL"];
       formData.append("price", price);
       formData.append("discountPrice", discountPrice);
       formData.append("quantity", quantity);
-     formData.append("brand", JSON.stringify(brand));
-formData.append("color", JSON.stringify(color));
-formData.append("size", JSON.stringify(size));
+      formData.append("brand", JSON.stringify(brand));
+      formData.append("color", JSON.stringify(color));
+      formData.append("size", JSON.stringify(size));
       formData.append("shipping", shipping);
 
       if (selectedCategories.length > 0)
@@ -163,15 +163,15 @@ formData.append("size", JSON.stringify(size));
   };
 
   return (
- 
-      <div className="container-fluid p-0">
-          <div className="row g-0">
-          {/* Sidebar */}
-      <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
+
+    <div className="container-fluid p-0">
+      <div className="row g-0">
+        {/* Sidebar */}
+        <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
           <AdminMenu />
         </div>
-      {/* Main Content */}
-           <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+        {/* Main Content */}
+        <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
           {/* Top Header */}
           <div
             className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
@@ -197,112 +197,112 @@ formData.append("size", JSON.stringify(size));
             </NavLink>
 
           </div>
-            <div className="row" style={{ padding: "20px",marginLeft:'20px' }}>
-              <div className="col-md-9">
-                {/* Product Images Upload */}
-             {/* Product Images Upload */}
-<div className="mb-3 ">
-  <h5 className="mb-2">
-    Product Images <span className="text-danger">*</span>
-  </h5>
-  <small className="text-muted d-block mb-3">
-    Upload between 1 to 5 images
-  </small>
+          <div className="row" style={{ padding: "20px", marginLeft: '20px' }}>
+            <div className="col-md-9">
+              {/* Product Images Upload */}
+              {/* Product Images Upload */}
+              <div className="mb-3 ">
+                <h5 className="mb-2">
+                  Product Images <span className="text-danger">*</span>
+                </h5>
+                <small className="text-muted d-block mb-3">
+                  Upload between 1 to 5 images
+                </small>
 
-  <div className="d-flex flex-wrap gap-3">
-    {[...Array(5)].map((_, i) => (
-      <div
-        key={i}
-        style={{
-          position: "relative",
-          width: "100px",
-          height: "120px",
-        }}
-      >
-        <label
-          className="rounded d-flex align-items-center justify-content-center"
-          style={{
-            width: "100%",
-            height: "100%",
-            cursor: "pointer",
-            border: "2px dashed #00a297",
-            borderRadius: "6px",
-            overflow: "hidden",
-          }}
-        >
-          {photos[i] ? (
-            <img
-              src={URL.createObjectURL(photos[i])}
-              alt="preview"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          ) : (
-            <PlusOutlined
-              style={{ fontSize: "28px", color: "#555" }}
-            />
-          )}
+                <div className="d-flex flex-wrap gap-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: "relative",
+                        width: "100px",
+                        height: "120px",
+                      }}
+                    >
+                      <label
+                        className="rounded d-flex align-items-center justify-content-center"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          cursor: "pointer",
+                          border: "2px dashed #00a297",
+                          borderRadius: "6px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {photos[i] ? (
+                          <img
+                            src={URL.createObjectURL(photos[i])}
+                            alt="preview"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <PlusOutlined
+                            style={{ fontSize: "28px", color: "#555" }}
+                          />
+                        )}
 
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(e) => handlePhotoChange(e, i)}
-          />
-        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          hidden
+                          onChange={(e) => handlePhotoChange(e, i)}
+                        />
+                      </label>
 
-        {/* ✅ React Icons close button */}
-        {photos[i] && (
-          <AiOutlineCloseCircle
-            style={{
-              position: "absolute",
-              top: "-8px",
-              right: "-8px",
-              fontSize: "22px",
-              color: "red",
-              cursor: "pointer",
-              background: "white",
-              borderRadius: "50%",
-            }}
-            onClick={() => {
-              const updatedPhotos = [...photos];
-              updatedPhotos[i] = null;
-              setPhotos(updatedPhotos);
-            }}
-          />
-        )}
-      </div>
-    ))}
-  </div>
-</div>
+                      {/* ✅ React Icons close button */}
+                      {photos[i] && (
+                        <AiOutlineCloseCircle
+                          style={{
+                            position: "absolute",
+                            top: "-8px",
+                            right: "-8px",
+                            fontSize: "22px",
+                            color: "red",
+                            cursor: "pointer",
+                            background: "white",
+                            borderRadius: "50%",
+                          }}
+                          onClick={() => {
+                            const updatedPhotos = [...photos];
+                            updatedPhotos[i] = null;
+                            setPhotos(updatedPhotos);
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                <input
-                  type="text"
-                  placeholder="Product Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="form-control mb-3"
-                />
+              <input
+                type="text"
+                placeholder="Product Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="form-control mb-3"
+              />
 
-                {/* TinyMCE Editor */}
-                <div style={{ marginBottom: "1rem" }}>
-                  <Editor
-                    apiKey="1oqyhk7scnb7xognnnvt8fv0r5y2zvdyt26lko7yi2cgmqx2"
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap preview anchor",
-                        "searchreplace visualblocks code fullscreen",
-                        "insertdatetime media table paste code help wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | removeformat | help",
-                      content_style: `
+              {/* TinyMCE Editor */}
+              {/* <div style={{ marginBottom: "1rem" }}>
+                <Editor
+                  apiKey="1oqyhk7scnb7xognnnvt8fv0r5y2zvdyt26lko7yi2cgmqx2"
+                  init={{
+                    height: 300,
+                    menubar: false,
+                    plugins: [
+                      "advlist autolink lists link image charmap preview anchor",
+                      "searchreplace visualblocks code fullscreen",
+                      "insertdatetime media table paste code help wordcount",
+                    ],
+                    toolbar:
+                      "undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | removeformat | help",
+                    content_style: `
                         body { 
                           font-family: Helvetica, Arial, sans-serif; 
                           font-size: 14px; 
@@ -312,137 +312,146 @@ formData.append("size", JSON.stringify(size));
                         ul { list-style-type: disc; }
                         ol { list-style-type: decimal; }
                       `,
-                      advlist_bullet_styles: "default",
-                      advlist_number_styles: "default",
-                      forced_root_block: "p",
-                      invalid_elements: "",
-                      valid_children: "+body[style]",
-                      verify_html: false,
-                      allow_conditional_comments: true,
-                      fix_list_elements: true,
-                    }}
-                    value={description}
-                    onEditorChange={(newValue) => setDescription(newValue)}
-                  />
-                </div>
-
-                <input
-                  type="number"
-                  placeholder="Price"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="form-control mb-3"
+                    advlist_bullet_styles: "default",
+                    advlist_number_styles: "default",
+                    forced_root_block: "p",
+                    invalid_elements: "",
+                    valid_children: "+body[style]",
+                    verify_html: false,
+                    allow_conditional_comments: true,
+                    fix_list_elements: true,
+                  }}
+                  value={description}
+                  onEditorChange={(newValue) => setDescription(newValue)}
                 />
-                   <input
-                  type="number"
-                  placeholder="Discount Price"
-                  value={discountPrice}
-                  onChange={(e) => setDiscountPrice(e.target.value)}
-                  className="form-control mb-3"
-                />
-                <input
-                  type="number"
-                  placeholder="Quantity"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="form-control mb-3"
-                />
-              
-<Select
-  mode="tags" // ✅ multiple + add new
-  style={{ width: "100%" }}
-  placeholder="Select or add brands"
-  value={brand}
-  onChange={(val) => setBrand(val)}
-  className="mb-3"
->
-  {brandOptions.map((b) => (
-    <Option key={b} value={b}>
-      {b}
-    </Option>
-  ))}
-</Select>
+              </div> */}
+<div style={{ marginBottom: "1rem" }}>
+  <textarea
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+    className="form-control"
+    placeholder="Enter product description"
+    rows={6}
+    style={{ resize: "vertical" }}
+  />
+</div>
+              <input
+                type="number"
+                placeholder="Price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="form-control mb-3"
+              />
+              <input
+                type="number"
+                placeholder="Discount Price"
+                value={discountPrice}
+                onChange={(e) => setDiscountPrice(e.target.value)}
+                className="form-control mb-3"
+              />
+              <input
+                type="number"
+                placeholder="Quantity"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="form-control mb-3"
+              />
 
-<Select
-  mode="tags"
-  style={{ width: "100%" }}
-  placeholder="Select or add colors"
-  value={color}
-  onChange={(val) => setColor(val)}
-  className="mb-3"
->
-  {colorOptions.map((c) => (
-    <Option key={c} value={c}>
-      {c}
-    </Option>
-  ))}
-</Select>
-
-<Select
-  mode="tags"
-  style={{ width: "100%" }}
-  placeholder="Select or add sizes"
-  value={size}
-  onChange={(val) => setSize(val)}
-  className="mb-3"
->
-  {sizeOptions.map((s) => (
-    <Option key={s} value={s}>
-      {s}
-    </Option>
-  ))}
-</Select>
-                <Select
-                  value={shipping}
-                  onChange={(value) => setShipping(value)}
-                  placeholder="Shipping"
-                  className="w-100 mb-3"
-                >
-                  <Option value="0">No</Option>
-                  <Option value="1">Yes</Option>
-                </Select>
-
-                <button onClick={handleCreate} className="btn btn-primary">
-                  Create Product
-                </button>
-              </div>
-
-              {/* Categories + Subcategories */}
-              <div className="col-md-3">
-                <h5>Main Categories</h5>
-                {categories.map((cat) => (
-                  <div key={cat._id}>
-                    <Checkbox
-                      checked={selectedCategories.includes(cat._id)}
-                      onChange={() => handleCategoryChange(cat._id)}
-                    >
-                      {cat.name}
-                    </Checkbox>
-
-                    {selectedCategories.includes(cat._id) &&
-                      cat.subcategories &&
-                      cat.subcategories.length > 0 && (
-                        <div className="ms-4">
-                          {cat.subcategories.map((sub, idx) => (
-                            <div key={idx}>
-                              <Checkbox
-                                checked={selectedSubcategories.includes(sub)}
-                                onChange={() => handleSubcategoryChange(sub)}
-                              >
-                                {sub}
-                              </Checkbox>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                  </div>
+              <Select
+                mode="tags" // ✅ multiple + add new
+                style={{ width: "100%" }}
+                placeholder="Select or add brands"
+                value={brand}
+                onChange={(val) => setBrand(val)}
+                className="mb-3"
+              >
+                {brandOptions.map((b) => (
+                  <Option key={b} value={b}>
+                    {b}
+                  </Option>
                 ))}
-              </div>
+              </Select>
+
+              <Select
+                mode="tags"
+                style={{ width: "100%" }}
+                placeholder="Select or add colors"
+                value={color}
+                onChange={(val) => setColor(val)}
+                className="mb-3"
+              >
+                {colorOptions.map((c) => (
+                  <Option key={c} value={c}>
+                    {c}
+                  </Option>
+                ))}
+              </Select>
+
+              <Select
+                mode="tags"
+                style={{ width: "100%" }}
+                placeholder="Select or add sizes"
+                value={size}
+                onChange={(val) => setSize(val)}
+                className="mb-3"
+              >
+                {sizeOptions.map((s) => (
+                  <Option key={s} value={s}>
+                    {s}
+                  </Option>
+                ))}
+              </Select>
+              <Select
+                value={shipping}
+                onChange={(value) => setShipping(value)}
+                placeholder="Shipping"
+                className="w-100 mb-3"
+              >
+                <Option value="0">No</Option>
+                <Option value="1">Yes</Option>
+              </Select>
+
+              <button onClick={handleCreate} className="btn btn-primary">
+                Create Product
+              </button>
+            </div>
+
+            {/* Categories + Subcategories */}
+            <div className="col-md-3">
+              <h5>Main Categories</h5>
+              {categories.map((cat) => (
+                <div key={cat._id}>
+                  <Checkbox
+                    checked={selectedCategories.includes(cat._id)}
+                    onChange={() => handleCategoryChange(cat._id)}
+                  >
+                    {cat.name}
+                  </Checkbox>
+
+                  {selectedCategories.includes(cat._id) &&
+                    cat.subcategories &&
+                    cat.subcategories.length > 0 && (
+                      <div className="ms-4">
+                        {cat.subcategories.map((sub, idx) => (
+                          <div key={idx}>
+                            <Checkbox
+                              checked={selectedSubcategories.includes(sub)}
+                              onChange={() => handleSubcategoryChange(sub)}
+                            >
+                              {sub}
+                            </Checkbox>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-  
+    </div>
+
   );
 };
 

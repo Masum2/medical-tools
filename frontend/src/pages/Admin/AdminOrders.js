@@ -7,7 +7,7 @@ import { useAuth } from "../../context/auth";
 import Layout from "../../components/Layout/Layout";
 import { NavLink, useNavigate } from "react-router-dom";
 import AdminMenu from "../../components/Layout/AdminMenu";
-
+import { QRCodeCanvas } from "qrcode.react";
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const PAYMENT_STATUSES = ["pending", "completed"];
 
@@ -164,7 +164,9 @@ const AdminOrders = () => {
                     <th>Buyer</th>
                     <th>Items</th>
                     <th>Total</th>
+                    
                     <th>Pay Method / Status</th>
+                     <th>Screenshot</th>   {/* 👈 new column */}
                     <th>Order Status</th>
                     <th>Actions</th>
                   </tr>
@@ -197,6 +199,20 @@ const AdminOrders = () => {
                           </select>
                         </div>
                       </td>
+                       
+<td>
+  {o.paymentScreenshot ? (
+    <img
+      src={`${API}/api/v1/order/payment-screenshot/${o._id}`}
+      alt="Payment Proof"
+      className="rounded"
+      style={{ width: "60px", height: "60px", objectFit: "cover", cursor: "pointer" }}
+      onClick={() => window.open(`${API}/api/v1/order/payment-screenshot/${o._id}`, "_blank")}
+    />
+  ) : (
+    <span className="text-muted small">No screenshot</span>
+  )}
+</td>
                       <td>
                         <select
                           className="form-select form-select-sm fw-semibold"
@@ -412,7 +428,9 @@ const AdminOrders = () => {
                             <tr>
                               <th>#</th>
                               <th>Product Name</th>
-                              <th>SKU</th>
+                              <th>Color</th>
+                               <th>Size</th>
+                                <th>Brand</th>
                               <th>Qty</th>
                               <th>Price</th>
                               <th>Item Total</th>
@@ -424,7 +442,9 @@ const AdminOrders = () => {
                               <tr key={idx}>
                                 <td>{idx + 1}</td>
                                 <td>{p.product?.name || "Deleted Product"}</td>
-                                <td>{p.product?.sku || "-"}</td>
+                              <td>{p.color || "-"}</td>
+                                <td>{p.size}</td>
+                                <td>{p.brand}</td>
                                 <td>{p.quantity}</td>
                                 <td>${(p.product?.price || 0).toFixed(2)}</td>
                                 <td>
@@ -436,21 +456,39 @@ const AdminOrders = () => {
                         </table>
 
                         {/* Totals */}
-                        <div className="d-flex flex-column align-items-end mt-3">
-                          <div>
-                            <strong>Subtotal:</strong> $
-                            {Number(selectedOrder.subTotal || 0).toFixed(2)}
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <div className="my-3 d-flex justify-content-center">
+                            <QRCodeCanvas
+                              value={JSON.stringify({
+                                orderId: selectedOrder._id,
+                                buyer: selectedOrder.shippingInfo?.firstName + " " + selectedOrder.shippingInfo?.lastName,
+                                total: selectedOrder.totalAmount,
+                                date: selectedOrder.createdAt,
+                              })}
+                              size={128} // QR code size
+                              bgColor="#ffffff"
+                              fgColor="#000000"
+                              level="H"
+                              includeMargin={true}
+                            />
                           </div>
-                          <div>
-                            <strong>Shipping Fee:</strong> $
-                            {Number(selectedOrder.shippingFee || 0).toFixed(2)}
-                          </div>
-                          <div>
-                            <strong>Discount:</strong> -$
-                            {Number(selectedOrder.discount || 0).toFixed(2)}
-                          </div>
-                          <div className="fs-5 fw-bold border-top pt-2">
-                            Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+
+                          <div className="d-flex flex-column align-items-end mt-3">
+                            <div>
+                              <strong>Subtotal:</strong> $
+                              {Number(selectedOrder.subTotal || 0).toFixed(2)}
+                            </div>
+                            <div>
+                              <strong>Shipping Fee:</strong> $
+                              {Number(selectedOrder.shippingFee || 0).toFixed(2)}
+                            </div>
+                            <div>
+                              <strong>Discount:</strong> -$
+                              {Number(selectedOrder.discount || 0).toFixed(2)}
+                            </div>
+                            <div className="fs-5 fw-bold border-top pt-2">
+                              Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+                            </div>
                           </div>
                         </div>
                       </div>

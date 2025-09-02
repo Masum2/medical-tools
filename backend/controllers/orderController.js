@@ -1,6 +1,7 @@
 import orderModel from "../models/orderModel.js";
 import userModels from "../models/userModels.js";
-
+import fs from "fs";
+// create order
 export const createOrderController = async (req, res) => {
   try {
     const {
@@ -14,9 +15,12 @@ export const createOrderController = async (req, res) => {
       postalCode,
       district,
       paymentMethod,
-    } = req.fields;  // 🟢 req.fields instead of req.body
+      color,
+      brand,
+      size
+    } = req.fields;
 
-    const { paymentScreenshot } = req.files; // 🟢 file আলাদা জায়গায় থাকবে
+    const { paymentScreenshot } = req.files;
 
     if (!cart) {
       return res.status(400).send({ success: false, error: "Cart is empty" });
@@ -24,21 +28,24 @@ export const createOrderController = async (req, res) => {
 
     let parsedCart = [];
     try {
-      parsedCart = JSON.parse(cart); // 🟢 কারণ frontend থেকে string পাঠাবে
+      parsedCart = JSON.parse(cart);
     } catch (err) {
       return res.status(400).send({ success: false, error: "Invalid cart format" });
     }
 
-    // calculate total
     const totalAmount = parsedCart.reduce(
       (acc, item) => acc + item.price * (item.quantity || 1),
       0
     );
 
-    const order = await orderModel.create({
+    const order = new orderModel({
       products: parsedCart.map((item) => ({
         product: item._id,
         quantity: item.quantity || 1,
+                    price: item.price,
+    brand: item.brand,      // 👈 এখানে কপি করা হচ্ছে
+    color: item.color,      // 👈
+    size: item.size,
       })),
       buyer: req.user._id,
       shippingInfo: {
@@ -50,11 +57,21 @@ export const createOrderController = async (req, res) => {
         city,
         postalCode,
         district,
+
       },
       paymentMethod,
-      paymentScreenshot: paymentScreenshot?.path || null, // লোকাল path save
       totalAmount,
     });
+
+    // store file binary in DB
+    if (paymentScreenshot) {
+      order.paymentScreenshot = {
+        data: fs.readFileSync(paymentScreenshot.path),
+        contentType: paymentScreenshot.type,
+      };
+    }
+
+    await order.save();
 
     res.status(201).send({
       success: true,
@@ -84,10 +101,21 @@ export const getOrdersController = async (req, res) => {
       .limit(limit)
       .lean();
 
+    // convert binary to base64 for frontend
+    const formattedOrders = orders.map((order) => {
+      if (order.paymentScreenshot?.data) {
+        order.paymentScreenshot = {
+          contentType: order.paymentScreenshot.contentType,
+          base64: order.paymentScreenshot.data.toString("base64"),
+        };
+      }
+      return order;
+    });
+
     res.status(200).send({
       success: true,
       message: "User orders fetched successfully",
-      data: orders, // ✅ matches frontend: setOrders(data.data)
+      data: formattedOrders,
       pagination: {
         page,
         limit,

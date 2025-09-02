@@ -28,6 +28,7 @@ import Shop from './pages/Shop.js'
 import CheckoutPage from './pages/CheckoutPage.js'
 import AdminOrders from './pages/Admin/AdminOrders.js'
 import SubcategoryProducts from './pages/SubcategoryProduct.js'
+import AdminReview from './pages/Admin/AdminReview.js'
 
 
 const App = () => {
@@ -58,7 +59,7 @@ const App = () => {
     <Route path="create-product" element={<CreateProduct />} />
     <Route path="all-users" element={<Users />} />
      <Route path="orders" element={<AdminOrders />} />
-      
+        <Route path="reviews" element={<AdminReview />} />
     
   </Route>
 </Route>

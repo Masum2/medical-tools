@@ -1,4 +1,3 @@
-// models/orderModel.js
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
@@ -11,6 +10,9 @@ const orderSchema = new mongoose.Schema(
           required: true,
         },
         quantity: { type: Number, required: true },
+           brand: { type: String },   // ✅ যোগ করা হলো
+        color: { type: String },   // ✅ যোগ করা হলো
+        size: { type: String },    // ✅ যোগ করা হলো
       },
     ],
     buyer: {
@@ -30,7 +32,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["bkash", "nogod", "cod","bank"],
+      enum: ["bkash", "nogod", "cod", "bank"],
       required: true,
     },
     paymentStatus: {
@@ -39,11 +41,19 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
     },
     paymentScreenshot: {
-  type: String, // আমরা URL বা file path store করব
-  required: function () {
-    return this.paymentMethod !== "cod"; // cod হলে required না
-  },
-},
+      data: {
+        type: Buffer,
+        required: function () {
+          return this.paymentMethod !== "cod";
+        },
+      },
+      contentType: {
+        type: String,
+        required: function () {
+          return this.paymentMethod !== "cod";
+        },
+      },
+    },
     orderStatus: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered"],
@@ -54,7 +64,6 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
   },
-  
   { timestamps: true }
 );
 
