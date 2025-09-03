@@ -303,6 +303,8 @@ export const productListController = async (req, res) => {
     const perPage = 8;
     const page = req.params.page || 1;
 
+    const total = await productModel.countDocuments();
+
     const products = await productModel
       .find({})
       .select("-photo")
@@ -313,6 +315,7 @@ export const productListController = async (req, res) => {
     res.status(200).send({
       success: true,
       products,
+      total, // <-- total count
     });
   } catch (error) {
     console.error(error);

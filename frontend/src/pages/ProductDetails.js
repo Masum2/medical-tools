@@ -146,16 +146,62 @@ const handleReviewSubmit = async (e) => {
     <Layout>
       <div className="container py-4 bg-white">
         {/* Breadcrumb */}
-        <div style={{
-          //  borderBottom:'1px solid #00a297',
-          paddingBottom: '5px', fontSize: "14px", color: "#555", marginBottom: "20px", display: "flex", alignItems: "center", gap: "5px", justifyContent: 'center'
-        }}>
-          <p style={{ margin: 0, cursor: "pointer", color: "#00a297" }} onClick={() => navigate("/")}>Home</p>
-          <FaAngleRight />
-          <p style={{ margin: 0, cursor: "pointer", color: "#00a297" }} onClick={() => navigate("/shop")}>Products</p>
-          <FaAngleRight />
-          <p style={{ margin: 0 }}>{product?.name}</p>
-        </div>
+      {/* Breadcrumb */}
+<div
+  style={{
+    paddingBottom: "5px",
+    fontSize: "14px",
+    color: "#555",
+    marginBottom: "20px",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    justifyContent: "center",
+  }}
+>
+  <p
+    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+    onClick={() => navigate("/")}
+  >
+    Home
+  </p>
+  <FaAngleRight />
+
+  {/* Category */}
+  {product?.category && (
+    <>
+      <p
+        style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+        onClick={() => navigate(`/category/${product.category.slug}`)}
+      >
+        {product.category.name}
+      </p>
+      <FaAngleRight />
+    </>
+  )}
+
+  {/* Subcategory */}
+  {product?.subcategories?.length > 0 && (
+    <>
+      {product.subcategories.map((sub, idx) => (
+        <React.Fragment key={sub}>
+          <p
+            style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+            onClick={() => navigate(`/subcategory/${sub}`)} // অথবা slug থাকলে `/subcategory/${sub.slug}`
+          >
+            {sub}
+          </p>
+          {idx < product.subcategories.length - 1 && <FaAngleRight />}
+        </React.Fragment>
+      ))}
+    </>
+  )}
+
+  {/* Product Name */}
+  <FaAngleRight />
+  <p style={{ margin: 0 }}>{product?.name}</p>
+</div>
+
         <div className="row g-4">
           {/* LEFT IMAGE GALLERY */}
           {/* LEFT IMAGE GALLERY */}
@@ -227,30 +273,30 @@ const handleReviewSubmit = async (e) => {
             {/* Price */}
             <div className="d-flex justify-content-between">
 
+<h4 className="fw-bold mb-3">
+  {product.discountPrice && product.discountPrice > 0 ? (
+    <>
+      {/* Discounted Price */}
+      <span className="text-danger me-2">
+        ৳ {product.discountPrice}
+      </span>
 
-              <h4 className="fw-bold mb-3">
-                {product.discountPrice && product.discountPrice > 0 ? (
-                  <>
-                    {/* Discounted Price */}
-                    <span className="text-danger me-2">
-                      ৳ {Math.round(product.price - (product.price * product.discountPrice) / 100)}
-                    </span>
+      {/* Original Price (Strike-through) */}
+      <small className="text-muted text-decoration-line-through">
+        ৳ {product.price}
+      </small>
 
-                    {/* Original Price (Strike-through) */}
-                    <small className="text-muted text-decoration-line-through">
-                      ৳ {product.price}
-                    </small>
+      {/* Discount Badge */}
+      <span className="badge bg-danger ms-2">
+        {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+      </span>
+    </>
+  ) : (
+    /* No discount */
+    <span className="text-danger me-2">৳ {product.price}</span>
+  )}
+</h4>
 
-                    {/* Discount Badge */}
-                    <span className="badge bg-danger ms-2">
-                      {product.discountPrice}% OFF
-                    </span>
-                  </>
-                ) : (
-                  /* No discount */
-                  <span className="text-danger me-2">৳ {product.price}</span>
-                )}
-              </h4>
 
 
 

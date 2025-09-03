@@ -6,6 +6,7 @@ import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { IoCartOutline } from "react-icons/io5";
 import Layout from "../components/Layout/Layout";
+import { FaAngleRight } from "react-icons/fa";
 
 const SubcategoryProducts = () => {
   const { subSlug } = useParams();
@@ -36,8 +37,49 @@ const SubcategoryProducts = () => {
   return (
      <Layout>
     <div className="container pt-3 category">
-      <h4 className="text-center">Subcategory - {subSlug}</h4>
-      <h6 className="text-center">{products?.length} result found </h6>
+      {/* <h4 className="text-center">Subcategory - {subSlug}</h4> */}
+   {/* Breadcrumb */}
+<div
+  style={{
+    paddingBottom: "5px",
+    fontSize: "16px",
+    color: "#555",
+    marginBottom: "20px",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    justifyContent: "center",
+  }}
+>
+  {/* Home */}
+  <p
+    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+    onClick={() => navigate("/")}
+  >
+    Home
+  </p>
+  <FaAngleRight />
+
+  {/* Main Category */}
+  {products.length > 0 && products[0].category && (
+    <>
+      <p
+        style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+        onClick={() =>
+          navigate(`/category/${products[0].category.slug}`)
+        }
+      >
+        {products[0].category.name}
+      </p>
+      <FaAngleRight />
+    </>
+  )}
+
+  {/* Subcategory */}
+  <p style={{ margin: 0 }}>{subSlug}</p>
+</div>
+
+      {/* <h6 className="text-center">{products?.length} product found </h6> */}
 
       <div className="col-md-9 mx-auto">
         <div className="row">

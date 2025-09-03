@@ -9,6 +9,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { Editor } from "@tinymce/tinymce-react";
 import { AiOutlineCloseCircle } from "react-icons/ai"; // ✅ React Icons close
+import { useProduct } from "../../context/product";
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -116,7 +117,7 @@ const CreateProduct = () => {
 
     setPhotos(updatedPhotos);
   };
-
+const { refreshProducts } = useProduct();
   // Create product
   const handleCreate = async () => {
     try {
@@ -155,6 +156,7 @@ const CreateProduct = () => {
       if (data.success) {
         toast.success("✅ Product created");
         navigate("/dashboard/admin/products");
+          refreshProducts(); // HomePage context auto update
       }
     } catch (error) {
       console.log(error);

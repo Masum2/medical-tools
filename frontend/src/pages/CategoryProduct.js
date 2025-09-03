@@ -6,6 +6,7 @@ import axios from "axios";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { IoCartOutline } from "react-icons/io5";
+import { FaAngleRight } from "react-icons/fa";
 const CategoryProduct = () => {
   const params = useParams();
   const navigate = useNavigate();
@@ -34,8 +35,39 @@ const CategoryProduct = () => {
   return (
     <Layout>
       <div className="container pt-3 category">
-        <h4 className="text-center">Category - {category?.name}</h4>
-        <h6 className="text-center">{products?.length} result found </h6>
+        {/* <h4 className="text-center">Category - {category?.name}</h4> */}
+        {/* Breadcrumb */}
+<div
+  style={{
+    paddingBottom: "5px",
+    fontSize: "14px",
+    color: "#555",
+    marginBottom: "20px",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    justifyContent: "center",
+  }}
+>
+  <p
+    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+    onClick={() => navigate("/")}
+  >
+    Home
+  </p>
+  <FaAngleRight />
+
+  {/* Category */}
+  {category?._id && (
+    <p
+      style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+      onClick={() => navigate(`/category/${category.slug}`)}
+    >
+      {category.name}
+    </p>
+  )}
+</div>
+        {/* <h6 className="text-center">{products?.length} result found </h6> */}
         <div className="col-md-9">
           {/* <h2 className="mb-4 text-center">All Products</h2> */}
           <div className="row">
