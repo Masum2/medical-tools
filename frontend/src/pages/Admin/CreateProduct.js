@@ -8,7 +8,7 @@ import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { Editor } from "@tinymce/tinymce-react";
-import { AiOutlineCloseCircle } from "react-icons/ai"; // ✅ React Icons close
+import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useProduct } from "../../context/product";
 import ProductDescriptionEditor from "../../components/ProductDescriptionEditor";
 const { Option } = Select;
@@ -32,36 +32,16 @@ const CreateProduct = () => {
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
   const [shipping, setShipping] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  
   // Predefined values
   const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
   const colorOptions = [
-    "Red",
-    "Blue",
-    "Green",
-    "Black",
-    "White",
-    "Yellow",
-    "Orange",
-    "Pink",
-    "Purple",
-    "Brown",
-    "Gray",
-    "Silver",
-    "Gold",
-    "Navy Blue",
-    "Sky Blue",
-    "Maroon",
-    "Olive",
-    "Teal",
-    "Beige",
-    "Cream",
-    "Peach",
-    "Violet",
-    "Turquoise",
-    "Lavender",
-    "Charcoal"
+    "Red", "Blue", "Green", "Black", "White", "Yellow", "Orange", "Pink", 
+    "Purple", "Brown", "Gray", "Silver", "Gold", "Navy Blue", "Sky Blue", 
+    "Maroon", "Olive", "Teal", "Beige", "Cream", "Peach", "Violet", 
+    "Turquoise", "Lavender", "Charcoal"
   ];
-
   const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
   // Load categories
@@ -105,7 +85,52 @@ const CreateProduct = () => {
     setSelectedSubcategories(updated);
   };
 
-  // ✅ Handle multiple photos selection sequentially
+  // Handle drag start
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Add a small delay to make the drag image appear correctly
+    setTimeout(() => {
+      e.target.classList.add("dragging");
+    }, 0);
+  };
+
+  // Handle drag over
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  // Handle drop
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+    
+    // Reorder photos array
+    const updatedPhotos = [...photos];
+    const [movedPhoto] = updatedPhotos.splice(draggedIndex, 1);
+    updatedPhotos.splice(targetIndex, 0, movedPhoto);
+    
+    setPhotos(updatedPhotos);
+    setDraggedIndex(null);
+    
+    // Remove dragging class from all elements
+    document.querySelectorAll('.drag-item').forEach(el => {
+      el.classList.remove('dragging');
+    });
+  };
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    // Remove dragging class from all elements
+    document.querySelectorAll('.drag-item').forEach(el => {
+      el.classList.remove('dragging');
+    });
+  };
+
+  // Handle multiple photos selection sequentially
   const handlePhotoChange = (e, index) => {
     const selectedFiles = Array.from(e.target.files);
     const updatedPhotos = [...photos];
@@ -118,7 +143,9 @@ const CreateProduct = () => {
 
     setPhotos(updatedPhotos);
   };
-const { refreshProducts } = useProduct();
+
+  const { refreshProducts } = useProduct();
+  
   // Create product
   const handleCreate = async () => {
     try {
@@ -157,7 +184,7 @@ const { refreshProducts } = useProduct();
       if (data.success) {
         toast.success("✅ Product created");
         navigate("/dashboard/admin/products");
-          refreshProducts(); // HomePage context auto update
+        refreshProducts(); // HomePage context auto update
       }
     } catch (error) {
       console.log(error);
@@ -166,7 +193,6 @@ const { refreshProducts } = useProduct();
   };
 
   return (
-
     <div className="container-fluid p-0">
       <div className="row g-0">
         {/* Sidebar */}
@@ -179,7 +205,8 @@ const { refreshProducts } = useProduct();
           <div
             className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
             style={{
-              background: "#001219", position: "sticky",
+              background: "#001219", 
+              position: "sticky",
               top: 0,
               overflowY: "auto",
             }}
@@ -187,39 +214,44 @@ const { refreshProducts } = useProduct();
             <NavLink
               to="/"
               style={{
-
                 fontSize: "18px",
                 margin: "6px 0 6px 20px",
                 textDecoration: 'none',
-
-                color: '#FFF', backgroundColor: '#0d1b2a'
-
+                color: '#FFF', 
+                backgroundColor: '#0d1b2a'
               }}
             >
               Create Product
             </NavLink>
-
           </div>
           <div className="row" style={{ padding: "20px", marginLeft: '20px' }}>
             <div className="col-md-9">
-              {/* Product Images Upload */}
-              {/* Product Images Upload */}
-              <div className="mb-3 ">
+              {/* Product Images Upload with Drag & Drop */}
+              <div className="mb-3">
                 <h5 className="mb-2">
                   Product Images <span className="text-danger">*</span>
                 </h5>
                 <small className="text-muted d-block mb-3">
-                  Upload between 1 to 5 images
+                  Upload between 1 to 5 images. Drag and drop to reorder.
                 </small>
 
                 <div className="d-flex flex-wrap gap-3">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
+                      className="drag-item"
+                      draggable={!!photos[i]}
+                      onDragStart={(e) => handleDragStart(e, i)}
+                      onDragOver={(e) => handleDragOver(e, i)}
+                      onDrop={(e) => handleDrop(e, i)}
+                      onDragEnd={handleDragEnd}
                       style={{
                         position: "relative",
                         width: "100px",
                         height: "120px",
+                        cursor: photos[i] ? "grab" : "pointer",
+                        opacity: draggedIndex === i ? 0.5 : 1,
+                        transition: "transform 0.2s, opacity 0.2s",
                       }}
                     >
                       <label
@@ -258,7 +290,7 @@ const { refreshProducts } = useProduct();
                         />
                       </label>
 
-                      {/* ✅ React Icons close button */}
+                      {/* Close button */}
                       {photos[i] && (
                         <AiOutlineCloseCircle
                           style={{
@@ -291,57 +323,10 @@ const { refreshProducts } = useProduct();
                 className="form-control mb-3"
               />
 
-              {/* TinyMCE Editor */}
-              {/* <div style={{ marginBottom: "1rem" }}>
-                <Editor
-                  apiKey="1oqyhk7scnb7xognnnvt8fv0r5y2zvdyt26lko7yi2cgmqx2"
-                  init={{
-                    height: 300,
-                    menubar: false,
-                    plugins: [
-                      "advlist autolink lists link image charmap preview anchor",
-                      "searchreplace visualblocks code fullscreen",
-                      "insertdatetime media table paste code help wordcount",
-                    ],
-                    toolbar:
-                      "undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | removeformat | help",
-                    content_style: `
-                        body { 
-                          font-family: Helvetica, Arial, sans-serif; 
-                          font-size: 14px; 
-                          line-height: 1.6;
-                        }
-                        ul, ol { padding-left: 20px; }
-                        ul { list-style-type: disc; }
-                        ol { list-style-type: decimal; }
-                      `,
-                    advlist_bullet_styles: "default",
-                    advlist_number_styles: "default",
-                    forced_root_block: "p",
-                    invalid_elements: "",
-                    valid_children: "+body[style]",
-                    verify_html: false,
-                    allow_conditional_comments: true,
-                    fix_list_elements: true,
-                  }}
-                  value={description}
-                  onEditorChange={(newValue) => setDescription(newValue)}
-                />
-              </div> */}
-{/* <div style={{ marginBottom: "1rem" }}>
-  <textarea
-    value={description}
-    onChange={(e) => setDescription(e.target.value)}
-    className="form-control"
-    placeholder="Enter product description"
-    rows={6}
-    style={{ resize: "vertical" }}
-  />
-</div> */}
-      <ProductDescriptionEditor
-        description={description}
-        setDescription={setDescription}
-      />
+              <ProductDescriptionEditor
+                description={description}
+                setDescription={setDescription}
+              />
 
               <input
                 type="number"
@@ -366,7 +351,7 @@ const { refreshProducts } = useProduct();
               />
 
               <Select
-                mode="tags" // ✅ multiple + add new
+                mode="tags"
                 style={{ width: "100%" }}
                 placeholder="Select or add brands"
                 value={brand}
@@ -458,8 +443,21 @@ const { refreshProducts } = useProduct();
           </div>
         </div>
       </div>
+      
+      {/* Add some CSS for the drag and drop effect */}
+      <style>
+        {`
+          .drag-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            z-index: 10;
+          }
+          .drag-item:active {
+            cursor: grabbing;
+          }
+        `}
+      </style>
     </div>
-
   );
 };
 

@@ -8,7 +8,9 @@ import Layout from "../../components/Layout/Layout";
 import { NavLink, useNavigate } from "react-router-dom";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import { QRCodeCanvas } from "qrcode.react";
-const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered"
+  // , "cancelled"
+];
 const PAYMENT_STATUSES = ["pending", "completed"];
 
 const AdminOrders = () => {
