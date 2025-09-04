@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import toast from "react-hot-toast";
-import { FaUser, FaBars, FaGift, FaBook, FaLaptop, FaGamepad, FaCar, FaTimes } from "react-icons/fa";
+import { FaUser, FaBars, FaGift, FaBook, FaLaptop, FaGamepad, FaCar, FaTimes, FaHome, FaStore, FaInfoCircle, FaAddressCard } from "react-icons/fa";
 import { TiShoppingCart } from "react-icons/ti";
 import { Badge, Drawer, Input } from "antd";
 import { SearchOutlined, RightOutlined } from "@ant-design/icons";
@@ -105,112 +105,122 @@ const Header = () => {
         </div>
       )}
 
-      {/* ✅ Middle header */}
+      {/* ✅ Middle header - Sticky on mobile */}
       <div
-        className="py-0 border-bottom"
+        className={`py-0 border-bottom ${isMobile ? 'sticky-top' : ''}`}
         style={{
-          position: "relative",
+          position: isMobile ? "sticky" : "relative",
+          top: isMobile ? "0" : "auto",
           zIndex: 1055,
           backgroundColor: "#EBEBEB",
         }}
       >
         <div className="container d-flex flex-wrap align-items-center justify-content-between gap-3 py-2">
           {/* Logo and Mobile Menu Button */}
-          <div className="d-flex align-items-center justify-content-between w-100 d-lg-none">
+          <div className="d-flex align-items-center justify-content-between w-100">
             <div className="d-flex align-items-center">
               <Link to="/" className="d-flex align-items-center">
                 <img
                   src="/images/newlogo.png"
                   alt="Logo"
-                  style={{ width: "50px", height: "50px" }}
+                  style={{ width: isMobile ? "50px" : "80px", height: isMobile ? "50px" : "80px" }}
                 />
               </Link>
-              <p className="font ms-2 mb-0">HealthProo</p>
+              <p className="font ms-2 mb-0 d-none d-md-block">HealthProo</p>
             </div>
             
-            {/* Mobile Menu Toggle */}
-            <button 
-              className="btn p-0"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ color: "#00a297", fontSize: "1.5rem" }}
-            >
-              {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-            </button>
+            {/* Desktop Search - Hidden on mobile */}
+            {!isMobile && (
+              <div className="flex-grow-1 mx-4">
+                <SearchInput />
+              </div>
+            )}
+            
+            {/* Desktop Cart & User - Hidden on mobile */}
+            {!isMobile && (
+              <div className="d-flex align-items-center gap-4">
+                <NavLink to="/cart" className="nav-link p-0">
+                  <Badge count={cart?.length} showZero offset={[10, -5]}>
+                    <TiShoppingCart
+                      className="fs-3"
+                      style={{ color: "#00a297" }}
+                    />
+                  </Badge>
+                </NavLink>
+
+                <div className="dropdown">
+                  {!auth?.user ? (
+                    <Link to="/login" className="text-dark text-decoration-none">
+                      <FaUser className="fs-4" style={{ color: "#00a297" }} />
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        className="btn btn-link text-dark text-decoration-none dropdown-toggle"
+                        id="userMenu"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {auth?.user?.name}
+                      </button>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="userMenu"
+                        style={{ zIndex: 1050 }}
+                      >
+                        <li>
+                          <NavLink
+                            to={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"
+                              }`}
+                            className="dropdown-item"
+                          >
+                            Dashboard
+                          </NavLink>
+                        </li>
+                        <li>
+                          <button
+                            onClick={handleLogout}
+                            className="dropdown-item"
+                          >
+                            Logout
+                          </button>
+                        </li>
+                      </ul>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Mobile Menu Toggle - Only show on mobile */}
+            {isMobile && (
+              <div className="d-flex align-items-center gap-3">
+                <NavLink to="/cart" className="nav-link p-0">
+                  <Badge count={cart?.length} showZero offset={[10, -5]}>
+                    <TiShoppingCart
+                      className="fs-3"
+                      style={{ color: "#00a297" }}
+                    />
+                  </Badge>
+                </NavLink>
+                
+                <button 
+                  className="btn p-0"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  style={{ color: "#00a297", fontSize: "1.5rem" }}
+                >
+                  {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+                </button>
+              </div>
+            )}
           </div>
-
-          {/* Desktop Layout */}
-          <div className="d-none d-lg-flex align-items-center w-100">
-            {/* Logo */}
-            <div className="d-flex align-items-center me-4">
-              <Link to="/" className="d-flex align-items-center">
-                <img
-                  src="/images/newlogo.png"
-                  alt="Logo"
-                  style={{ width: "80px", height: "80px" }}
-                />
-              </Link>
-              <p className="font ms-2 mb-0">HealthProo</p>
-            </div>
-
-            {/* Search */}
-            <div className="flex-grow-1 mx-4">
+          
+          {/* Mobile Search - Only show on mobile when menu is closed */}
+          {isMobile && !isMobileMenuOpen && (
+            <div className="w-100 mt-2">
               <SearchInput />
             </div>
-
-            {/* Cart & User */}
-            <div className="d-flex align-items-center gap-4">
-              <NavLink to="/cart" className="nav-link p-0">
-                <Badge count={cart?.length} showZero offset={[10, -5]}>
-                  <TiShoppingCart
-                    className="fs-3"
-                    style={{ color: "#00a297" }}
-                  />
-                </Badge>
-              </NavLink>
-
-              <div className="dropdown">
-                {!auth?.user ? (
-                  <Link to="/login" className="text-dark text-decoration-none">
-                    <FaUser className="fs-4" style={{ color: "#00a297" }} />
-                  </Link>
-                ) : (
-                  <>
-                    <button
-                      className="btn btn-link text-dark text-decoration-none dropdown-toggle"
-                      id="userMenu"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      {auth?.user?.name}
-                    </button>
-                    <ul
-                      className="dropdown-menu"
-                      aria-labelledby="userMenu"
-                      style={{ zIndex: 1050 }}
-                    >
-                      <li>
-                        <NavLink
-                          to={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"
-                            }`}
-                          className="dropdown-item"
-                        >
-                          Dashboard
-                        </NavLink>
-                      </li>
-                      <li>
-                        <button
-                          onClick={handleLogout}
-                          className="dropdown-item"
-                        >
-                          Logout
-                        </button>
-                      </li>
-                    </ul>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -276,28 +286,67 @@ const Header = () => {
             left: 0,
             width: '100%',
             height: '100vh',
-            backgroundColor: '#fff',
+            background: 'linear-gradient(135deg, #00a297 0%, #007580 100%)',
             zIndex: 1060,
             transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s ease-in-out',
             padding: '20px',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            color: 'white'
           }}
         >
-          {/* Close Button */}
-          <div className="d-flex justify-content-end mb-3">
+          {/* Header with Close Button */}
+          <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
+            <div className="d-flex align-items-center">
+              <img
+                src="/images/newlogo.png"
+                alt="Logo"
+                style={{ width: "40px", height: "40px" }}
+              />
+              <p className="font ms-2 mb-0 text-white">HealthProo</p>
+            </div>
             <button 
               className="btn p-0"
               onClick={() => setIsMobileMenuOpen(false)}
-              style={{ color: "#00a297", fontSize: "1.5rem" }}
+              style={{ color: "white", fontSize: "1.5rem" }}
             >
               <FaTimes />
             </button>
           </div>
           
-          {/* Search in Mobile Menu */}
-          <div className="mb-4">
-            <SearchInput />
+          {/* User Section */}
+          <div className="mb-4 p-3 rounded" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
+            {!auth?.user ? (
+              <Link 
+                to="/login" 
+                className="btn text-white d-flex align-items-center p-0 fs-5"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <FaUser className="me-3" /> Login / Register
+              </Link>
+            ) : (
+              <>
+                <p className="fw-bold mb-2 text-white">Hello, {auth?.user?.name}</p>
+                <div className="d-flex flex-column">
+                  <NavLink
+                    to={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"}`}
+                    className="text-white mb-2 d-flex align-items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FaUser className="me-3" /> Dashboard
+                  </NavLink>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="btn p-0 text-white d-flex align-items-center"
+                  >
+                    <FaTimes className="me-3" /> Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           
           {/* Navigation Links */}
@@ -305,94 +354,98 @@ const Header = () => {
             <li className="nav-item mb-3">
               <NavLink 
                 to="/" 
-                className="nav-link text-dark fs-5"
+                className="nav-link text-white d-flex align-items-center fs-5"
                 onClick={() => setIsMobileMenuOpen(false)}
+                style={({ isActive }) => ({ 
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  borderRadius: '8px',
+                  padding: '12px 15px'
+                })}
               >
-                Home
+                <FaHome className="me-3" /> Home
               </NavLink>
             </li>
             <li className="nav-item mb-3">
               <NavLink 
                 to="/shop" 
-                className="nav-link text-dark fs-5"
+                className="nav-link text-white d-flex align-items-center fs-5"
                 onClick={() => setIsMobileMenuOpen(false)}
+                style={({ isActive }) => ({ 
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  borderRadius: '8px',
+                  padding: '12px 15px'
+                })}
               >
-                Shop
+                <FaStore className="me-3" /> Shop
               </NavLink>
             </li>
             <li className="nav-item mb-3">
               <button
-                className="btn p-0 text-dark fs-5 d-flex align-items-center"
-                style={{ background: 'none', border: 'none' }}
-                onClick={() => setOpenCategoryDrawer(true)}
+                className="btn p-0 text-white fs-5 d-flex align-items-center w-100"
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  padding: '12px 15px'
+                }}
+                onClick={() => {
+                  setOpenCategoryDrawer(true);
+                  setIsMobileMenuOpen(false);
+                }}
               >
-                Categories <RightOutlined className="ms-2" />
+                <FaBars className="me-3" /> Categories
               </button>
             </li>
             <li className="nav-item mb-3">
               <NavLink 
                 to="/about" 
-                className="nav-link text-dark fs-5"
+                className="nav-link text-white d-flex align-items-center fs-5"
                 onClick={() => setIsMobileMenuOpen(false)}
+                style={({ isActive }) => ({ 
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  borderRadius: '8px',
+                  padding: '12px 15px'
+                })}
               >
-                About Us
+                <FaInfoCircle className="me-3" /> About Us
               </NavLink>
             </li>
             <li className="nav-item mb-3">
               <NavLink 
                 to="/contact" 
-                className="nav-link text-dark fs-5"
+                className="nav-link text-white d-flex align-items-center fs-5"
                 onClick={() => setIsMobileMenuOpen(false)}
+                style={({ isActive }) => ({ 
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  borderRadius: '8px',
+                  padding: '12px 15px'
+                })}
               >
-                Contact Us
+                <FaAddressCard className="me-3" /> Contact Us
               </NavLink>
             </li>
           </ul>
           
-          {/* User Section */}
-          <div className="border-top pt-3 mb-4">
-            {!auth?.user ? (
-              <Link 
-                to="/login" 
-                className="btn text-dark d-block text-start p-0 mb-3 fs-5"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <FaUser className="me-2" /> Login
-              </Link>
-            ) : (
-              <>
-                <p className="fw-bold mb-2">Hello, {auth?.user?.name}</p>
-                <NavLink
-                  to={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"}`}
-                  className="d-block text-dark mb-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </NavLink>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="btn p-0 text-dark d-block text-start"
-                >
-                  Logout
-                </button>
-              </>
-            )}
-          </div>
-          
           {/* Cart */}
-          <div className="border-top pt-3">
+          <div className="border-top border-light pt-3">
             <NavLink 
               to="/cart" 
-              className="nav-link text-dark d-flex align-items-center fs-5"
+              className="nav-link text-white d-flex align-items-center fs-5"
               onClick={() => setIsMobileMenuOpen(false)}
+              style={({ isActive }) => ({ 
+                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                borderRadius: '8px',
+                padding: '12px 15px'
+              })}
             >
-              <TiShoppingCart className="me-2 fs-4" style={{ color: "#00a297" }} />
+              <TiShoppingCart className="me-3 fs-4" />
               Cart
               {cart?.length > 0 && (
-                <Badge count={cart?.length} showZero className="ms-2" />
+                <Badge 
+                  count={cart?.length} 
+                  showZero 
+                  className="ms-2" 
+                  style={{ backgroundColor: '#ff477e' }} 
+                />
               )}
             </NavLink>
           </div>

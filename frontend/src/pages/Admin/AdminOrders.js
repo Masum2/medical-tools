@@ -415,9 +415,9 @@ const AdminOrders = () => {
                               </td>
                             </tr>
                             <tr>
-                              <th>Seller</th>
-                              <td>Md Shamim Ahmed </td>
-                              <th>Seller Address</th>
+                              <th>Company</th>
+                              <td>HealthProo.com </td>
+                              <th>Company Address</th>
                               <td>123, Polton, Dhaka</td>
                             </tr>
                           </tbody>
