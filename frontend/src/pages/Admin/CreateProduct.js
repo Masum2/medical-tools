@@ -10,6 +10,7 @@ import { useAuth } from "../../context/auth";
 import { Editor } from "@tinymce/tinymce-react";
 import { AiOutlineCloseCircle } from "react-icons/ai"; // ✅ React Icons close
 import { useProduct } from "../../context/product";
+import ProductDescriptionEditor from "../../components/ProductDescriptionEditor";
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -327,7 +328,7 @@ const { refreshProducts } = useProduct();
                   onEditorChange={(newValue) => setDescription(newValue)}
                 />
               </div> */}
-<div style={{ marginBottom: "1rem" }}>
+{/* <div style={{ marginBottom: "1rem" }}>
   <textarea
     value={description}
     onChange={(e) => setDescription(e.target.value)}
@@ -336,7 +337,12 @@ const { refreshProducts } = useProduct();
     rows={6}
     style={{ resize: "vertical" }}
   />
-</div>
+</div> */}
+      <ProductDescriptionEditor
+        description={description}
+        setDescription={setDescription}
+      />
+
               <input
                 type="number"
                 placeholder="Price"

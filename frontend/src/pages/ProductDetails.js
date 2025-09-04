@@ -606,9 +606,17 @@ const handleReviewSubmit = async (e) => {
           </ul>
 
           <div className="tab-content border p-4 bg-white shadow-sm">
-            {activeTab === "details" && (
-              <p>{product?.description ? product.description.replace(/<[^>]+>/g, "") : ""}</p>
-            )}
+{activeTab === "details" && (
+<div
+  className="ql-editor"
+  dangerouslySetInnerHTML={{ __html: product?.description || "" }}
+  style={{
+    paddingLeft: "20px",
+    marginBottom: "1rem",
+    lineHeight: "1.6",
+  }}
+/>
+)}
             {activeTab === "policy" && <div className="bg-light rounded p-3 shadow-sm">
               <h6 className="fw-bold">Delivery</h6>
               <p className="text-muted small">Fast delivery available in your area</p>
