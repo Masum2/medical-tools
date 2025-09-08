@@ -49,7 +49,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Login failed");
+      toast.error("Login failed its");
     }
   };
 
