@@ -7,21 +7,18 @@ import userModels from '../models/userModels.js';
 // Load environment variables
 dotenv.config();
 
-const isProduction = process.env.NODE_MODE === "development";
+const isProduction = process.env.NODE_MODE === "production";
 
 // Helper function: get full callback URL
 const getCallbackURL = (provider) => {
   if (provider === "facebook") {
-    return process.env.NODE_MODE === "development"
-      ? "http://localhost:8080/api/v1/auth/facebook/callback"
-      : 
-      "https://medical-tools.onrender.com/api/v1/auth/facebook/callback";
+    return process.env.NODE_MODE === "production"
+      ? "https://medical-tools.onrender.com/api/v1/auth/facebook/callback"
+      : "http://localhost:8080/api/v1/auth/facebook/callback";
   } else if (provider === "google") {
-    return process.env.NODE_MODE === "development"
-      ? "http://localhost:8080/api/v1/auth/google/callback"
-      : 
-       "https://medical-tools.onrender.com/api/v1/auth/google/callback"
-      ;
+    return process.env.NODE_MODE === "production"
+      ? "https://medical-tools.onrender.com/api/v1/auth/google/callback"
+      : "http://localhost:8080/api/v1/auth/google/callback";
   }
 };
 
