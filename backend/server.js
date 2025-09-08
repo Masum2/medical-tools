@@ -9,6 +9,8 @@ import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import cors from "cors";
+import session from "express-session";
+import passport from "./config/passport.js";
 
 // configure env
 dotenv.config();
@@ -21,13 +23,30 @@ const app = express();
 
 // ✅ Middlewares
 app.use(cors({
-  // origin: "https://medical-tools.vercel.app", // 🔥 এখানে array বা trailing slash নেই
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
   credentials: true
 }));
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || "ecommerce_secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_MODE === "production",
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+console.log("🔑 CLOUDINARY TEST:", process.env.CLOUDINARY_CLOUD_NAME);
 
 // ✅ Routes
 app.use("/api/v1/auth", authRoutes);

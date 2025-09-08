@@ -1,9 +1,11 @@
 
 import userModels from "../models/userModels.js";
 import { comparePassword, hashPassword } from "./../helpers/authHelper.js";
-
+import dotenv from "dotenv";
 import JWT from "jsonwebtoken";
 
+// configure env
+dotenv.config();
 
 export const registerController = async (req, res) => {
   try {
@@ -67,6 +69,7 @@ export const registerController = async (req, res) => {
 export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
     //validation
     if (!email || !password) {
       return res.status(404).send({
@@ -74,14 +77,32 @@ export const loginController = async (req, res) => {
         message: "Invalid email or password",
       });
     }
+    
     //check user
     const user = await userModels.findOne({ email });
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: "Email is not registerd",
+        message: "Email is not registered",
       });
     }
+    
+    // Check if user registered with Facebook
+    if (user.loginMethod === 'facebook') {
+      return res.status(400).send({
+        success: false,
+        message: "This email is registered with Facebook. Please login using Facebook.",
+      });
+    }
+    
+    // Check if user has a password (for legacy users)
+    if (!user.password) {
+      return res.status(400).send({
+        success: false,
+        message: "Please reset your password or use alternative login method",
+      });
+    }
+    
     const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(200).send({
@@ -89,10 +110,12 @@ export const loginController = async (req, res) => {
         message: "Invalid Password",
       });
     }
+    
     //token
     const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+    
     res.status(200).send({
       success: true,
       message: "login successfully",
@@ -101,8 +124,9 @@ export const loginController = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        adddress: user.address,
-        role:user.role
+        address: user.address,
+        role: user.role,
+        avatar: user.avatar
       },
       token,
     });
@@ -114,6 +138,68 @@ export const loginController = async (req, res) => {
       error,
     });
   }
+};
+// Facebook login success controller
+// export const facebookLoginSuccess = async (req, res) => {
+//   try {
+//     if (!req.user) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Facebook login failed"
+//       });
+//     }
+    
+//     const token = await JWT.sign({ _id: req.user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "7d",
+//     });
+    
+//     res.status(200).send({
+//       success: true,
+//       message: "Facebook login successful",
+//       user: {
+//         _id: req.user._id,
+//         name: req.user.name,
+//         email: req.user.email,
+//         phone: req.user.phone,
+//         address: req.user.address,
+//         role: req.user.role,
+//         avatar: req.user.avatar
+//       },
+//       token,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({
+//       success: false,
+//       message: "Error in Facebook login",
+//       error,
+//     });
+//   }
+// };
+// Facebook login success
+export const facebookLoginSuccess = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
+    }
+
+    const token = await JWT.sign(
+      { _id: req.user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Redirect to React login page with token in query
+    res.redirect(`${process.env.CLIENT_URL}/login?token=${token}`);
+  } catch (error) {
+    console.log(error);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=server_error`);
+  }
+};
+
+// Facebook login failure
+export const facebookLoginFailure = (req, res) => {
+  res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
 };
 
 // forgot password controller

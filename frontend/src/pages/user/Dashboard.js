@@ -44,7 +44,11 @@ const Dashboard = () => {
                     </li>
                     <li className="list-group-item px-0 py-3 d-flex justify-content-between">
                       <span className="fw-semibold">Address:</span>
-                      <span>{auth?.user?.address || "N/A"}</span>
+  <p className="mb-0 text-end">
+    {auth?.user?.address
+      ? `${auth.user.address.street}, ${auth.user.address.city}, ${auth.user.address.state}, ${auth.user.address.zipCode}, ${auth.user.address.country}`
+      : "No address available"}
+  </p>
                     </li>
                   </ul>
                 </div>

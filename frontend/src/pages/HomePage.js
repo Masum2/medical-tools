@@ -202,9 +202,30 @@ const HomePage = () => {
                               paddingBottom: "10px",
                             }}
                           >
-                            <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
+                            {/* <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
                               ৳ {p.price}
-                            </h6>
+                            </h6> */}
+                            {p.discountPrice && p.discountPrice > 0 ? (
+    <>
+      {/* Discounted Price */}
+      <span className="text-danger me-2">
+        ৳ {p.discountPrice}
+      </span>
+
+      {/* Original Price (Strike-through) */}
+      <small className="text-muted text-decoration-line-through">
+        ৳ {p.price}
+      </small>
+
+      {/* Discount Badge */}
+      <span className="badge bg-danger ms-2">
+        {Math.round(((p.price - p.discountPrice) / p.price) * 100)}% OFF
+      </span>
+    </>
+  ) : (
+    /* No discount */
+    <span className="text-danger me-2">৳ {p.price}</span>
+  )}
                             <div
                               style={{
                                 cursor: "pointer",

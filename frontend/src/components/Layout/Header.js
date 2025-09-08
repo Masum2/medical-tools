@@ -128,7 +128,22 @@ const Header = () => {
               </Link>
               <p className="font ms-2 mb-0 d-none d-md-block">HealthProo</p>
             </div>
-            
+              {/* ✅ Mobile Only Name (Centered) */}
+  {isMobile && (
+    <div className="flex-grow-1 text-center">
+      <p
+        style={{
+          margin: 0,
+          fontWeight: "600",
+          fontSize: "18px",
+          color: "#00a297",
+          letterSpacing: "0.5px",
+        }}
+      >
+        HealthProo
+      </p>
+    </div>
+  )}
             {/* Desktop Search - Hidden on mobile */}
             {!isMobile && (
               <div className="flex-grow-1 mx-4">

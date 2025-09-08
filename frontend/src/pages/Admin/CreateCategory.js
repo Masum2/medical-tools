@@ -195,6 +195,7 @@ const CreateCategory = () => {
                     <thead className="table-info">
                       <tr>
                         <th>#</th>
+                        <th>Category Image</th>
                         <th>Category</th>
                         <th>Subcategories</th>
                         <th>Actions</th>
@@ -213,8 +214,9 @@ const CreateCategory = () => {
                                 style={{ width: "50px", height: "50px", objectFit: "cover" }}
                               />
                             )}
-                            <span>{c.name}</span>
+                            
                           </td>
+                          <td><span>{c.name}</span></td>
                           <td>{c.subcategories?.join(", ")}</td>
                           <td>
                             <button
