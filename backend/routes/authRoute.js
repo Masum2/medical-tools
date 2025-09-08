@@ -34,6 +34,8 @@ router.get("/facebook/callback",
 );
 
 router.get("/facebook/failure", facebookLoginFailure);
+
+router.get("/facebook/failure", facebookLoginFailure);
 // forgot password
 router.post('/forgot-password', forgotPasswordController);
 
@@ -157,4 +159,5 @@ router.post("/social/verify", async (req, res) => {
 router.get("/google/failure", (req, res) => {
   res.redirect(`${process.env.CLIENT_URL}/login?error=google_failed`);
 });
+
 export default router;

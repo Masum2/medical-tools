@@ -177,23 +177,24 @@ export const loginController = async (req, res) => {
 //   }
 // };
 // Facebook login success
+// Facebook login success
 export const facebookLoginSuccess = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
-    }
+  if (!req.user) {
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
+  }
 
-    const token = await JWT.sign(
+  try {
+    const token = JWT.sign(
       { _id: req.user._id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Redirect to React login page with token in query
+    // Redirect to frontend with token
     res.redirect(`${process.env.CLIENT_URL}/login?token=${token}`);
   } catch (error) {
-    console.log(error);
-    res.redirect(`${process.env.CLIENT_URL}/login?error=server_error`);
+    console.error('Facebook login error:', error);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
   }
 };
 
@@ -201,6 +202,32 @@ export const facebookLoginSuccess = async (req, res) => {
 export const facebookLoginFailure = (req, res) => {
   res.redirect(`${process.env.CLIENT_URL}/login?error=facebook_failed`);
 };
+
+// Google login success
+export const googleLoginSuccess = async (req, res) => {
+  if (!req.user) {
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=google_failed`);
+  }
+
+  try {
+    const token = JWT.sign(
+      { _id: req.user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.redirect(`${process.env.CLIENT_URL}/login?token=${token}`);
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=google_failed`);
+  }
+};
+
+// Google login failure
+export const googleLoginFailure = (req, res) => {
+  res.redirect(`${process.env.CLIENT_URL}/login?error=google_failed`);
+};
+
 
 // forgot password controller
 

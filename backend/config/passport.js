@@ -12,11 +12,11 @@ const isProduction = process.env.NODE_MODE === "production";
 // Helper function: get full callback URL
 const getCallbackURL = (provider) => {
   if (provider === "facebook") {
-    return isProduction
+    return process.env.NODE_MODE === "production"
       ? "https://medical-tools.onrender.com/api/v1/auth/facebook/callback"
       : "http://localhost:8080/api/v1/auth/facebook/callback";
   } else if (provider === "google") {
-    return isProduction
+    return process.env.NODE_MODE === "production"
       ? "https://medical-tools.onrender.com/api/v1/auth/google/callback"
       : "http://localhost:8080/api/v1/auth/google/callback";
   }
