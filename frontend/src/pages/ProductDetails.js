@@ -334,33 +334,35 @@ const handleReviewSubmit = async (e) => {
                           }}
                         >
                           {/* First color image */}
-                          <div
-                            style={{
-                              border: selectedColor
-                                ? selectedColor === c
-                                  ? "2px solid black" // selected hole black border
-                                  : "1px solid #ccc" // normal hole gray
-                                : idx === 0
-                                  ? "2px solid black" // default first select
-                                  : "1px solid #ccc",
-                              borderRadius: "6px",
-                              padding: "2px",
-                              display: "inline-block",
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <img
-                              src={product.photosByColor?.[c]?.[0] || images[0]}
-                              alt={c}
-                              style={{
-                                width: "45px",
-                                height: "40px",
-                                objectFit: "cover",
-                                borderRadius: "4px",
-                                marginBottom: "5px",
-                              }}
-                            />
-                          </div>
+                       <div
+  onClick={() => setSelectedColor(c)} // color select করার জন্য
+  style={{
+    border: selectedColor
+      ? selectedColor === c
+        ? `2px solid ${c}` // selected হলে border হবে ওই রঙে
+        : "1px solid #ccc"
+      : idx === 0
+        ? `2px solid ${c}` // ডিফল্ট প্রথম color select হলে border হবে ওই রঙে
+        : "1px solid #ccc",
+    borderRadius: "6px",
+    padding: "2px",
+    display: "inline-block",
+    cursor: "pointer",
+  }}
+>
+  <img
+    src={product.photosByColor?.[c]?.[0] || images[0]}
+    alt={c}
+    style={{
+      width: "45px",
+      height: "40px",
+      objectFit: "cover",
+      borderRadius: "4px",
+      marginBottom: "5px",
+    }}
+  />
+</div>
+
                           <p style={{ textAlign: "center", fontSize: "11px", fontWeight: 'bold' }}>{c}</p>
                         </div>
                       ))}
