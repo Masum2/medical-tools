@@ -30,21 +30,41 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState("details");
   const [selectedImage, setSelectedImage] = useState("");
   const [images, setImages] = useState([]);
+const [photosByColor, setPhotosByColor] = useState({});
+  // useEffect(() => {
+  //   if (product._id) {
+  //     const imgs = product.photos?.length
+  //       ? product.photos.map((_, index) =>
+  //         `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
+  //       )
+  //       : [`${API}/api/v1/product/product-photo/${product._id}`];
 
-  useEffect(() => {
-    if (product._id) {
-      const imgs = product.photos?.length
-        ? product.photos.map((_, index) =>
+  //     setImages(imgs);
+  //     setSelectedImage(imgs[0]);
+  //   }
+  // }, [product]);
+
+useEffect(() => {
+  if (product._id) {
+    const imgs = product.photos?.length
+      ? product.photos.map((_, index) =>
           `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
         )
-        : [`${API}/api/v1/product/product-photo/${product._id}`];
+      : [`${API}/api/v1/product/product-photo/${product._id}`];
 
-      setImages(imgs);
-      setSelectedImage(imgs[0]);
+    setImages(imgs);
+    setSelectedImage(imgs[0]);
+
+    // ✅ Color অনুযায়ী image auto assign
+    if (product.color?.length > 0) {
+      const mapping = {};
+      product.color.forEach((c, idx) => {
+        mapping[c] = [imgs[idx] || imgs[0]]; // না থাকলে fallback প্রথম image
+      });
+      setPhotosByColor(mapping);
     }
-  }, [product]);
-
-
+  }
+}, [product]);
   // Fetch product
   useEffect(() => {
     if (params?.slug) getProduct();
@@ -319,58 +339,50 @@ const handleReviewSubmit = async (e) => {
             {/* Brand Selector */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>
-                {product.color && (
-                  <div className="mb-3">
-                    <strong>Color:</strong>
-                    <div className="d-flex gap-3 mt-2 flex-wrap">
-                      {product.color?.map((c, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setSelectedColor(c);
-                            if (product.photosByColor && product.photosByColor[c]) {
-                              setSelectedImage(product.photosByColor[c][0]);
-                            }
-                          }}
-                        >
-                          {/* First color image */}
-                       <div
-  onClick={() => setSelectedColor(c)} // color select করার জন্য
-  style={{
-    border: selectedColor
-      ? selectedColor === c
-        ? `2px solid ${c}` // selected হলে border হবে ওই রঙে
-        : "1px solid #ccc"
-      : idx === 0
-        ? `2px solid ${c}` // ডিফল্ট প্রথম color select হলে border হবে ওই রঙে
-        : "1px solid #ccc",
-    borderRadius: "6px",
-    padding: "2px",
-    display: "inline-block",
-    cursor: "pointer",
-  }}
->
-  <img
-    src={product.photosByColor?.[c]?.[0] || images[0]}
-    alt={c}
-    style={{
-      width: "45px",
-      height: "40px",
-      objectFit: "cover",
-      borderRadius: "4px",
-      marginBottom: "5px",
-    }}
-  />
-</div>
-
-                          <p style={{ textAlign: "center", fontSize: "11px", fontWeight: 'bold' }}>{c}</p>
-                        </div>
-                      ))}
-
-
-                    </div>
-                  </div>
-                )}
+             {product.color && (
+  <div className="mb-3">
+    <strong>Color:</strong>
+    <div className="d-flex gap-3 mt-2 flex-wrap">
+      {product.color?.map((c, idx) => (
+        <div
+          key={idx}
+          onClick={() => {
+            setSelectedColor(c);
+            if (photosByColor[c]) {
+              setSelectedImage(photosByColor[c][0]);
+            }
+          }}
+          style={{
+            border: selectedColor
+              ? selectedColor === c
+                ? `2px solid ${c}`
+                : "1px solid #ccc"
+              : idx === 0
+              ? `2px solid ${c}`
+              : "1px solid #ccc",
+            borderRadius: "6px",
+            padding: "2px",
+            display: "inline-block",
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={photosByColor?.[c]?.[0] || images[0]}
+            alt={c}
+            style={{
+              width: "45px",
+              height: "40px",
+              objectFit: "cover",
+              borderRadius: "4px",
+              marginBottom: "5px",
+            }}
+          />
+          <p style={{ textAlign: "center", fontSize: "11px", fontWeight: "bold" }}>{c}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
               </div>
               <div>
                 {product.brand && (
@@ -495,7 +507,9 @@ const handleReviewSubmit = async (e) => {
                     size: selectedSize,
                     quantity: quantity,      // User select করা quantity
                     stock: product.quantity, // Admin থেকে আসা stock
-                    image: images[0],
+                    // image: images[0],
+                      image: selectedImage || images[0], // ✅ selected color অনুযায়ী image save হবে
+                    
                   };
 
                   // চেক করবো product আগে থেকেই cart এ আছে কিনা

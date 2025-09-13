@@ -254,16 +254,26 @@ size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
 // ------------------ FILTER PRODUCTS ------------------
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked, radio, brand, color, size } = req.body;
+    const { checked, subChecked, radio } = req.body;
     let args = {};
 
-    if (checked?.length) args.category = checked;
-    if (radio?.length) args.price = { $gte: radio[0], $lte: radio[1] };
-    if (brand?.length) args.brand = { $in: brand };
-    if (color?.length) args.color = { $in: color };
-    if (size?.length) args.size = { $in: size };
+    // ✅ Category filter
+    if (checked?.length) {
+      args.category = { $in: checked }; // <-- ObjectId array
+    }
 
-    const products = await productModel.find(args).select("-photo");
+    // ✅ Subcategory filter
+    if (subChecked?.length) {
+      args.subcategories = { $in: subChecked.map(s => new RegExp(`^${s}$`, 'i')) };
+      // subcategories string array, case-insensitive match
+    }
+
+    // ✅ Price filter
+    if (radio?.length) {
+      args.price = { $gte: radio[0], $lte: radio[1] };
+    }
+
+    const products = await productModel.find(args).select("-photos.data").populate("category", "name slug");
 
     res.status(200).send({
       success: true,
@@ -278,6 +288,7 @@ export const productFiltersController = async (req, res) => {
     });
   }
 };
+
 
 // ------------------ PRODUCT COUNT ------------------
 export const productCountController = async (req, res) => {

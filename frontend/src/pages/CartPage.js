@@ -82,7 +82,7 @@ const CartPage = () => {
                   >
                     {/* Product Info */}
                     <div className="d-flex align-items-center mb-3 mb-md-0" style={{ flex: 1 }}>
-                      <img
+                      {/* <img
                         src={`${API}/api/v1/product/product-photo/${item._id}`}
                         alt={item.name}
                         style={{
@@ -92,7 +92,19 @@ const CartPage = () => {
                           borderRadius: "4px",
                           marginRight: "12px",
                         }}
-                      />
+                      /> */}
+                      <img
+  src={item.image} // cart এ save হওয়া selected image
+  alt={item.name}
+  style={{
+    width: "80px",
+    height: "100px",
+    objectFit: "cover",
+    borderRadius: "4px",
+    marginRight: "12px",
+  }}
+/>
+
                       <div>
                         <small style={{ color: "#6b7280", fontSize: "12px" }}>
                           {item.categoryName}
