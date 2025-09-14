@@ -8,6 +8,7 @@ import Layout from "../../components/Layout/Layout";
 import { NavLink, useNavigate } from "react-router-dom";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import { QRCodeCanvas } from "qrcode.react";
+import { toWords } from 'number-to-words';
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered"
   // , "cancelled"
 ];
@@ -185,7 +186,7 @@ const AdminOrders = () => {
                         </div>
                       </td>
                       <td><span className="badge bg-secondary">{o.products?.reduce((n, p) => n + (p.quantity || 1), 0)}</span></td>
-                      <td className="fw-bold">${Number(o.totalAmount || 0).toFixed(2)}</td>
+                      <td className="fw-bold">৳{Number(o.totalAmount || 0).toFixed(2)}</td>
                       <td>
                         <div className="d-flex flex-column gap-2">
                           <span className="badge bg-light text-dark border">{(o.paymentMethod || "").toUpperCase()}</span>
@@ -356,28 +357,47 @@ const AdminOrders = () => {
                     {/* Print Section Start */}
                     <div className="print-section p-4" >
                       {/* Banner */}
-                      <div
-                        style={{
-                          margin: "20px 0",
-                          backgroundColor: "rgb(0, 162, 151)",
-                          padding: "10px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          borderRadius: "5px"
-                        }}
-                        className="text-white"
-                      >
-                        <img
-                          src="/images/newlogo.png"
-                          style={{ width: "50px", height: "50px" }}
-                          alt="logo"
-                        />
-                        <div>
-                          <p style={{ margin: 0, fontWeight: "bold" }}>HealthProo</p>
-                          <p style={{ margin: 0 }}>Purchase Summary</p>
-                        </div>
-                      </div>
+<div
+  style={{
+    margin: "20px 0",
+    backgroundColor: "rgb(0, 162, 151)",
+    padding: "10px",
+    display: "flex",
+    alignItems: "center",
+    borderRadius: "5px",
+    position: "relative", // for centering slogan
+    color: "#fff",
+  }}
+>
+  {/* Left: Logo + Name + Purchase Summary */}
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <img
+      src="/images/newlogo.png"
+      style={{ width: "50px", height: "50px" }}
+      alt="logo"
+    />
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <p style={{ margin: 0, fontWeight: "bold" }}>HealthProo</p>
+      <p style={{ margin: 0 }}> A reliable path to a healthy life</p>
+    </div>
+  </div>
+
+  {/* Centered Slogan */}
+  <p
+    style={{
+      position: "absolute",
+      left: "50%",
+      transform: "translateX(-50%)",
+      margin: 0,
+      fontWeight: "bold",
+      fontSize: "14px",
+      textAlign: "center",
+    }}
+  >
+   Purchase Summary
+  </p>
+</div>
+
 
                       {/* Body */}
                       <div>
@@ -418,7 +438,7 @@ const AdminOrders = () => {
                               <th>Company</th>
                               <td>HealthProo.com </td>
                               <th>Company Address</th>
-                              <td>123, Polton, Dhaka</td>
+                              <td>Topkhana Road, Shegunbagicha, Dhaka-1000.</td>
                             </tr>
                           </tbody>
                         </table>
@@ -448,9 +468,9 @@ const AdminOrders = () => {
                                 <td>{p.size}</td>
                                 <td>{p.brand}</td>
                                 <td>{p.quantity}</td>
-                                <td>${(p.product?.price || 0).toFixed(2)}</td>
+                                <td>৳{(p.product?.price || 0).toFixed(2)}</td>
                                 <td>
-                                  ${(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
+                                  ৳{(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
                                 </td>
                               </tr>
                             ))}
@@ -477,20 +497,23 @@ const AdminOrders = () => {
 
                           <div className="d-flex flex-column align-items-end mt-3">
                             <div>
-                              <strong>Subtotal:</strong> $
+                              <strong>Subtotal:</strong> ৳
                               {Number(selectedOrder.subTotal || 0).toFixed(2)}
                             </div>
                             <div>
-                              <strong>Shipping Fee:</strong> $
+                              <strong>Shipping Fee:</strong> ৳ 
                               {Number(selectedOrder.shippingFee || 0).toFixed(2)}
                             </div>
                             <div>
-                              <strong>Discount:</strong> -$
+                              <strong>Discount:</strong> -৳ 
                               {Number(selectedOrder.discount || 0).toFixed(2)}
                             </div>
                             <div className="fs-5 fw-bold border-top pt-2">
-                              Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+                              Total: ৳{Number(selectedOrder.totalAmount).toFixed(2)}
                             </div>
+                              <div style={{ fontSize: '14px', fontStyle: 'italic', marginTop: '5px',fontWeight:'bold' }}>
+    In Words: {toWords(Number(selectedOrder.totalAmount))} Taka Only
+  </div>
                           </div>
                         </div>
                       </div>

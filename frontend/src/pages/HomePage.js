@@ -131,8 +131,8 @@ const HomePage = () => {
 
   return (
     <Layout title={"All Products - Best Offers"}>
-      <div className="container">
-        <div className="row" style={{ backgroundColor: "#eff0f5", padding: "10px" }}>
+      <div className="">
+        <div className="row" style={{ backgroundColor: "#eff0f5", padding: "20px" }}>
           {/* Sidebar */}
           <div className="col-md-3">
             <div className="p-3 mb-3 border rounded bg-white">
@@ -222,6 +222,7 @@ const HomePage = () => {
                   {products.map(p => (
                     <div key={p._id} className="col-sm-6 col-md-3 mb-3">
                       <div className="product-card shadow-sm rounded-lg border bg-white h-100 d-flex flex-column">
+                        {/* Image */}
                         <div
                           className="d-flex justify-content-center align-items-center"
                           style={{ cursor: "pointer" }}
@@ -235,50 +236,67 @@ const HomePage = () => {
                             loading="lazy"
                           />
                         </div>
+
+                        {/* Content */}
                         <div className="px-3 text-left flex-grow-1 d-flex flex-column">
                           <p className="fw-bold mb-1" style={{ fontSize: "14px" }}>
                             {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}
                           </p>
+
+                          {/* Price + Discount */}
                           <div
                             style={{
                               display: "flex",
-                              justifyContent: "space-between",
                               alignItems: "center",
                               marginTop: "8px",
                               paddingBottom: "10px",
+                              gap: "8px",
+                              flexWrap: "wrap",
                             }}
                           >
                             {p.discountPrice && p.discountPrice > 0 ? (
                               <>
-                                <span className="text-danger me-2">৳ {p.discountPrice}</span>
+                                <span className="text-danger fw-bold">৳ {p.discountPrice}</span>
                                 <small className="text-muted text-decoration-line-through">
                                   ৳ {p.price}
                                 </small>
-                                <span className="badge bg-danger ms-2">
+                                <span className="badge bg-danger">
                                   {Math.round(((p.price - p.discountPrice) / p.price) * 100)}% OFF
                                 </span>
                               </>
                             ) : (
-                              <span className="text-danger me-2">৳ {p.price}</span>
+                              <span className="text-danger fw-bold">৳ {p.price}</span>
                             )}
-                            <div
-                              style={{
-                                cursor: "pointer",
-                                color: "#FFF",
-                                fontWeight: "bold",
-                                backgroundColor: "#00a297",
-                                padding: "4px",
-                                borderRadius: "2px",
-                              }}
-                              onClick={() => handleAddToCart(p)}
-                            >
-                              <IoCartOutline />
-                            </div>
                           </div>
+                        </div>
+
+                        {/* ✅ Add to Cart Button (separate line) */}
+                        {/* ✅ Add to Cart Button (inline styled) */}
+                        <div className="px-3 pb-3">
+                          <button
+                            onClick={() => handleAddToCart(p)}
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#00a297",
+                              color: "#fff",
+                              fontWeight: 600,
+                              padding: "8px 0",
+                              border: "none",
+                              borderRadius: "6px",
+                              fontSize: "14px",
+                              cursor: "pointer",
+                              transition: "all 0.3s ease",
+                            }}
+                            onMouseOver={e => (e.currentTarget.style.backgroundColor = "#008f82")}
+                            onMouseOut={e => (e.currentTarget.style.backgroundColor = "#00a297")}
+                          >
+                            Add to Cart
+                          </button>
                         </div>
                       </div>
                     </div>
                   ))}
+
                 </div>
 
                 {/* Load More */}

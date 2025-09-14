@@ -537,7 +537,7 @@ const handleReviewSubmit = async (e) => {
         </div>
         {/* TABS SECTION */}
         <div className="container mt-5">
-          <ul className="nav nav-tabs justify-content-center" style={{ backgroundColor: "#dee2e6", }}>
+          <ul className="nav nav-tabs justify-content-left" style={{ backgroundColor: "#dee2e6",padding:'8px'}}>
             <li className="nav-item">
               <button
                 className={`nav-link ${activeTab === "details" ? "active" : ""}`}

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
+
+import { motion, AnimatePresence } from "framer-motion";
 import Layout from "../components/Layout/Layout";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+
 import { useCart } from "../context/cart";
 import { useProduct } from "../context/product";
 import { IoCartOutline } from "react-icons/io5";
@@ -17,37 +17,9 @@ const Shop = () => {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
-
-  // Hero slider settings
-  const heroSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    pauseOnHover: true,
-    arrows: true,
-    fade: false,
-    cssEase: "linear",
-  };
-
-  // Category slider settings
-  const categorySettings = {
-    dots: false,
-    infinite: true,
-    speed: 5000,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 0,
-    cssEase: "linear",
-    arrows: false,
-    rtl: true,
-    variableWidth: true,
-  };
-
+  console.log("All category", categories)
+  console.log("All product", products)
+  
   // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
     const init = async () => {
@@ -80,165 +52,188 @@ const Shop = () => {
     fetchMore();
   }, [page]);
 
+  const images = [
+    "/images/slider2.jpeg",
+    "/images/slider4.jpeg",
+    "/images/slider5.jpeg",
+    "/images/slider3.jpeg",
+  ];
+
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
   return (
     <Layout>
-      <div style={{ backgroundColor: "#eff0f5", padding: "10px" }}>
+      <div style={{ backgroundColor: "#eff0f5", }}>
         {/* Hero Slider */}
-        <div className="hero-slider-container">
-          <Slider {...heroSettings}>
-            {/* Slide 1 */}
-            <div className="slider-item bg-[#d7f2f2]">
-              <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center px-6 py-12 gap-8">
-                <div className="flex-1 flex justify-center relative">
-                  <img
-                    src="/images/banner.png"
-                    alt="Slide 1"
-                    className="slider-image"
-                    style={{ height: "400px" }}
-                  />
-                </div>
-              </div>
-            </div>
+        <section className="relative w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
+          {/* Background Image Slider */}
+          <AnimatePresence>
+            <motion.img
+              key={currentIndex}
+              src={images[currentIndex]}
+              alt={`Slide ${currentIndex}`}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+            />
+          </AnimatePresence>
 
-            {/* Slide 2 */}
-            <div className="slider-item bg-[#fce7f3]">
-              <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center px-6 py-12 gap-8">
-                <div className="flex-1 flex justify-center relative">
-                  <img
-                    src="/images/slider5.jpg"
-                    alt="Cosmetics"
-                    className="w-full max-w-md object-contain"
-                    style={{ height: "400px" }}
-                  />
-                </div>
-              </div>
-            </div>
+          {/* Overlay */}
+          {/* <div className="absolute inset-0 bg-black/50" /> */}
 
-            {/* Slide 3 */}
-            <div className="slider-item bg-[#e0f2fe]">
-              <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center px-6 py-12 gap-8">
-                <div className="flex-1 flex justify-center relative">
-                  <img
-                    src="/images/slider6.png"
-                    alt="Gym Tools"
-                    className="w-full max-w-md object-contain"
-                    style={{ height: "400px" }}
-                  />
-                </div>
-              </div>
-            </div>
-          </Slider>
-        </div>
+          {/* Content on Top */}
+
+
+        </section>
+
+
 
         {/* Product Categories */}
-        <div className="container my-5">
-          <h2 className="text-center mb-4 fw-bold">Shop by Category</h2>
-          <Slider {...categorySettings}>
-            {categories?.map(c => (
-              <div className="px-2" style={{ width: "250px" }} key={c._id}>
-                <Link className="dropdown-item" to={`/category/${c.slug}`}>
-                  <div className="d-flex flex-column align-items-center rounded shadow-sm h-100 text-center">
-                    <div className="card-hover position-relative">
-                      <div className="category-tag-small">{c.name}</div>
-                      <img
-                        src="/images/slider2.jpg"
-                        alt={c.name}
-                        className="img-fluid rounded"
-                      />
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </Slider>
-        </div>
+     
+      {/* Product Categories */}
+{/* Product Categories */}
+<div className="container my-5 overflow-hidden">
+  <h2 className="text-center mb-4 fw-bold">Shop by Category</h2>
+
+  <motion.div
+    className="d-flex"
+    animate={{ x: ["0%", "-100%"] }}
+    transition={{
+      repeat: Infinity,
+      ease: "linear",
+      duration: 25, // adjust speed
+    }}
+    style={{ width: "max-content" }}
+  >
+    {/* 🔥 Duplicate categories to create seamless loop */}
+    {[...categories, ...categories]?.map((c, idx) => (
+      <div
+        className="px-2"
+        style={{ width: "250px", flexShrink: 0 }}
+        key={c._id + "-" + idx}
+      >
+        <Link className="dropdown-item" to={`/category/${c.slug}`}>
+          <div className="d-flex flex-column align-items-center rounded shadow-sm h-100 text-center">
+            <div className="card-hover position-relative">
+              <div className="category-tag-small">{c.name}</div>
+              <img
+                src={`${API}/api/v1/category/category-photo/${c._id}`}
+                alt={c.name}
+                className="img-fluid rounded"
+              />
+            </div>
+          </div>
+        </Link>
+      </div>
+    ))}
+  </motion.div>
+</div>
+
+
 
         {/* All Products */}
         <div className="container my-5">
           <h2 className="text-center mb-4 fw-bold">All Products</h2>
           <div className="product-grid">
-            {products?.map((p) => (
-              <div
-                key={p._id}
-                style={{
-                  background: "#fff",
-                  border: "1px solid #eee",
-                  borderRadius: "8px",
-                  padding: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    height: "150px",
-                  }}
-                  onClick={() => navigate(`/product/${p.slug}`)}
-                >
-                  <img
-                    src={`${API}/api/v1/product/product-photo/${p._id}`}
-                    alt={p.name}
-                    style={{
-                      maxHeight: "100%",
-                      maxWidth: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                </div>
+        {products?.map((p) => (
+  <div
+    key={p._id}
+    style={{
+      background: "#fff",
+      border: "1px solid #eee",
+      borderRadius: "8px",
+      padding: "10px",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    {/* Product Image */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        cursor: "pointer",
+        height: "150px",
+      }}
+      onClick={() => navigate(`/product/${p.slug}`)}
+    >
+      <img
+        src={`${API}/api/v1/product/product-photo/${p._id}`}
+        alt={p.name}
+        style={{
+          maxHeight: "100%",
+          maxWidth: "100%",
+          objectFit: "contain",
+        }}
+      />
+    </div>
 
-                <div style={{ marginTop: "10px" }}>
-                  <p style={{ fontWeight: "bold", fontSize: "14px", margin: 0 }}>
-                    {p.name.length > 25 ? p.name.substring(0, 25) + "..." : p.name}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "8px",
-                    }}
-                  >
-                    <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
-                      ৳ {p.price}
-                    </h6>
-                    <div
-                      style={{
-                        cursor: "pointer",
-                        color: "#FFF",
-                        fontWeight: "bold",
-                        backgroundColor: "#00a297",
-                        padding: "4px",
-                        borderRadius: "2px",
-                      }}
-                      onClick={() => {
-                        const existingCart =
-                          JSON.parse(localStorage.getItem("cart")) || [];
-                        const found = existingCart.find((item) => item._id === p._id);
-                        if (found) {
-                          toast.error("Item already added to cart");
-                        } else {
-                          const cartItem = {
-                            _id: p._id,
-                            name: p.name,
-                            price: p.price,
-                            quantity: 1,
-                            image: `${API}/api/v1/product/product-photo/${p._id}`,
-                          };
-                          const updatedCart = [...existingCart, cartItem];
-                          setCart(updatedCart);
-                          localStorage.setItem("cart", JSON.stringify(updatedCart));
-                          toast.success("Item added to cart");
-                        }
-                      }}
-                    >
-                      <IoCartOutline />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+    {/* Product Info */}
+    <div style={{ marginTop: "10px", flexGrow: 1 }}>
+      <p style={{ fontWeight: "bold", fontSize: "14px", margin: 0 }}>
+        {p.name.length > 25 ? p.name.substring(0, 25) + "..." : p.name}
+      </p>
+
+      {/* Price */}
+      <h6 style={{ color: "red", fontWeight: "bold", margin: "8px 0" }}>
+        ৳ {p.price}
+      </h6>
+    </div>
+
+    {/* ✅ Add to Cart Button */}
+    <button
+      style={{
+        width: "100%",
+        backgroundColor: "#00a297",
+        color: "#fff",
+        fontWeight: 600,
+        padding: "8px 0",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+        marginTop: "auto",
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#008f82")}
+      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#00a297")}
+      onClick={() => {
+        const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+        const found = existingCart.find((item) => item._id === p._id);
+        if (found) {
+          toast.error("Item already added to cart");
+        } else {
+          const cartItem = {
+            _id: p._id,
+            name: p.name,
+            price: p.price,
+            quantity: 1,
+            image: `${API}/api/v1/product/product-photo/${p._id}`,
+          };
+          const updatedCart = [...existingCart, cartItem];
+          setCart(updatedCart);
+          localStorage.setItem("cart", JSON.stringify(updatedCart));
+          toast.success("Item added to cart");
+        }
+      }}
+    >
+      Add to Cart
+    </button>
+  </div>
+))}
+
           </div>
 
           {/* Load More */}

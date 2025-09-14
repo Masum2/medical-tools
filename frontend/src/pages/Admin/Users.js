@@ -74,31 +74,44 @@ useEffect(() => {
           </div>
 
           {/* User List */}
-          <div style={{ padding: "20px" }}>
-            {/* <h1>All Users</h1> */}
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users?.map((u, i) => (
-                  <tr key={u._id}>
-                    <td>{i + 1}</td>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>{u.phone}</td>
-                    <td>{u.role === 1 ? "Admin" : "User"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div style={{ padding: "20px" }}>
+  <table className="table table-hover align-middle shadow-sm" style={{ borderRadius: "10px", overflow: "hidden", backgroundColor: "#fff" }}>
+<thead>
+  <tr>
+    <th scope="col" style={{ backgroundColor: "#0d1b2a", color: "#fff", fontSize: "16px" }}>#</th>
+    <th scope="col" style={{ backgroundColor: "#0d1b2a", color: "#fff", fontSize: "16px" }}>Name</th>
+    <th scope="col" style={{ backgroundColor: "#0d1b2a", color: "#fff", fontSize: "16px" }}>Email</th>
+    <th scope="col" style={{ backgroundColor: "#0d1b2a", color: "#fff", fontSize: "16px" }}>Phone</th>
+    <th scope="col" style={{ backgroundColor: "#0d1b2a", color: "#fff", fontSize: "16px" }}>Role</th>
+  </tr>
+</thead>
+    <tbody>
+      {users?.map((u, i) => (
+        <tr key={u._id} style={{ transition: "all 0.3s", cursor: "pointer" }} className="table-row-hover">
+          <td>{i + 1}</td>
+          <td>{u.name}</td>
+          <td>{u.email}</td>
+          <td>{u.phone}</td>
+          <td>
+            <span
+              style={{
+                padding: "4px 10px",
+                borderRadius: "15px",
+                color: "#fff",
+                backgroundColor: u.role === 1 ? "#ff4d6d" : "#4caf50",
+                fontWeight: "500",
+                fontSize: "14px",
+              }}
+            >
+              {u.role === 1 ? "Admin" : "User"}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
         </div>
       </div>
     </div>

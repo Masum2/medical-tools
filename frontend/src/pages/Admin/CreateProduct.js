@@ -35,7 +35,8 @@ const CreateProduct = () => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   
   // Predefined values
-  const brandOptions = ["Nike", "Adidas", "Puma", "Gucci", "Zara"];
+  
+  const brandOptions = ["Made In Bangladesh", "Made In India", "Made In China", "Made In American", "Made In Japan","No Brand"];
 const colorOptions = [
   "Red", "Blue", "Green", "Black", "White", "Yellow", "Orange", "Pink", 
   "Purple", "Brown", "Gray", "Silver", "Gold", "Navy Blue", "Sky Blue", 
@@ -44,17 +45,22 @@ const colorOptions = [
   "Indigo", "Coral", "Salmon", "Chocolate", "Tan", "Mint", "Mustard", 
   "Plum", "Ruby", "Sapphire", "Emerald", "Bronze", "Copper", "Ivory", 
   "Khaki", "Rose", "Periwinkle", "Aquamarine", "Crimson", "Fuchsia", 
-  "Mauve", "Burgundy","Ash"
+  "Mauve", "Burgundy","Ash","Not Specified",
+"Multi-Color",
+"Any Colour",
+"Ramdom Colour"
 ];
 
 const sizeOptions = [
   "S", "M", "L", "XL", "XXL",
+   "Free Size", "One Size","Not Specified",
   "36 X 29 X 9 Cm",
   "38 X 30 X 10 Cm",
   "40 X 32 X 11 Cm",
   "42 X 34 X 12 Cm",
   "44 X 36 X 13 Cm",
-  "46 X 38 X 14 Cm"
+  "46 X 38 X 14 Cm",
+ 
 ];
 
 

@@ -29,20 +29,21 @@ import CheckoutPage from './pages/CheckoutPage.js'
 import AdminOrders from './pages/Admin/AdminOrders.js'
 import SubcategoryProducts from './pages/SubcategoryProduct.js'
 import AdminReview from './pages/Admin/AdminReview.js'
+import AdminProfile from './pages/Admin/AdminProfile.js'
 
 
 const App = () => {
   return (
     <main>
       <Routes>
-             <Route path="/" element={<HomePage />} />
+             <Route path="/shop" element={<HomePage />} />
              <Route path="/product/:slug" element={<ProductDetails />} />
               <Route path="/categories" element={<Categories />} />
                   <Route path="/cart" element={<CartPage />} />
                <Route path="/category/:slug" element={<CategoryProduct />} />
                   <Route path="/subcategory/:subSlug" element={<SubcategoryProducts />} />
               <Route path="/search" element={<Search />} />
-                 <Route path="/shop" element={<Shop />} />
+                 <Route path="/" element={<Shop />} />
                  <Route path="/checkout" element={<CheckoutPage />} />
 <Route path="/dashboard">
   <Route path="user" element={<PrivateRoute />}>
@@ -61,7 +62,8 @@ const App = () => {
     <Route path="all-users" element={<Users />} />
      <Route path="orders" element={<AdminOrders />} />
         <Route path="reviews" element={<AdminReview />} />
-    
+        
+    <Route path="profile" element={<AdminProfile />} />
   </Route>
 </Route>
 

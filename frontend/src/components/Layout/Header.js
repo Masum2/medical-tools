@@ -93,7 +93,7 @@ const Header = () => {
             backgroundColor: "#00a297",
           }}
         >
-          <div className="container d-flex justify-content-between align-items-center text-white flex-wrap gap-2">
+          <div className="mx-4 d-flex justify-content-between align-items-center text-white flex-wrap gap-2">
             <p className="mb-0 small">
               Get upto <strong>25% cashback</strong> on first order:{" "}
               <strong>GET25OFF</strong> - SHOP NOW
@@ -113,9 +113,11 @@ const Header = () => {
           top: isMobile ? "0" : "auto",
           zIndex: 1055,
           backgroundColor: "#EBEBEB",
+          paddingLeft:'16px',
+          paddingRight:'16px'
         }}
       >
-        <div className="container d-flex flex-wrap align-items-center justify-content-between gap-3 py-2">
+        <div className=" d-flex flex-wrap align-items-center justify-content-between gap-3 py-2">
           {/* Logo and Mobile Menu Button */}
           <div className="d-flex align-items-center justify-content-between w-100">
             <div className="d-flex align-items-center">
@@ -145,11 +147,11 @@ const Header = () => {
     </div>
   )}
             {/* Desktop Search - Hidden on mobile */}
-            {!isMobile && (
-              <div className="flex-grow-1 mx-4">
-                <SearchInput />
-              </div>
-            )}
+         {!isMobile && (
+  <div className="flex-grow-1 mx-4 flex justify-center">
+    <SearchInput />
+  </div>
+)}
             
             {/* Desktop Cart & User - Hidden on mobile */}
             {!isMobile && (
@@ -241,54 +243,60 @@ const Header = () => {
 
       {/* ✅ Bottom nav - Hidden on mobile */}
       {!isMobile && (
-        <div
-          className="sticky-top d-none d-lg-block"
-          style={{
-            top: "0",
-            zIndex: "1020",
-            backgroundColor: "#00a297",
-          }}
-        >
-          <div className="container d-flex align-items-center py-2 flex-wrap gap-3">
-            {/* 🔥 Drawer Trigger */}
-            <button
-              className="btn text-white d-flex align-items-center"
-              style={{
-                backgroundColor: "#007580",
-                border: "1px solid #007580",
-              }}
-              onClick={() => setOpenCategoryDrawer(true)}
-            >
-              <FaBars className="me-2" /> All Categories
-            </button>
+       <div
+  className="sticky-top d-none d-lg-block"
+  style={{
+    top: "0",
+    zIndex: "1020",
+    backgroundColor: "#00a297",
+  }}
+>
+  <div className="mx-4 d-flex align-items-center py-2 flex-wrap gap-3">
+    {/* 🔥 Drawer Trigger */}
+    <button
+      className="btn text-white d-flex align-items-center"
+      style={{
+        backgroundColor: "#007580",
+        border: "1px solid #007580",
+      }}
+      onClick={() => setOpenCategoryDrawer(true)}
+    >
+      <FaBars className="me-2" /> All Categories
+    </button>
 
-            <ul className="nav ms-3 flex-wrap">
-              <li className="nav-item">
-                <NavLink to="/" className="nav-link text-white">
-                  Home
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/shop" className="nav-link text-white">
-                  Shop
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/about" className="nav-link text-white">
-                  About Us
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink
-                  to="/contact"
-                  className="nav-link text-white text-decoration-none fw-bold"
-                >
-                  Contact Us
-                </NavLink>
-              </li>
-            </ul>
-          </div>
-        </div>
+    {/* ✅ Left Side Menu */}
+    <ul className="nav ms-3 flex-wrap">
+      <li className="nav-item">
+        <NavLink to="/" className="nav-link text-white">
+          Home
+        </NavLink>
+      </li>
+      <li className="nav-item">
+        <NavLink to="/shop" className="nav-link text-white">
+          Shop
+        </NavLink>
+      </li>
+    </ul>
+
+    {/* ✅ Right Side Menu */}
+    <ul className="nav ms-auto flex-wrap">
+      <li className="nav-item">
+        <NavLink to="/about" className="nav-link text-white">
+          About Us
+        </NavLink>
+      </li>
+      <li className="nav-item">
+        <NavLink
+          to="/contact"
+          className="nav-link text-white text-decoration-none fw-bold"
+        >
+          Contact Us
+        </NavLink>
+      </li>
+    </ul>
+  </div>
+</div>
+
       )}
 
       {/* ✅ Mobile Menu Drawer */}
@@ -382,7 +390,7 @@ const Header = () => {
             </li>
             <li className="nav-item mb-3">
               <NavLink 
-                to="/shop" 
+                to="/" 
                 className="nav-link text-white d-flex align-items-center fs-5"
                 onClick={() => setIsMobileMenuOpen(false)}
                 style={({ isActive }) => ({ 

@@ -7,6 +7,7 @@ import { Modal } from "antd";
 import { useAuth } from "../../context/auth.js";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
+import { AiFillDelete } from "react-icons/ai"; // For delete icon
 
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -18,6 +19,8 @@ const CreateCategory = () => {
   const [updatedName, setUpdatedName] = useState("");
   const [updatedSubcategories, setUpdatedSubcategories] = useState([]);
   const [updatedPhoto, setUpdatedPhoto] = useState(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [auth] = useAuth();
 
   const API = process.env.REACT_APP_API;
@@ -100,10 +103,10 @@ const CreateCategory = () => {
   };
 
   // Handle Delete Category
-  const handleDelete = async (pId) => {
+  const handleDelete = async () => {
     try {
       const { data } = await axios.delete(
-        `${API}/api/v1/category/delete-category/${pId}`,
+        `${API}/api/v1/category/delete-category/${categoryToDelete}`,
         { headers: { Authorization: auth?.token } }
       );
       if (data.success) {
@@ -114,25 +117,28 @@ const CreateCategory = () => {
       }
     } catch (error) {
       toast.error("Something went wrong");
+    } finally {
+      setDeleteModalVisible(false);
+      setCategoryToDelete(null);
     }
   };
 
   return (
-   
-      <div className="container-fluid p-0" title="Admin - Manage Categories">
-        <div className="row g-0">
-          {/* Sidebar */}
-      <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
+    <div className="container-fluid p-0" title="Admin - Manage Categories">
+      <div className="row g-0">
+        {/* Sidebar */}
+        <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
           <AdminMenu />
         </div>
 
-          {/* Main Content */}
-           <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+        {/* Main Content */}
+        <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
           {/* Top Header */}
           <div
             className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
             style={{
-              background: "#001219", position: "sticky",
+              background: "#001219",
+              position: "sticky",
               top: 0,
               overflowY: "auto",
             }}
@@ -140,20 +146,21 @@ const CreateCategory = () => {
             <NavLink
               to="/"
               style={{
-
                 fontSize: "18px",
                 margin: "6px 0 6px 20px",
                 textDecoration: 'none',
-
-                color: '#FFF', backgroundColor: '#0d1b2a'
-
+                color: '#FFF',
+                backgroundColor: '#0d1b2a',
+                padding: "5px 10px",
+                borderRadius: "5px"
               }}
             >
               Create Category
             </NavLink>
-
           </div>
-          <div style={{padding:'20px'}}>
+
+          <div style={{ padding: '20px' }}>
+            {/* Add Category */}
             <div className="card shadow-sm mb-4">
               <div className="card-body">
                 <h4 className="card-title mb-4">Add New Category</h4>
@@ -214,9 +221,8 @@ const CreateCategory = () => {
                                 style={{ width: "50px", height: "50px", objectFit: "cover" }}
                               />
                             )}
-                            
                           </td>
-                          <td><span>{c.name}</span></td>
+                          <td>{c.name}</td>
                           <td>{c.subcategories?.join(", ")}</td>
                           <td>
                             <button
@@ -232,7 +238,10 @@ const CreateCategory = () => {
                             </button>
                             <button
                               className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDelete(c._id)}
+                              onClick={() => {
+                                setCategoryToDelete(c._id);
+                                setDeleteModalVisible(true);
+                              }}
                             >
                               <FiTrash2 />
                             </button>
@@ -244,53 +253,93 @@ const CreateCategory = () => {
                 </div>
               </div>
             </div>
-</div>
-            {/* Update Modal */}
-            <Modal
-              title="Update Category"
-              onCancel={() => setVisible(false)}
-              footer={null}
-              open={visible}
-            >
-              <form className="d-flex flex-column gap-3" onSubmit={handleUpdate}>
-                <input
-                  type="text"
-                  placeholder="Category Name"
-                  className="form-control"
-                  value={updatedName}
-                  onChange={(e) => setUpdatedName(e.target.value)}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Subcategories (comma separated)"
-                  className="form-control"
-                  value={updatedSubcategories.join(",")}
-                  onChange={(e) =>
-                    setUpdatedSubcategories(e.target.value.split(",").map((s) => s.trim()))
-                  }
-                />
-                {selected?.photo && (
-                  <img
-                    src={`${API}/api/v1/category/category-photo/${selected._id}`}
-                    alt={selected.name}
-                    className="rounded mb-2"
-                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                  />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="form-control"
-                  onChange={(e) => setUpdatedPhoto(e.target.files[0])}
-                />
-                <button className="btn btn-primary">Update Category</button>
-              </form>
-            </Modal>
           </div>
+
+          {/* Update Modal */}
+          <Modal
+            title="Update Category"
+            onCancel={() => setVisible(false)}
+            footer={null}
+            open={visible}
+          >
+            <form className="d-flex flex-column gap-3" onSubmit={handleUpdate}>
+              <input
+                type="text"
+                placeholder="Category Name"
+                className="form-control"
+                value={updatedName}
+                onChange={(e) => setUpdatedName(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Subcategories (comma separated)"
+                className="form-control"
+                value={updatedSubcategories.join(",")}
+                onChange={(e) =>
+                  setUpdatedSubcategories(e.target.value.split(",").map((s) => s.trim()))
+                }
+              />
+              {selected?.photo && (
+                <img
+                  src={`${API}/api/v1/category/category-photo/${selected._id}`}
+                  alt={selected.name}
+                  className="rounded mb-2"
+                  style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="form-control"
+                onChange={(e) => setUpdatedPhoto(e.target.files[0])}
+              />
+              <button className="btn btn-primary">Update Category</button>
+            </form>
+          </Modal>
+
+          {/* Delete Confirmation Modal */}
+          <Modal
+            open={deleteModalVisible}
+            onCancel={() => setDeleteModalVisible(false)}
+            footer={null} // We will create custom footer
+            centered
+            closable={true} // Show close button
+            closeIcon={<span style={{ fontSize: "20px", fontWeight: "bold" }}>×</span>}
+            bodyStyle={{ textAlign: "center", padding: "30px" }}
+            width={400}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px" }}>
+              <AiFillDelete size={40} color="#ff4d4f" />
+              <h2 style={{ fontWeight: "bold", marginTop: "10px" }}>Are you sure?</h2>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                Are you sure you want to delete this product? <br />
+                This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Footer Buttons */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
+              <button
+                onClick={handleDelete}
+                className="btn btn-danger"
+                style={{ width: "80px" }}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setDeleteModalVisible(false)}
+                className="btn btn-secondary"
+                style={{ width: "80px" }}
+              >
+                No
+              </button>
+            </div>
+          </Modal>
         </div>
       </div>
-   
+    </div>
   );
 };
 

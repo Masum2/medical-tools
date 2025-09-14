@@ -87,7 +87,7 @@ console.log("All oorder in user dashboard",orders)
                           </td>
                           <td>{dayjs(o.createdAt).format("DD MMM YYYY, h:mm A")}</td>
                           <td>{o.products?.reduce((n, p) => n + (p.quantity || 1), 0)}</td>
-                          <td>${Number(o.totalAmount || 0).toFixed(2)}</td>
+                          <td>৳{Number(o.totalAmount || 0).toFixed(2)}</td>
                           <td>
                             <span className="badge bg-primary">
                               {(o.paymentMethod || "").toUpperCase()}
@@ -259,10 +259,10 @@ console.log("All oorder in user dashboard",orders)
                             <td className="text-center">{p.brand}</td>
                             <td className="text-center">{p.quantity}</td>
                             <td className="text-end">
-                              ${p.product?.price?.toFixed(2)}
+                              ৳{p.product?.price?.toFixed(2)}
                             </td>
                             <td className="text-end">
-                              ${(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
+                              ৳{(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
                             </td>
                           </tr>
                         ))}
@@ -273,16 +273,17 @@ console.log("All oorder in user dashboard",orders)
                   {/* Total */}
                   <div className="d-flex justify-content-end mt-3">
                     <h5 className="fw-bold">
-                      Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+                      Total: ৳{Number(selectedOrder.totalAmount).toFixed(2)}
                     </h5>
                   </div>
                 </div>
 
                 {/* Footer */}
                 <div className="modal-footer bg-light border-0 d-flex justify-content-between">
-                  <small className="text-muted">
-                    Thank you for shopping with <strong>HealthProo Ltd.</strong>
-                  </small>
+                 <small className="d-block text-center mt-2" style={{ color: "#42BAC9", fontWeight: "500" }}>
+  Thank you for shopping with <strong style={{ color: "#ff6b6b" }}>healthpro.com</strong>!
+</small>
+
                   <button
                     className="btn btn-primary rounded-pill px-4"
                     onClick={() => setShowModal(false)}

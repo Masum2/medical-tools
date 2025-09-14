@@ -112,7 +112,7 @@ const CartPage = () => {
                         <h6 style={{ marginBottom: "4px", fontWeight: "500" }}>{item.name}</h6>
                         <div className="d-md-none" style={{ fontSize: "13px", color: "#555" }}>
                           <span>Color: {item.color}</span> <br />
-                          <span>Price: ${Number(item.price).toFixed(2)}</span>
+                          <span>Price: ৳{Number(item.price).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -131,7 +131,7 @@ const CartPage = () => {
                         color: "#42BAC9",
                       }}
                     >
-                      ${Number(item.price).toFixed(2)}
+                      ৳{Number(item.price).toFixed(2)}
                     </div>
 
                     {/* Quantity */}
@@ -174,7 +174,7 @@ const CartPage = () => {
                         color: "#42BAC9",
                       }}
                     >
-                      ${((Number(item.price) || 0) * (item.quantity || 1)).toFixed(2)}
+                      ৳{((Number(item.price) || 0) * (item.quantity || 1)).toFixed(2)}
                     </div>
 
                     {/* Remove Button */}
@@ -214,16 +214,16 @@ const CartPage = () => {
                 <h5 style={{ fontWeight: "500" }}>Order Summary</h5>
                 <div className="d-flex justify-content-between my-2">
                   <span style={{ fontSize: "14px" }}>Subtotal ({cart.length} items)</span>
-                  <span style={{ fontSize: "14px" }}>${subtotal().toFixed(2)}</span>
+                  <span style={{ fontSize: "14px" }}>৳{subtotal().toFixed(2)}</span>
                 </div>
                 <div className="d-flex justify-content-between my-2">
                   <span style={{ fontSize: "14px" }}>Shipping Fee</span>
-                  <span style={{ fontSize: "14px" }}>$0.00</span>
+                  <span style={{ fontSize: "14px" }}>৳0.00</span>
                 </div>
                 <hr />
                 <div className="d-flex justify-content-between fw-bold my-2">
                   <span>Total</span>
-                  <span>${subtotal().toFixed(2)}</span>
+                  <span>৳{subtotal().toFixed(2)}</span>
                 </div>
                 <button
                   className="btn w-100 mt-3 text-white"

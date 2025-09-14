@@ -236,7 +236,7 @@ const AdminMenu = () => {
         </div>
         <div style={submenuContainer(openMenu === "account")}>
           <NavLink
-            to="/dashboard/admin"
+            to="/dashboard/admin/profile"
             style={({ isActive }) => ({
               ...menuItemStyle,
               fontSize: "14px",

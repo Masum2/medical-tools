@@ -164,17 +164,27 @@ const handleOrder = async (paymentMethod) => {
               </div>
 
               <div className="row">
-                <div className="col-md-4 mb-3">
-                  <label className="form-label">District</label>
-                  <input
-                    type="text"
-                    name="district"
-                    placeholder="District"
-                    className="form-control"
-                    value={formData.district}
-                    onChange={handleChange}
-                  />
-                </div>
+           <div className="col-md-4 mb-3">
+  <label className="form-label">District</label>
+  <select
+    name="district"
+    className="form-control"
+    value={formData.district}
+    onChange={handleChange}
+    style={{ backgroundColor: "#F7FAFC" }}
+  >
+    <option value="">Select District</option>
+    <option value="Dhaka">Dhaka</option>
+    <option value="Chattogram">Chattogram</option>
+    <option value="Khulna">Khulna</option>
+    <option value="Barishal">Barishal</option>
+    <option value="Sylhet">Sylhet</option>
+    <option value="Rajshahi">Rajshahi</option>
+    <option value="Rangpur">Rangpur</option>
+    <option value="Mymensingh">Mymensingh</option>
+  </select>
+</div>
+
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Upozila/Thana</label>
                   <input
@@ -257,177 +267,165 @@ const handleOrder = async (paymentMethod) => {
         {/* PAYMENT MODAL */}
         {/* PAYMENT MODAL */}
         {/* PAYMENT MODAL */}
-        {showModal && (
-          <div
-            className="modal show d-block"
-            tabIndex="-1"
-            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          >
-            <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content p-3">
-                <div className="modal-header">
-                  <h5 className="modal-title">Select Payment Method</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowModal(false)}
-                  ></button>
-                </div>
+{showModal && (
+  <div
+    className="modal show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+  >
+    <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "800px" }}>
+      <div className="modal-content p-4" style={{ borderRadius: "12px" }}>
+        <div className="modal-header justify-content-center position-relative border-bottom-0">
+          <h5 className="modal-title fw-bold text-center">Select Payment Method</h5>
+          <button
+            type="button"
+            className="btn-close position-absolute end-0"
+            onClick={() => setShowModal(false)}
+            style={{ right: "16px", top: "16px" }}
+          ></button>
+        </div>
 
-                <div className="modal-body">
-                  {/* Single Row for All Payment Methods */}
-                  <div
-                    className="d-flex justify-content-center"
-                    style={{ gap: "15px", flexWrap: "nowrap" }}
-                  >
-                    {[
-                      { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
-                      { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
-                      { id: "bank", label: "Bank", img: "/images/bank.jpg" },
-                      { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
-                    ].map((pm) => (
-                      <div
-                        key={pm.id}
-                        className="p-2 rounded-3 text-center"
-                        style={{
-                          cursor: "pointer",
-                          width: "120px",
-                          border:
-                            selectedPayment === pm.id
-                              ? "2px solid #42BAC9"
-                              : "1px solid #e5e7eb",
-                        }}
-                        onClick={() => setSelectedPayment(pm.id)}
-                      >
-                        <img
-                          src={pm.img}
-                          alt={pm.label}
-                          style={{
-                            width: "100%",
-                            height: "50px",
-                            objectFit: "contain",
-                            marginBottom: "4px",
-                          }}
-                        />
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            fontWeight: selectedPayment === pm.id ? "600" : "400",
-                            color: selectedPayment === pm.id ? "#42BAC9" : "#333",
-                          }}
-                        >
-                          {pm.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Payment Info + Screenshot (hide for COD) */}
-                  {selectedPayment && selectedPayment !== "cod" && (
-                    <div className="mt-3 p-3 border rounded bg-light">
-                      {selectedPayment === "bkash" && (
-                        <>
-                          <h6>Bkash Payment Info</h6>
-                          <p>
-                            Bkash Number: <strong>01723-826946</strong>
-                          </p>
-                          <p>
-                            Type: <strong>Personal</strong>
-                          </p>
-                        </>
-                      )}
-                      {selectedPayment === "nogod" && (
-                        <>
-                          <h6>Nagad Payment Info</h6>
-                          <p>
-                            Nagad Number: <strong>01723-826946</strong>
-                          </p>
-                          <p>
-                            Type: <strong>Personal</strong>
-                          </p>
-                        </>
-                      )}
-                      {selectedPayment === "bank" && (
-                        <>
-                          <h6>Bank Payment Info</h6>
-                          <p>
-                            Bank: <strong>City Bank Ltd.</strong>
-                          </p>
-                          <p>
-                            Account Name: <strong>NF KART.COM</strong>
-                          </p>
-                          <p>
-                            Account Number: <strong>1781910005699</strong>
-                          </p>
-                        </>
-                      )}
-
-                      <label className="form-label">Upload Transaction Screenshot</label>
-                      <div
-                        className="border rounded d-flex flex-column align-items-center justify-content-center p-3"
-                        style={{
-                          width: "100%",
-                          height: "150px",
-                          cursor: "pointer",
-                          backgroundColor: "#f8f9fa",
-                          borderStyle: "dashed",
-                        }}
-                        onClick={() =>
-                          document.getElementById("modalScreenshotInput").click()
-                        }
-                      >
-                        {!screenshotPreview ? (
-                          <>
-                            <i className="bi bi-cloud-upload fs-2 text-secondary"></i>
-                            <span className="text-muted">Click to Upload</span>
-                          </>
-                        ) : (
-                          <img
-                            src={screenshotPreview}
-                            alt="screenshot preview"
-                            style={{
-                              maxWidth: "100%",
-                              maxHeight: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        )}
-                      </div>
-                      <input
-                        type="file"
-                        id="modalScreenshotInput"
-                        className="d-none"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Close
-                  </button>
-             <button
-  type="button"
-  className="btn btn-primary"
-  disabled={!selectedPayment}
-  onClick={() => {
-    setShowModal(false);
-    handleOrder(selectedPayment);
-  }}
->
-  Pay & Confirm
-</button>
-                </div>
+        <div className="modal-body">
+          {/* Payment Method Selection */}
+          <div className="d-flex justify-content-center flex-wrap gap-4 mt-3">
+            {[
+              { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
+              { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
+              { id: "bank", label: "Bank", img: "/images/bank.jpg" },
+              { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
+            ].map((pm) => (
+              <div
+                key={pm.id}
+                className={`p-3 rounded-4 text-center shadow-sm`}
+                style={{
+                  cursor: "pointer",
+                  width: "130px",
+                  border:
+                    selectedPayment === pm.id
+                      ? "2px solid #42BAC9"
+                      : "1px solid #e0e0e0",
+                  transition: "all 0.3s ease",
+                  backgroundColor: selectedPayment === pm.id ? "#f0fcfd" : "#fff",
+                }}
+                onClick={() => setSelectedPayment(pm.id)}
+              >
+                <img
+                  src={pm.img}
+                  alt={pm.label}
+                  style={{
+                    width: "100%",
+                    height: "60px",
+                    objectFit: "contain",
+                    marginBottom: "6px",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: selectedPayment === pm.id ? "600" : "500",
+                    color: selectedPayment === pm.id ? "#42BAC9" : "#333",
+                  }}
+                >
+                  {pm.label}
+                </span>
               </div>
-            </div>
+            ))}
           </div>
-        )}
+
+          {/* Payment Info + Screenshot */}
+          {selectedPayment && selectedPayment !== "cod" && (
+            <div className="mt-4 p-4 border rounded-3 bg-light shadow-sm">
+              {selectedPayment === "bkash" && (
+                <>
+                  <h6 className="fw-semibold">Bkash Payment Info</h6>
+                  <p>Bkash Number: <strong>01723-826946</strong></p>
+                  <p>Type: <strong>Personal</strong></p>
+                </>
+              )}
+              {selectedPayment === "nogod" && (
+                <>
+                  <h6 className="fw-semibold">Nagad Payment Info</h6>
+                  <p>Nagad Number: <strong>01723-826946</strong></p>
+                  <p>Type: <strong>Personal</strong></p>
+                </>
+              )}
+              {selectedPayment === "bank" && (
+                <>
+                  <h6 className="fw-semibold">Bank Payment Info</h6>
+                  <p>Bank: <strong>City Bank Ltd.</strong></p>
+                  <p>Account Name: <strong>NF KART.COM</strong></p>
+                  <p>Account Number: <strong>1781910005699</strong></p>
+                </>
+              )}
+
+              <label className="form-label">Upload Transaction Screenshot</label>
+              <div
+                className="border rounded-3 d-flex flex-column align-items-center justify-content-center p-4"
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  cursor: "pointer",
+                  backgroundColor: "#f8f9fa",
+                  borderStyle: "dashed",
+                }}
+                onClick={() =>
+                  document.getElementById("modalScreenshotInput").click()
+                }
+              >
+                {!screenshotPreview ? (
+                  <>
+                    <i className="bi bi-cloud-upload fs-1 text-secondary"></i>
+                    <span className="text-muted mt-2">Click to Upload</span>
+                  </>
+                ) : (
+                  <img
+                    src={screenshotPreview}
+                    alt="screenshot preview"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
+                )}
+              </div>
+              <input
+                type="file"
+                id="modalScreenshotInput"
+                className="d-none"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer border-top-0 justify-content-end">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowModal(false)}
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!selectedPayment}
+            onClick={() => {
+              setShowModal(false);
+              handleOrder(selectedPayment);
+            }}
+          >
+            Pay & Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
 
 
