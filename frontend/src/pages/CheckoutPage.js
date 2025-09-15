@@ -226,11 +226,11 @@ const handleOrder = async (paymentMethod) => {
               <h5 className="fw-semibold">Order Summary</h5>
               <div className="d-flex justify-content-between my-2">
                 <span style={{ fontSize: "14px" }}>Subtotal ({cart.length} items)</span>
-                <span style={{ fontSize: "14px" }}>${subtotal().toFixed(2)}</span>
+                <span style={{ fontSize: "14px" }}>৳{subtotal().toFixed(2)}</span>
               </div>
               <div className="d-flex justify-content-between my-2">
                 <span style={{ fontSize: "14px" }}>Shipping Fee</span>
-                <span style={{ fontSize: "14px" }}>$0.00</span>
+                <span style={{ fontSize: "14px" }}>৳0.00</span>
               </div>
               <hr />
               <div className="d-flex justify-content-between fw-bold my-2">
