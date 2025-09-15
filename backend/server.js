@@ -22,10 +22,19 @@ connectDB();
 const app = express();
 
 // ✅ Middlewares
+// app.use(cors({
+//   origin: [
+//     process.env.CLIENT_URL || "http://localhost:3000",
+//     "https://medical-tools.vercel.app"
+//   ],
+//   credentials: true
+// }));
 app.use(cors({
   origin: [
     process.env.CLIENT_URL || "http://localhost:3000",
-    "https://medical-tools.vercel.app"
+    "https://medical-tools.vercel.app", // পুরোনোটা রাখতে পারেন, দরকার হলে
+    "https://healthproo.com",
+    "https://www.healthproo.com"
   ],
   credentials: true
 }));
