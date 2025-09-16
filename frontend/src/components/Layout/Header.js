@@ -120,16 +120,38 @@ const Header = () => {
         <div className=" d-flex flex-wrap align-items-center justify-content-between gap-3 py-2">
           {/* Logo and Mobile Menu Button */}
           <div className="d-flex align-items-center justify-content-between w-100">
-            <div className="d-flex align-items-center">
-              <Link to="/" className="d-flex align-items-center">
-                <img
-                  src="/images/newlogo.png"
-                  alt="Logo"
-                  style={{ width: isMobile ? "50px" : "80px", height: isMobile ? "50px" : "80px" }}
-                />
-              </Link>
-              <p className="font ms-2 mb-0 d-none d-md-block">HealthProo</p>
-            </div>
+     <div className="d-flex align-items-center">
+  <Link to="/" className="d-flex align-items-center">
+    <img
+      src="/images/logo2.png"
+      alt="Logo"
+      style={{ width: isMobile ? "50px" : "80px", height: isMobile ? "50px" : "80px" }}
+    />
+  </Link>
+  <div className="ms-2">
+    <p
+      className="mb-0"
+      style={{ 
+        fontSize: "20px", 
+        fontWeight: "bold", 
+        color: "#007C91" // logo er text color moto
+      }}
+    >
+      HealthProo
+    </p>
+    <p
+      className="mb-0"
+      style={{ 
+        fontSize: "12px", 
+        color: "#00BFA6", // slogan er moto halka color
+        fontWeight:'bold'
+      }}
+    >
+      Your Health is Our Priority
+    </p>
+  </div>
+</div>
+
               {/* ✅ Mobile Only Name (Centered) */}
   {isMobile && (
     <div className="flex-grow-1 text-center">
