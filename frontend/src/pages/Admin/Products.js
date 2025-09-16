@@ -1,60 +1,49 @@
 import React, { useState, useEffect } from "react";
 import AdminMenu from "../../components/Layout/AdminMenu";
-import Layout from "./../../components/Layout/Layout";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Link, NavLink } from "react-router-dom";
-import { TiEyeOutline } from "react-icons/ti"; import { RiDeleteBinLine } from "react-icons/ri";
+import { TiEyeOutline } from "react-icons/ti";
+import { RiDeleteBinLine } from "react-icons/ri";
+
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const API = process.env.REACT_APP_API;
 
-  // get all products
-  const getAllProducts = async () => {
+  // get total count (for pagination)
+  const getTotal = async () => {
+    try {
+      const { data } = await axios.get(`${API}/api/v1/product/product-count`);
+      setTotal(data.total);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // get products by page
+  const getProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/api/v1/product/get-product`);
+      const { data } = await axios.get(`${API}/api/v1/product/product-list/${page}`);
       setProducts(data.products);
       setLoading(false);
     } catch (error) {
       console.log(error);
-      toast.error("Something Went Wrong");
+      toast.error("Something went wrong");
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getAllProducts();
+    getTotal();
   }, []);
 
-  // open modal
-  const openDeleteModal = (pid) => {
-    setDeleteId(pid);
-    setShowModal(true);
-  };
-
-  // close modal
-  const closeModal = () => {
-    setShowModal(false);
-    setDeleteId(null);
-  };
-
-  // confirm delete
-  const confirmDelete = async () => {
-    try {
-      await axios.delete(`${API}/api/v1/product/delete-product/${deleteId}`);
-      toast.success("Product deleted successfully");
-      closeModal();
-      getAllProducts();
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong while deleting");
-    }
-  };
+  useEffect(() => {
+    getProducts();
+  }, [page]);
 
   return (
     <div className="container-fluid p-0">
@@ -64,43 +53,22 @@ const Products = () => {
           <AdminMenu />
         </div>
 
-
-        {/* Main Content */}
         {/* Main Content */}
         <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
+          
           {/* Top Header */}
-          <div
-            className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
-            style={{
-              background: "#001219", position: "sticky",
-              top: 0,
-              overflowY: "auto",
-            }}
-          >
-            <NavLink
-              to="/"
-              style={{
-
-                fontSize: "18px",
-                margin: "6px 0 6px 20px",
-                textDecoration: 'none',
-
-                color: '#FFF', backgroundColor: '#0d1b2a'
-
-              }}
-            >
+          <div className="d-flex justify-content-between align-items-center px-3 py-2 text-white shadow-sm"
+            style={{ background: "#001219", position: "sticky", top: 0 }}>
+            <NavLink to="/" style={{ fontSize: "18px", textDecoration: 'none', color: '#FFF', backgroundColor: '#0d1b2a', padding: "6px 12px", borderRadius: "4px" }}>
               All Product
             </NavLink>
-
           </div>
-          {/* Header end */}
+
+          {/* Product Table */}
           <div style={{ padding: '20px' }}>
-            <div className="table-responsive" >
+            <div className="table-responsive">
               {loading ? (
-                <div
-                  className="d-flex justify-content-center align-items-center"
-                  style={{ height: "200px" }}
-                >
+                <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
@@ -124,18 +92,14 @@ const Products = () => {
                   <tbody className="text-center">
                     {products?.map((p, index) => (
                       <tr key={p._id}>
-                        <td>{index + 1}</td>
-                        <td>{`HP-${1000 + index + 1}`}</td>
+                        <td>{(page - 1) * 8 + index + 1}</td>
+                        <td>{`HP-${1000 + ((page - 1) * 8 + index + 1)}`}</td>
                         <td>{p.name?.substring(0, 20)}</td>
                         <td>
                           <img
                             src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
                             alt={p.name}
-                            style={{
-                              width: "60px",
-                              height: "60px",
-                              objectFit: "cover",
-                            }}
+                            style={{ width: "60px", height: "60px", objectFit: "cover" }}
                             className="rounded"
                           />
                         </td>
@@ -145,16 +109,10 @@ const Products = () => {
                         <td>{p.quantity}</td>
                         <td>{p.price}</td>
                         <td>
-                          <Link
-                            to={`/dashboard/admin/product/${p.slug}`}
-                            className="btn btn-sm btn-info me-2"
-                          >
+                          <Link to={`/dashboard/admin/product/${p.slug}`} className="btn btn-sm btn-info me-2">
                             <TiEyeOutline />
                           </Link>
-                          <button
-                            onClick={() => openDeleteModal(p._id)}
-                            className="btn btn-sm btn-danger"
-                          >
+                          <button className="btn btn-sm btn-danger">
                             <RiDeleteBinLine />
                           </button>
                         </td>
@@ -164,41 +122,28 @@ const Products = () => {
                 </table>
               )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      {showModal && (
-        <div
-          className="modal fade show"
-          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirm Delete</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={closeModal}
-                ></button>
-              </div>
-              <div className="modal-body">
-                Are you sure you want to delete this product?
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={closeModal}>
-                  Cancel
-                </button>
-                <button className="btn btn-danger" onClick={confirmDelete}>
-                  OK
-                </button>
-              </div>
+            {/* Pagination Controls */}
+            <div className="d-flex justify-content-center mt-3">
+              <button
+                className="btn btn-secondary me-2"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Prev
+              </button>
+              <span className="align-self-center">Page {page} of {Math.ceil(total / 8)}</span>
+              <button
+                className="btn btn-secondary ms-2"
+                disabled={page >= Math.ceil(total / 8)}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
