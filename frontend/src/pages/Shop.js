@@ -6,10 +6,11 @@ import { useProduct } from "../context/product";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import useCategory from "../hooks/useCategory";
 
 const Shop = () => {
   const navigate = useNavigate();
-  const { categories } = useProduct();
+    const categories = useCategory();
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -18,6 +19,7 @@ const Shop = () => {
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
 
+  console.log("categories",categories)
   // ---------------- IMAGES & SLIDER ----------------
   const images = [
     "https://www.shutterstock.com/image-photo/elegant-health-fitness-product-showcase-260nw-2664388867.jpg",

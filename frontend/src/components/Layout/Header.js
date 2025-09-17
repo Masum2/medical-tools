@@ -20,7 +20,7 @@ const Header = () => {
   const [search, setSearch] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
-
+console.log("All categories in header",categories)
   // Example category icons
   const categoryIcons = {
     books: <FaBook style={{ color: "#4cc9f0" }} />,
