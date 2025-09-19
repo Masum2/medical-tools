@@ -15,7 +15,27 @@ const SubcategoryProducts = () => {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
+  const handleAddToCart = (p) => {
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const found = existingCart.find((item) => item._id === p._id);
 
+    if (found) {
+      toast.error("Item already added to cart");
+    } else {
+      const cartItem = {
+        _id: p._id,
+        name: p.name,
+        price: p.price,
+        discountPrice:p.discountPrice,
+        quantity: 1,
+        image: `${API}/api/v1/product/product-photo/${p._id}`,
+      };
+      const updatedCart = [...existingCart, cartItem];
+      setCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      toast.success("Item added to cart");
+    }
+  };
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -34,9 +54,11 @@ const SubcategoryProducts = () => {
     fetchProducts();
   }, [subSlug]);
 
+
+  // console.log("Subcategory page product detaiils",products)
   return (
      <Layout>
-    <div className="container pt-3 category">
+    <div className=" pt-3 category">
       {/* <h4 className="text-center">Subcategory - {subSlug}</h4> */}
    {/* Breadcrumb */}
 <div
@@ -81,10 +103,10 @@ const SubcategoryProducts = () => {
 
       {/* <h6 className="text-center">{products?.length} product found </h6> */}
 
-      <div className="col-md-9 mx-auto">
+      <div className=" mx-5">
         <div className="row">
           {products?.map((p) => (
-            <div key={p._id} className="col-sm-6 col-md-3 mb-3">
+            <div key={p._id} className="col-sm-6 col-md-2 mb-3">
               <div className="product-card shadow-sm rounded-lg border bg-white h-100 d-flex flex-column">
                 
                 {/* Product Image */}
@@ -106,52 +128,28 @@ const SubcategoryProducts = () => {
                   <p className="fw-bold mb-1" style={{ fontSize: "14px" }}>
                     {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}
                   </p>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "8px",
-                      paddingBottom: '10px'
-                    }}
-                  >
-                    <h6 style={{ color: "red", fontWeight: "bold", margin: 0 }}>
-                      ৳ {p.price}
-                    </h6>
-
-                    <div
-                      style={{
-                        cursor: "pointer",
-                        color: "#FFF",
-                        fontWeight: "bold",
-                        backgroundColor: '#00a297',
-                        padding: '4px',
-                        borderRadius: '2px'
-                      }}
-                      onClick={() => {
-                        const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-                        const found = existingCart.find((item) => item._id === p._id);
-                        if (found) {
-                          toast.error("Item already added to cart");
-                        } else {
-                          const cartItem = {
-                            _id: p._id,
-                            name: p.name,
-                            price: p.price,
-                            quantity: 1,
-                            image: `${API}/api/v1/product/product-photo/${p._id}`,
-                          };
-                          const updatedCart = [...existingCart, cartItem];
-                          setCart(updatedCart);
-                          localStorage.setItem("cart", JSON.stringify(updatedCart));
-                          toast.success("Item added to cart");
-                        }
-                      }}
-                    >
-                      <IoCartOutline />
-                    </div>
-                  </div>
+     <div className="mb-2 d-flex align-items-center gap-2 flex-wrap">
+            {p.discountPrice && p.discountPrice > 0 ? (
+              <>
+                <span className="text-danger fw-bold">৳ {p.discountPrice}</span>
+                <small className="text-muted text-decoration-line-through">
+                  ৳ {p.price}
+                </small>
+                <span className="badge bg-danger">
+                  {Math.round(((p.price - p.discountPrice) / p.price) * 100)}% OFF
+                </span>
+              </>
+            ) : (
+              <span className="text-danger fw-bold">৳ {p.price}</span>
+            )}
+          </div>
+                    <button
+            onClick={() => handleAddToCart(p)}
+            className="mt-auto w-100 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded transition"
+            style={{ fontSize: "14px", border: "none",marginBottom:'10px' }}
+          >
+            Add to Cart
+          </button>
                 </div>
               </div>
             </div>

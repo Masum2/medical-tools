@@ -468,10 +468,16 @@ const AdminOrders = () => {
                                 <td>{p.size}</td>
                                 <td>{p.brand}</td>
                                 <td>{p.quantity}</td>
-                                <td>৳{(p.product?.price || 0).toFixed(2)}</td>
-                                <td>
+                                {/* <td>৳{(p.product?.price || 0).toFixed(2)}</td> */}
+                                <td>৳{(
+    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
+  ).toFixed(2)}</td>
+                                {/* <td>
                                   ৳{(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
-                                </td>
+                                </td> */}
+                                                           <td>৳{(
+    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
+  ).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -496,10 +502,11 @@ const AdminOrders = () => {
                           </div>
 
                           <div className="d-flex flex-column align-items-end mt-3">
-                            <div>
-                              <strong>Subtotal:</strong> ৳
-                              {Number(selectedOrder.subTotal || 0).toFixed(2)}
-                            </div>
+                          <div>
+  <strong>Subtotal:</strong> ৳{(
+    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
+  ).toFixed(2)}
+</div>
                             <div>
                               <strong>Shipping Fee:</strong> ৳ 
                               {Number(selectedOrder.shippingFee || 0).toFixed(2)}

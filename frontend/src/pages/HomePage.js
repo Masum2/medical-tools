@@ -119,6 +119,7 @@ const HomePage = () => {
         _id: p._id,
         name: p.name,
         price: p.price,
+         discountPrice:p.discountPrice,
         quantity: 1,
         image: `${API}/api/v1/product/product-photo/${p._id}`,
       };

@@ -219,7 +219,13 @@ const handleReviewSubmit = async (e) => {
 
   {/* Product Name */}
   <FaAngleRight />
-  <p style={{ margin: 0 }}>{product?.name}</p>
+  {/* <p style={{ margin: 0 }}>{product?.name}</p> */}
+<p style={{ margin: 0 }}>
+  {product?.name?.length > 120
+    ? product.name.substring(0, 120) + "..."
+    : product?.name || ""}
+</p>
+
 </div>
 
         <div className="row g-4">
@@ -458,6 +464,7 @@ const handleReviewSubmit = async (e) => {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
+                    discountPrice:product.discountPrice,
                     color: selectedColor,
                     brand: selectedBrand,
                     size: selectedSize,
@@ -502,6 +509,7 @@ const handleReviewSubmit = async (e) => {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
+                     discountPrice:product.discountPrice,
                     color: selectedColor,
                     brand: selectedBrand,
                     size: selectedSize,

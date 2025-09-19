@@ -2,6 +2,10 @@ import orderModel from "../models/orderModel.js";
 import userModels from "../models/userModels.js";
 import fs from "fs";
 // create order
+// create order
+// create order
+
+// create order
 export const createOrderController = async (req, res) => {
   try {
     const {
@@ -14,10 +18,12 @@ export const createOrderController = async (req, res) => {
       city,
       postalCode,
       district,
+      area,
       paymentMethod,
+      shippingFee, // frontend থেকে আসতে পারে
       color,
       brand,
-      size
+      size,
     } = req.fields;
 
     const { paymentScreenshot } = req.files;
@@ -26,26 +32,41 @@ export const createOrderController = async (req, res) => {
       return res.status(400).send({ success: false, error: "Cart is empty" });
     }
 
+    // 🟢 cart parse
     let parsedCart = [];
     try {
       parsedCart = JSON.parse(cart);
     } catch (err) {
-      return res.status(400).send({ success: false, error: "Invalid cart format" });
+      return res
+        .status(400)
+        .send({ success: false, error: "Invalid cart format" });
     }
 
-    const totalAmount = parsedCart.reduce(
-      (acc, item) => acc + item.price * (item.quantity || 1),
+    // 🟢 subtotal
+    const subtotal = parsedCart.reduce(
+      (acc, item) => acc + item.discountPrice * (item.quantity || 1),
       0
     );
 
+    // 🟢 shipping fee
+    const shippingFeeNum = (() => {
+      if (shippingFee) return Number(shippingFee);
+      if (district === "Dhaka") return area === "Dhaka City" ? 70 : 140;
+      if (district) return 140;
+      return 0;
+    })();
+
+    console.log("Shipping Fee to save:", shippingFeeNum); // debug
+
+    // 🟢 order object
     const order = new orderModel({
       products: parsedCart.map((item) => ({
         product: item._id,
         quantity: item.quantity || 1,
-                    price: item.price,
-    brand: item.brand,      // 👈 এখানে কপি করা হচ্ছে
-    color: item.color,      // 👈
-    size: item.size,
+        price: item.discountPrice,
+        brand: item.brand,
+        color: item.color,
+        size: item.size,
       })),
       buyer: req.user._id,
       shippingInfo: {
@@ -57,13 +78,17 @@ export const createOrderController = async (req, res) => {
         city,
         postalCode,
         district,
-
+        area,
+        shippingFee: shippingFeeNum, // ✅ shippingFee inside shippingInfo
       },
+      shippingFee: shippingFeeNum, // ✅ root level shippingFee
       paymentMethod,
-      totalAmount,
+      subTotal: subtotal,        
+      discount: 0,               
+      totalAmount: subtotal + shippingFeeNum,  
     });
 
-    // store file binary in DB
+    // 🟢 file upload
     if (paymentScreenshot) {
       order.paymentScreenshot = {
         data: fs.readFileSync(paymentScreenshot.path),
@@ -170,6 +195,7 @@ export const getAllOrdersController = async (req, res) => {
     res.status(200).json({
       success: true,
       data: orders,
+      
       pagination: {
         page,
         pages: Math.ceil(total / limit),

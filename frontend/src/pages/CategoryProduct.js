@@ -37,36 +37,36 @@ const CategoryProduct = () => {
       <div className="container pt-3 category">
         {/* <h4 className="text-center">Category - {category?.name}</h4> */}
         {/* Breadcrumb */}
-<div
-  style={{
-    paddingBottom: "5px",
-    fontSize: "14px",
-    color: "#555",
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-    justifyContent: "center",
-  }}
->
-  <p
-    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
-    onClick={() => navigate("/")}
-  >
-    Home
-  </p>
-  <FaAngleRight />
+        <div
+          style={{
+            paddingBottom: "5px",
+            fontSize: "14px",
+            color: "#555",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            justifyContent: "center",
+          }}
+        >
+          <p
+            style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+            onClick={() => navigate("/")}
+          >
+            Home
+          </p>
+          <FaAngleRight />
 
-  {/* Category */}
-  {category?._id && (
-    <p
-      style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
-      onClick={() => navigate(`/category/${category.slug}`)}
-    >
-      {category.name}
-    </p>
-  )}
-</div>
+          {/* Category */}
+          {category?._id && (
+            <p
+              style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+              onClick={() => navigate(`/category/${category.slug}`)}
+            >
+              {category.name}
+            </p>
+          )}
+        </div>
         {/* <h6 className="text-center">{products?.length} result found </h6> */}
         <div className="col-md-9">
           {/* <h2 className="mb-4 text-center">All Products</h2> */}
@@ -116,28 +116,28 @@ const CategoryProduct = () => {
                       </h6>
                       <div
                         style={{ cursor: "pointer", color: "#FFF", fontWeight: "bold", backgroundColor: '#00a297', padding: '4px', borderRadius: '2px' }}
-                   onClick={() => {
-                                               const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-                   
-                                               // Check if product already exists
-                                               const found = existingCart.find((item) => item._id === p._id);
-                   
-                                               if (found) {
-                                                 toast.error("Item already added to cart");
-                                               } else {
-                                                 const cartItem = {
-                                                   _id: p._id,
-                                                   name: p.name,
-                                                   price: p.price,
-                                                   quantity: 1,
-                                                   image: `${API}/api/v1/product/product-photo/${p._id}`,
-                                                 };
-                                                 const updatedCart = [...existingCart, cartItem];
-                                                 setCart(updatedCart);
-                                                 localStorage.setItem("cart", JSON.stringify(updatedCart));
-                                                 toast.success("Item added to cart");
-                                               }
-                                             }}
+                        onClick={() => {
+                          const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+                          // Check if product already exists
+                          const found = existingCart.find((item) => item._id === p._id);
+
+                          if (found) {
+                            toast.error("Item already added to cart");
+                          } else {
+                            const cartItem = {
+                              _id: p._id,
+                              name: p.name,
+                              price: p.price,
+                              quantity: 1,
+                              image: `${API}/api/v1/product/product-photo/${p._id}`,
+                            };
+                            const updatedCart = [...existingCart, cartItem];
+                            setCart(updatedCart);
+                            localStorage.setItem("cart", JSON.stringify(updatedCart));
+                            toast.success("Item added to cart");
+                          }
+                        }}
                       >
                         <IoCartOutline />
                       </div>

@@ -33,7 +33,7 @@ const CartPage = () => {
   };
 
   const subtotal = () =>
-    cart?.reduce((total, item) => total + item.price * (item.quantity || 1), 0) || 0;
+    cart?.reduce((total, item) => total + item.discountPrice * (item.quantity || 1), 0) || 0;
 
   const removeCartItem = (pid) => {
     const newCart = cart.filter((item) => item._id !== pid);
@@ -112,7 +112,7 @@ const CartPage = () => {
                         <h6 style={{ marginBottom: "4px", fontWeight: "500" }}>{item.name}</h6>
                         <div className="d-md-none" style={{ fontSize: "13px", color: "#555" }}>
                           <span>Color: {item.color}</span> <br />
-                          <span>Price: ৳{Number(item.price).toFixed(2)}</span>
+                          <span>Price: ৳{Number(item.discountPrice).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -131,7 +131,7 @@ const CartPage = () => {
                         color: "#42BAC9",
                       }}
                     >
-                      ৳{Number(item.price).toFixed(2)}
+                      ৳{Number(item.discountPrice).toFixed(2)}
                     </div>
 
                     {/* Quantity */}
@@ -174,7 +174,7 @@ const CartPage = () => {
                         color: "#42BAC9",
                       }}
                     >
-                      ৳{((Number(item.price) || 0) * (item.quantity || 1)).toFixed(2)}
+                      ৳{((Number(item.discountPrice) || 0) * (item.quantity || 1)).toFixed(2)}
                     </div>
 
                     {/* Remove Button */}

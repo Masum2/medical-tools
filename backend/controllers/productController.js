@@ -311,7 +311,7 @@ export const productCountController = async (req, res) => {
 // ------------------ PAGINATION ------------------
 export const productListController = async (req, res) => {
   try {
-    const perPage = 8;
+    const perPage = 10;
     const page = req.params.page || 1;
 
     const total = await productModel.countDocuments();
