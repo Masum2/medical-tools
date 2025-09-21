@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 // ✅ Review Schema
 const reviewSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // User ID (required)
-    name: { type: String, required: true }, // Display name
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    name: { type: String, required: true },
     stars: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true },
-    reply: { type: String, default: "" }, // Admin reply
+    reply: { type: String, default: "" },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: true }
@@ -25,12 +25,19 @@ const productSchema = new mongoose.Schema(
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     subcategories: [String],
 
-    quantity: { type: Number },
+    quantity: { type: Number, required: true },
     brand: [{ type: String }],
     color: [{ type: String }],
     size: [{ type: String }],
 
-    photos: [{ data: Buffer, contentType: String }],
+    // ✅ Cloudinary Images
+    photos: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
+
     shipping: { type: Boolean, default: false },
 
     reviews: [reviewSchema],

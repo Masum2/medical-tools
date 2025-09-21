@@ -4,49 +4,96 @@ import fs from "fs";
 import slugify from "slugify";
 
 // ------------------ CREATE PRODUCT ------------------
-// Create Product
+import { v2 as cloudinary } from "cloudinary";
+
+
+
+// ------------------ CREATE PRODUCT ------------------
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price,discountPrice, quantity, brand, color, size, shipping, categories, subcategories } = req.fields;
+    const {
+      name,
+      description,
+      price,
+      discountPrice,
+      quantity,
+      brand,
+      color,
+      size,
+      shipping,
+      category,
+      categories,
+      subcategories,
+    } = req.body;
 
-    if (!name || !price || !quantity || !categories) {
-      return res.status(400).send({ error: "Name, Price, Quantity, and Category are required" });
+    // ✅ Validation
+    if (!name || !price || !quantity || !(category || categories)) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, Price, Quantity, and Category are required",
+      });
     }
 
-  
-
-const product = new productModel({
-  name,
-  slug: slugify(name),
-  description,
-  price,
-  discountPrice,
-  quantity,
-  brand: Array.isArray(brand) ? brand : JSON.parse(brand || "[]"),
-  color: Array.isArray(color) ? color : JSON.parse(color || "[]"),
-  size: Array.isArray(size) ? size : JSON.parse(size || "[]"),
-  shipping,
-  category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0],
-  categories: Array.isArray(categories) ? categories : JSON.parse(categories),
-  subcategories: subcategories ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories)) : [],
-});
-
-    // photos handle
-    if (req.files.photos) {
-      const files = Array.isArray(req.files.photos) ? req.files.photos : [req.files.photos];
-      product.photos = files.map(file => ({
-        data: fs.readFileSync(file.path),
-        contentType: file.type,
-      }));
-      console.log("Image here", req.files.photos)
+    // ✅ Upload photos to Cloudinary if files exist
+    let uploadedPhotos = [];
+    if (req.files && req.files.length > 0) {
+      uploadedPhotos = await Promise.all(
+        req.files.map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "products",
+          });
+          fs.unlinkSync(file.path); // remove temp file
+          return {
+            url: result.secure_url,
+            public_id: result.public_id,
+          };
+        })
+      );
     }
+
+    const product = new productModel({
+      name,
+      slug: slugify(name),
+      description,
+      price,
+      discountPrice: discountPrice || 0,
+      quantity,
+      brand: Array.isArray(brand) ? brand : JSON.parse(brand || "[]"),
+      color: Array.isArray(color) ? color : JSON.parse(color || "[]"),
+      size: Array.isArray(size) ? size : JSON.parse(size || "[]"),
+      shipping: shipping === "true" || shipping === true,
+      category: category
+        ? category
+        : Array.isArray(categories)
+        ? categories[0]
+        : JSON.parse(categories || "[]")[0],
+      categories: category
+        ? [category]
+        : Array.isArray(categories)
+        ? categories
+        : JSON.parse(categories || "[]"),
+      subcategories: subcategories
+        ? Array.isArray(subcategories)
+          ? subcategories
+          : JSON.parse(subcategories)
+        : [],
+      photos: uploadedPhotos,
+    });
 
     await product.save();
-    res.status(201).send({ success: true, message: "Product created successfully", product });
 
+    res.status(201).json({
+      success: true,
+      message: "Product created successfully",
+      product,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({ success: false, error, message: "Error creating product" });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating product",
+      error: error.message,
+    });
   }
 };
 
@@ -154,29 +201,21 @@ export const updateProductController = async (req, res) => {
       color,
       size,
       discountPrice,
-      replaceIndex // 👉 ফ্রন্টএন্ড থেকে index পাঠাবে (যেমন 4)
-    } = req.fields;
-
-    const { photos } = req.files || {};
+      replaceIndex // 👉 ফ্রন্টএন্ড থেকে পাঠানো index (যেমন 4)
+    } = req.body; // ✅ multer => req.body
 
     // Validation
-    switch (true) {
-      case !name:
-        return res.status(400).send({ error: "Name is Required" });
-      case !description:
-        return res.status(400).send({ error: "Description is Required" });
-      case !price:
-        return res.status(400).send({ error: "Price is Required" });
-      case !categories:
-        return res.status(400).send({ error: "At least one Category is Required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is Required" });
+    if (!name || !description || !price || !categories || !quantity) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, Description, Price, Categories, and Quantity are required",
+      });
     }
 
     // আগের প্রোডাক্ট বের করো
     const existingProduct = await productModel.findById(req.params.pid);
     if (!existingProduct) {
-      return res.status(404).send({ error: "Product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     // Update data তৈরি করো
@@ -191,36 +230,37 @@ export const updateProductController = async (req, res) => {
         ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories))
         : [],
       quantity,
-      shipping: shipping || false,
-    brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand)) : [],
-color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
-size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
-
+      shipping: shipping === "true" || shipping === true,
+      brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand)) : [],
+      color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
+      size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
       discountPrice: discountPrice !== undefined 
-  ? Number(discountPrice) 
-  : existingProduct.discountPrice,
-      photos: existingProduct.photos, // আগের সব ছবি রেখে দাও
+        ? Number(discountPrice) 
+        : existingProduct.discountPrice,
+      photos: existingProduct.photos, // পুরানো সব ছবি রেখে দাও
     };
 
-    // ✅ নতুন ছবি এলে শুধু নির্দিষ্ট index replace করো
-    if (photos) {
-      const files = Array.isArray(photos) ? photos : [photos];
-      for (let file of files) {
-        if (file.size > 5 * 1024 * 1024) {
-          return res.status(400).send({ error: "Each photo should be less than 5MB" });
-        }
-      }
-
-      // index undefined হলে push করে দাও, নাহলে replace করো
-      const fileData = {
-        data: fs.readFileSync(files[0].path),
-        contentType: files[0].type,
-      };
+    // ✅ নতুন ছবি এলে শুধু নির্দিষ্ট index replace করো অথবা push করো
+    if (req.files && req.files.length > 0) {
+      const uploadedPhotos = await Promise.all(
+        req.files.map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "products",
+          });
+          fs.unlinkSync(file.path); // temp file delete
+          return {
+            url: result.secure_url,
+            public_id: result.public_id,
+          };
+        })
+      );
 
       if (replaceIndex !== undefined && updateData.photos[replaceIndex]) {
-        updateData.photos[replaceIndex] = fileData; // replace নির্দিষ্ট index
+        // 👉 নির্দিষ্ট index replace
+        updateData.photos[replaceIndex] = uploadedPhotos[0];
       } else {
-        updateData.photos.push(fileData); // নতুন ছবি add হবে
+        // 👉 নতুন ছবি add হবে
+        updateData.photos.push(...uploadedPhotos);
       }
     }
 
@@ -231,20 +271,21 @@ size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
       { new: true }
     );
 
-    res.status(200).send({
+    res.status(200).json({
       success: true,
       message: "✅ Product updated successfully",
       product,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send({
+    res.status(500).json({
       success: false,
       message: "Error updating product",
-      error,
+      error: error.message,
     });
   }
 };
+
 
 
 

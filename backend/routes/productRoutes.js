@@ -19,7 +19,8 @@ import { deleteProductController } from "../controllers/productController.js";
 import { productPhotoController } from "../controllers/productController.js";
 import { updateProductController } from "../controllers/productController.js";
 import formidable from "express-formidable";
-
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 //routes for create product
@@ -28,16 +29,27 @@ router.post(
   "/create-product",
   requireSignIn,
   isAdmin,
-  formidable({ multiples: true, keepExtensions: true }),
+  upload.array("photos", 5),
+  (req, res, next) => {
+    console.log("FILES:", req.files);
+    console.log("BODY:", req.body);
+    next();
+  },
   createProductController
 );
+
 
 //routes
 router.put(
   "/update-product/:pid",
   requireSignIn,
   isAdmin,
-  formidable({ multiples: true, keepExtensions: true }),
+    upload.array("photos", 5),
+  (req, res, next) => {
+    console.log("FILES:", req.files);
+    console.log("BODY:", req.body);
+    next();
+  },
   updateProductController
 );
 // get all product

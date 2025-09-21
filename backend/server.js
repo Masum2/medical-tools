@@ -11,7 +11,8 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import cors from "cors";
 import session from "express-session";
 import passport from "./config/passport.js";
-
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
 // configure env
 dotenv.config();
 
@@ -82,4 +83,9 @@ app.listen(PORT, () => {
     `Server Running on ${process.env.NODE_MODE} mode on port ${PORT}`.bgCyan
       .white
   );
+});
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
 });

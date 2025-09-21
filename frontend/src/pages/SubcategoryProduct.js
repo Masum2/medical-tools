@@ -116,7 +116,8 @@ const SubcategoryProducts = () => {
                   onClick={() => navigate(`/product/${p.slug}`)}
                 >
                   <img
-                    src={`${API}/api/v1/product/product-photo/${p._id}`}
+                    // src={`${API}/api/v1/product/product-photo/${p._id}`}
+                    src={p.photos?.[0]?.url}
                     alt={p.name}
                     className="img-fluid"
                     style={{ maxHeight: "150px", objectFit: "contain" }}

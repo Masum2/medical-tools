@@ -23,6 +23,7 @@ const UpdateProduct = () => {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   const [photos, setPhotos] = useState(Array(5).fill(null));
+  console.log("photos",photos)
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -76,14 +77,19 @@ const UpdateProduct = () => {
           setSelectedSubcategories(data.product.subcategories || []);
 
           // Initialize photos array with placeholders for existing images
-          const photoArray = Array(5).fill(null);
-          if (data.product.photos && data.product.photos.length > 0) {
-            data.product.photos.forEach((_, index) => {
-              photoArray[index] = { type: "existing", index };
-            });
-            setExistingPhotoCount(data.product.photos.length);
-          }
-          setPhotos(photoArray);
+         // Initialize photos array with placeholders for existing images
+const photoArray = Array(5).fill(null);
+if (data.product.photos && data.product.photos.length > 0) {
+  data.product.photos.forEach((p, index) => {
+    photoArray[index] = { 
+      type: "existing", 
+      index, 
+      url: p.url   // ✅ এখানে url সেট করো
+    };
+  });
+  setExistingPhotoCount(data.product.photos.length);
+}
+setPhotos(photoArray);
         }
       } catch (error) {
         console.log(error);
@@ -360,7 +366,9 @@ const UpdateProduct = () => {
                             />
                           ) : (
                             <img
-                              src={`${API}/api/v1/product/product-photo/${id}?index=${photo.index}`}
+                              // src={`${API}/api/v1/product/product-photo/${id}?index=${photo.index}`}
+                                                      src={photo.url}
+
                               alt="preview"
                               style={{
                                 width: "100%",

@@ -44,22 +44,38 @@ const [photosByColor, setPhotosByColor] = useState({});
   //   }
   // }, [product]);
 
+// useEffect(() => {
+//   if (product._id) {
+//     const imgs = product.photos?.length
+//       ? product.photos.map((_, index) =>
+//           `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
+//         )
+//       : [`${API}/api/v1/product/product-photo/${product._id}`];
+
+//     setImages(imgs);
+//     setSelectedImage(imgs[0]);
+
+//     // ✅ Color অনুযায়ী image auto assign
+//     if (product.color?.length > 0) {
+//       const mapping = {};
+//       product.color.forEach((c, idx) => {
+//         mapping[c] = [imgs[idx] || imgs[0]]; // না থাকলে fallback প্রথম image
+//       });
+//       setPhotosByColor(mapping);
+//     }
+//   }
+// }, [product]);
+
 useEffect(() => {
   if (product._id) {
-    const imgs = product.photos?.length
-      ? product.photos.map((_, index) =>
-          `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
-        )
-      : [`${API}/api/v1/product/product-photo/${product._id}`];
-
+    const imgs = product.photos?.map(photo => photo.url) || [];
     setImages(imgs);
     setSelectedImage(imgs[0]);
 
-    // ✅ Color অনুযায়ী image auto assign
     if (product.color?.length > 0) {
       const mapping = {};
       product.color.forEach((c, idx) => {
-        mapping[c] = [imgs[idx] || imgs[0]]; // না থাকলে fallback প্রথম image
+        mapping[c] = [imgs[idx] || imgs[0]]; // fallback to first image
       });
       setPhotosByColor(mapping);
     }
@@ -221,8 +237,8 @@ const handleReviewSubmit = async (e) => {
   <FaAngleRight />
   {/* <p style={{ margin: 0 }}>{product?.name}</p> */}
 <p style={{ margin: 0 }}>
-  {product?.name?.length > 120
-    ? product.name.substring(0, 120) + "..."
+  {product?.name?.length > 60
+    ? product.name.substring(0, 60) + "..."
     : product?.name || ""}
 </p>
 

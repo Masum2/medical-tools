@@ -18,6 +18,7 @@ const Shop = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
   const [loading, setLoading] = useState(false);
+  console.log("products",products)
 useEffect(() => {
   const init = async () => {
     setLoading(true);
@@ -160,6 +161,7 @@ const loadMore = async () => {
                       <div className="category-tag-small">{c.name}</div>
                       <img
                         src={`${API}/api/v1/category/category-photo/${c._id}`}
+                          //  src={c.photos?.[0]?.url}
                         alt={c.name}
                         className="img-fluid rounded"
                       />
@@ -198,7 +200,8 @@ const loadMore = async () => {
                     onClick={() => navigate(`/product/${p.slug}`)}
                   >
                     <img
-                      src={`${API}/api/v1/product/product-photo/${p._id}`}
+                      // src={`${API}/api/v1/product/product-photo/${p._id}`}
+                       src={p.photos?.[0]?.url}
                       alt={p.name}
                       className="img-fluid"
                       style={{ maxHeight: "160px", objectFit: "contain" }}

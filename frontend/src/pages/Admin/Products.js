@@ -97,7 +97,8 @@ const Products = () => {
                         <td>{p.name?.substring(0, 20)}</td>
                         <td>
                           <img
-                            src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
+                            // src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
+                            src={p.photos?.[0]?.url}
                             alt={p.name}
                             style={{ width: "60px", height: "60px", objectFit: "cover" }}
                             className="rounded"

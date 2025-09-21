@@ -121,7 +121,8 @@ const AdminDashboard = () => {
           onClick={() => navigate(`/product/${p.slug}`)}
         >
           <img
-            src={`${API}/api/v1/product/product-photo/${p._id}`}
+            // src={`${API}/api/v1/product/product-photo/${p._id}`}
+           src={p.photos?.[0]?.url}
             alt={p.name}
             style={{
               maxHeight: "100%",
@@ -137,7 +138,7 @@ const AdminDashboard = () => {
             {p.name.length > 25 ? p.name.substring(0, 25) + "..." : p.name}
           </p>
           <h6 style={{ color: "red", fontWeight: "bold", margin: "8px 0" }}>
-            ৳ {p.price}
+            ৳{p.price}
           </h6>
         </div>
 
