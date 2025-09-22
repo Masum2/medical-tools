@@ -63,10 +63,12 @@ export const createOrderController = async (req, res) => {
       products: parsedCart.map((item) => ({
         product: item._id,
         quantity: item.quantity || 1,
-        price: item.discountPrice,
+    price: item.price,                   // ✅ original price
+    discountPrice: item.discountPrice,   // ✅ discounted price
         brand: item.brand,
         color: item.color,
         size: item.size,
+     
       })),
       buyer: req.user._id,
       shippingInfo: {
@@ -187,7 +189,8 @@ export const getAllOrdersController = async (req, res) => {
     const orders = await orderModel
       .find(query)
       .populate("buyer", "name email")
-      .populate("products.product", "name price")
+      // .populate("products.product", "name price")
+      .populate("products.product", "name price discountPrice photos")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

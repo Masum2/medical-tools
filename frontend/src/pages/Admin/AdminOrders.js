@@ -167,9 +167,9 @@ const AdminOrders = () => {
                     <th>Buyer</th>
                     <th>Items</th>
                     <th>Total</th>
-                    
+
                     <th>Pay Method / Status</th>
-                     <th>Screenshot</th>   {/* 👈 new column */}
+                    <th>Screenshot</th>   {/* 👈 new column */}
                     <th>Order Status</th>
                     <th>Actions</th>
                   </tr>
@@ -202,20 +202,20 @@ const AdminOrders = () => {
                           </select>
                         </div>
                       </td>
-                       
-<td>
-  {o.paymentScreenshot ? (
-    <img
-      src={`${API}/api/v1/order/payment-screenshot/${o._id}`}
-      alt="Payment Proof"
-      className="rounded"
-      style={{ width: "60px", height: "60px", objectFit: "cover", cursor: "pointer" }}
-      onClick={() => window.open(`${API}/api/v1/order/payment-screenshot/${o._id}`, "_blank")}
-    />
-  ) : (
-    <span className="text-muted small">No screenshot</span>
-  )}
-</td>
+
+                      <td>
+                        {o.paymentScreenshot ? (
+                          <img
+                            src={`${API}/api/v1/order/payment-screenshot/${o._id}`}
+                            alt="Payment Proof"
+                            className="rounded"
+                            style={{ width: "60px", height: "60px", objectFit: "cover", cursor: "pointer" }}
+                            onClick={() => window.open(`${API}/api/v1/order/payment-screenshot/${o._id}`, "_blank")}
+                          />
+                        ) : (
+                          <span className="text-muted small">No screenshot</span>
+                        )}
+                      </td>
                       <td>
                         <select
                           className="form-select form-select-sm fw-semibold"
@@ -283,266 +283,303 @@ const AdminOrders = () => {
               </div>
             )}
           </div>
-          {showModal && selectedOrder && (
-            <div
-              className="modal show d-block"
-              tabIndex="-1"
-              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-              onClick={() => setShowModal(false)}
-            >
-              <div
-                className="modal-dialog modal-lg modal-dialog-centered"
-                style={{ maxWidth: "800px" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="modal-content shadow-lg rounded-3">
-
-                  {/* Header */}
-                  <div className="modal-header text-black">
-                    <h5 className="modal-title">Print Invoice for selected items</h5>
-                    <button
-                      type="button"
-                      className="btn-close btn-close-black"
-                      onClick={() => setShowModal(false)}
-                    ></button>
-                  </div>
-
-                  {/* Print Button */}
-                  <div style={{ padding: "10px" }}>
-                    <button className="btn btn-primary" onClick={() => window.print()}>
-                      Print
-                    </button>
-                  </div>
-
-                  {/* Print CSS */}
-                  <style>
-                    {`
-            @media print {
-              body * {
-                visibility: hidden;
-              }
-              .print-section, .print-section * {
-                visibility: visible;
-              }
-              .print-section {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-              }
-
-              /* Force background colors to print */
-              .print-section * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-
-              /* Remove modal restrictions */
-              .modal, .modal-dialog, .modal-content, .modal-body {
-                all: unset;
-              }
-
-              /* Set proper A4 page size */
-              @page {
-                size: A4;
-                margin: 20mm;
-              }
-            }
-          `}
-                  </style>
-                  <div style={{ margin: 'mx-4' }}>
-                    {/* Print Section Start */}
-                    <div className="print-section p-4" >
-                      {/* Banner */}
-<div
-  style={{
-    margin: "20px 0",
-    backgroundColor: "rgb(0, 162, 151)",
-    padding: "10px",
-    display: "flex",
-    alignItems: "center",
-    borderRadius: "5px",
-    position: "relative", // for centering slogan
-    color: "#fff",
-  }}
->
-  {/* Left: Logo + Name + Purchase Summary */}
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <img
-      src="/images/newlogo.png"
-      style={{ width: "50px", height: "50px" }}
-      alt="logo"
-    />
-    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-      <p style={{ margin: 0, fontWeight: "bold" }}>HealthProo</p>
-      <p style={{ margin: 0 }}> A reliable path to a healthy life</p>
-    </div>
-  </div>
-
-  {/* Centered Slogan */}
-  <p
-    style={{
-      position: "absolute",
-      left: "50%",
-      transform: "translateX(-50%)",
-      margin: 0,
-      fontWeight: "bold",
-      fontSize: "14px",
-      textAlign: "center",
-    }}
+       {showModal && selectedOrder && (
+  <div
+    className="modal show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+    onClick={() => setShowModal(false)}
   >
-   Purchase Summary
-  </p>
-</div>
+    <div
+      className="modal-dialog modal-lg modal-dialog-centered"
+      style={{ maxWidth: "900px" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="modal-content shadow-lg rounded-3">
 
+        {/* Header */}
+        <div className="modal-header text-black">
+          <h5 className="modal-title">Print Invoice for selected items</h5>
+          <button
+            type="button"
+            className="btn-close btn-close-black"
+            onClick={() => setShowModal(false)}
+          ></button>
+        </div>
 
-                      {/* Body */}
-                      <div>
-                        {/* Order Details */}
-                        <h6 className="fw-bold mb-2">Order Details</h6>
-                        <table className="table table-bordered table-sm">
-                          <tbody>
-                            <tr>
-                              <th>Order Id</th>
-                              <td>{selectedOrder._id}</td>
-                              <th>Order Date</th>
-                              <td>{new Date(selectedOrder.createdAt).toLocaleString()}</td>
-                            </tr>
-                            <tr>
-                              <th>Paid By</th>
-                              <td>{selectedOrder.paymentMethod || "Cash on Delivery"}</td>
-                              <th>Phone</th>
-                              <td>{selectedOrder?.shippingInfo?.phone}</td>
-                            </tr>
-                            <tr>
-                              <th>Deliver To</th>
-                              <td>
-                                {selectedOrder?.shippingInfo?.firstName}{" "}
-                                {selectedOrder?.shippingInfo?.lastName}
-                              </td>
-                              <th>Email</th>
-                              <td>{selectedOrder?.shippingInfo?.email}</td>
-                            </tr>
-                            <tr>
-                              <th>Deliver Address</th>
-                              <td colSpan="3">
-                                {selectedOrder?.shippingInfo?.address},{" "}
-                                {selectedOrder?.shippingInfo?.city},{" "}
-                                {selectedOrder?.shippingInfo?.postalCode}
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Company</th>
-                              <td>HealthProo.com </td>
-                              <th>Company Address</th>
-                              <td>Topkhana Road, Shegunbagicha, Dhaka-1000.</td>
-                            </tr>
-                          </tbody>
-                        </table>
+        {/* Print Button */}
+        <div style={{ padding: "10px" }}>
+          <button className="btn btn-primary" onClick={() => window.print()}>
+            Print
+          </button>
+        </div>
 
-                        {/* Items Table */}
-                        <h6 className="fw-bold mt-4 mb-2">Items</h6>
-                        <table className="table table-bordered table-striped">
-                          <thead className="table-light">
-                            <tr>
-                              <th>#</th>
-                              <th>Product Name</th>
-                              <th>Color</th>
-                               <th>Size</th>
-                                <th>Brand</th>
-                              <th>Qty</th>
-                              <th>Price</th>
-                              <th>Item Total</th>
+        {/* Print CSS */}
+        <style>
+          {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .print-section, .print-section * {
+              visibility: visible;
+            }
+            .print-section {
+              position: relative;
+              left: 0;
+              top: 0;
+              width: 100%;
+              padding: 0;
+              margin: 0;
+              box-sizing: border-box;
+            }
+            .modal, .modal-dialog, .modal-content, .modal-body {
+              all: unset;
+              display: block;
+              margin: 0;
+            }
+            table, tr, td, th {
+              page-break-inside: avoid;
+            }
+            h6, p {
+              margin: 0;
+              padding: 0;
+            }
+            /* Force background colors to print */
+            .print-section * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            @page {
+              size: A4;
+              margin: 20mm;
+            }
+          }
+          `}
+        </style>
 
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {selectedOrder.products.map((p, idx) => (
-                              <tr key={idx}>
-                                <td>{idx + 1}</td>
-                                <td>{p.product?.name || "Deleted Product"}</td>
-                              <td>{p.color || "-"}</td>
-                                <td>{p.size}</td>
-                                <td>{p.brand}</td>
-                                <td>{p.quantity}</td>
-                                {/* <td>৳{(p.product?.price || 0).toFixed(2)}</td> */}
-                                <td>৳{(
-    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
-  ).toFixed(2)}</td>
-                                {/* <td>
-                                  ৳{(p.product?.price * (p.quantity || 1) || 0).toFixed(2)}
-                                </td> */}
-                                                           <td>৳{(
-    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
-  ).toFixed(2)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+        <div>
+          {/* Print Section Start */}
+          <div className="print-section p-4">
 
-                        {/* Totals */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <div className="my-3 d-flex justify-content-center">
-                            <QRCodeCanvas
-                              value={JSON.stringify({
-                                orderId: selectedOrder._id,
-                                buyer: selectedOrder.shippingInfo?.firstName + " " + selectedOrder.shippingInfo?.lastName,
-                                total: selectedOrder.totalAmount,
-                                date: selectedOrder.createdAt,
-                              })}
-                              size={128} // QR code size
-                              bgColor="#ffffff"
-                              fgColor="#000000"
-                              level="H"
-                              includeMargin={true}
-                            />
-                          </div>
-
-                          <div className="d-flex flex-column align-items-end mt-3">
-                          <div>
-  <strong>Subtotal:</strong> ৳{(
-    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
-  ).toFixed(2)}
-</div>
-                            <div>
-                              <strong>Shipping Fee:</strong> ৳ 
-                              {Number(selectedOrder.shippingFee || 0).toFixed(2)}
-                            </div>
-                            <div>
-                              <strong>Discount:</strong> -৳ 
-                              {Number(selectedOrder.discount || 0).toFixed(2)}
-                            </div>
-                            <div className="fs-5 fw-bold border-top pt-2">
-                              Total: ৳{Number(selectedOrder.totalAmount).toFixed(2)}
-                            </div>
-                              <div style={{ fontSize: '14px', fontStyle: 'italic', marginTop: '5px',fontWeight:'bold' }}>
-    In Words: {toWords(Number(selectedOrder.totalAmount))} Taka Only
-  </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Print Section End */}
-                  </div>
-
-
-                  {/* Footer */}
-                  <div className="modal-footer">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowModal(false)}
-                    >
-                      Close
-                    </button>
-                  </div>
+            {/* Banner */}
+            <div
+              style={{
+                margin: "20px 0",
+                backgroundColor: "rgb(0, 162, 151)",
+                padding: "10px",
+                display: "flex",
+                alignItems: "center",
+                borderRadius: "5px",
+                position: "relative",
+                color: "#fff",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <img
+                  src="/images/newlogo.png"
+                  style={{ width: "50px", height: "50px" }}
+                  alt="logo"
+                />
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <p style={{ margin: 0, fontWeight: "bold" }}>HealthProo</p>
+                  <p style={{ margin: 0 }}>A reliable path to a healthy life</p>
                 </div>
               </div>
 
+              {/* Centered Slogan */}
+              <p
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  margin: 0,
+                  fontWeight: "bold",
+                  fontSize: "24px",
+                  textAlign: "center",
+                }}
+              >
+                Purchase Summary
+              </p>
             </div>
-          )}
+
+            {/* Order Details */}
+            <h6 className="fw-bold mb-2">Order Details</h6>
+            <table className="table table-bordered table-sm">
+              <tbody>
+                <tr>
+                  <th>Order Id</th>
+                  <td>{selectedOrder._id}</td>
+                  <th>Order Date</th>
+                  <td>{new Date(selectedOrder.createdAt).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <th>Paid By</th>
+                  <td>{selectedOrder.paymentMethod || "Cash on Delivery"}</td>
+                  <th>Phone</th>
+                  <td>{selectedOrder?.shippingInfo?.phone}</td>
+                </tr>
+                <tr>
+                  <th>Deliver To</th>
+                  <td>
+                    {selectedOrder?.shippingInfo?.firstName}{" "}
+                    {selectedOrder?.shippingInfo?.lastName}
+                  </td>
+                  <th>Email</th>
+                  <td>{selectedOrder?.shippingInfo?.email}</td>
+                </tr>
+                <tr>
+                  <th>Deliver Address</th>
+                  <td colSpan="3">
+                    {selectedOrder?.shippingInfo?.address},{" "}
+                    {selectedOrder?.shippingInfo?.city},{" "}
+                    {selectedOrder?.shippingInfo?.postalCode}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Company</th>
+                  <td>HealthProo.com</td>
+                  <th>Company Address</th>
+                  <td>Topkhana Road, Shegunbagicha, Dhaka-1000.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Items Table */}
+            <h6 className="fw-bold mt-4 mb-2">Items</h6>
+            <table className="table table-bordered table-striped">
+              <thead className="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>Color</th>
+                  <th>Size</th>
+                  <th>Brand</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Item Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedOrder.products.map((p, idx) => (
+                  <tr key={idx}>
+                    <td className="text-center align-middle">{idx + 1}</td>
+
+                    {/* Product Name (2 lines, 25 chars each) */}
+                    <td>
+                      {(() => {
+                        const name = p.product?.name || "Deleted Product";
+                        const firstLine = name.slice(0, 25);
+                        const secondLine = name.length > 25 ? name.slice(25, 50) : "";
+                        const ellipsis = name.length > 50 ? "..." : "";
+                        return (
+                          <>
+                            {firstLine}<br />
+                            {secondLine}{ellipsis}
+                          </>
+                        );
+                      })()}
+                    </td>
+
+                    <td className="text-center align-middle">{p.color || "-"}</td>
+                    <td className="text-center align-middle">{p.size}</td>
+                    <td className="text-center align-middle">{p.brand}</td>
+                    <td className="text-center align-middle">{p.quantity}</td>
+
+                    <td className="text-center align-middle">
+                      {p.discountPrice && p.discountPrice < p.price ? (
+                        <span style={{ color: "red", fontWeight: "bold" }}>
+                          ৳{(p.discountPrice).toFixed(2)}
+                        </span>
+                      ) : (
+                        <>৳{(p.price * (p.quantity || 1)).toFixed(2)}</>
+                      )}
+                    </td>
+
+                    <td className="text-center align-middle">
+                      {p.discountPrice && p.discountPrice < p.price ? (
+                        <span style={{ color: "red", fontWeight: "bold" }}>
+                          ৳{(p.discountPrice * (p.quantity || 1)).toFixed(2)}
+                        </span>
+                      ) : (
+                        <>৳{(p.price * (p.quantity || 1)).toFixed(2)}</>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Totals & QR Code */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="my-3 d-flex justify-content-center">
+                <QRCodeCanvas
+                  value={JSON.stringify({
+                    orderId: selectedOrder._id,
+                    buyer: selectedOrder.shippingInfo?.firstName + " " + selectedOrder.shippingInfo?.lastName,
+                    total: selectedOrder.totalAmount,
+                    date: selectedOrder.createdAt,
+                  })}
+                  size={128}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+
+              <div className="d-flex flex-column align-items-end mt-3">
+                <div>
+                  <strong>Subtotal:</strong> ৳{(
+                    Number(selectedOrder.totalAmount) - Number(selectedOrder.shippingFee || 0)
+                  ).toFixed(2)}
+                </div>
+                <div>
+                  <strong>Shipping Fee:</strong> ৳{Number(selectedOrder.shippingFee || 0).toFixed(2)}
+                </div>
+                <div>
+                  <strong>Discount:</strong> -৳{Number(selectedOrder.discount || 0).toFixed(2)}
+                </div>
+                <div className="fs-5 fw-bold border-top pt-2">
+                  Total: ৳{Number(selectedOrder.totalAmount).toFixed(2)}
+                </div>
+                <div style={{ fontSize: '14px', fontStyle: 'italic', marginTop: '5px', fontWeight: 'bold' }}>
+                  In Words: {toWords(Number(selectedOrder.totalAmount))} Taka Only
+                </div>
+              </div>
+            </div>
+
+            {/* Message / Special Note */}
+            <div className="mt-4 p-3" style={{ border: "1px solid #000", borderRadius: "5px", lineHeight: "1.5" }}>
+              <p>Dear {selectedOrder?.shippingInfo?.firstName} {selectedOrder?.shippingInfo?.lastName},</p>
+              <p>Haven't got all your product yet? Don't worry!</p>
+              <p>Dear Customer, we will deliver your ordered product to your address soon Insha’Allah. Thank you for staying with us.</p>
+              <p><strong>Special Note:</strong> Please check your product carefully when receiving it. No complaints will be entertained after delivery. Thank you for your cooperation.</p>
+              <p>Sincerely,</p>
+              <p><strong>Your HealthProo.com</strong></p>
+
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
+                <div>Receiver's Signature ___________________</div>
+                <div>HealthProo.com</div>
+                <div>Date: {new Date().toLocaleDateString()}</div>
+              </div>
+            </div>
+
+          </div>
+          {/* Print Section End */}
+        </div>
+
+        {/* Footer */}
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
 
 
         </div>

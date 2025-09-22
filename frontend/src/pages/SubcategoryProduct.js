@@ -28,7 +28,8 @@ const SubcategoryProducts = () => {
         price: p.price,
         discountPrice:p.discountPrice,
         quantity: 1,
-        image: `${API}/api/v1/product/product-photo/${p._id}`,
+        // image: `${API}/api/v1/product/product-photo/${p._id}`,
+          image: p.photos?.[0]?.url
       };
       const updatedCart = [...existingCart, cartItem];
       setCart(updatedCart);

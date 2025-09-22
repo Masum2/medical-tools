@@ -8,7 +8,10 @@ import { v2 as cloudinary } from "cloudinary";
 
 
 
-// ------------------ CREATE PRODUCT ------------------
+
+
+
+
 export const createProductController = async (req, res) => {
   try {
     const {
@@ -26,12 +29,26 @@ export const createProductController = async (req, res) => {
       subcategories,
     } = req.body;
 
-    // ✅ Validation
-    if (!name || !price || !quantity || !(category || categories)) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, Price, Quantity, and Category are required",
-      });
+    // ✅ Individual Field Validation
+    if (!name?.trim()) {
+      return res.status(400).json({ success: false, message: "Name is required" });
+    }
+
+    if (price === undefined) {
+      return res.status(400).json({ success: false, message: "Price is required" });
+    }
+
+    if (quantity === undefined) {
+      return res.status(400).json({ success: false, message: "Quantity is required" });
+    }
+
+    let parsedCategories = [];
+    if (categories) {
+      parsedCategories = Array.isArray(categories) ? categories : JSON.parse(categories);
+    }
+
+    if (!category && parsedCategories.length === 0) {
+      return res.status(400).json({ success: false, message: "Category is required" });
     }
 
     // ✅ Upload photos to Cloudinary if files exist
@@ -43,14 +60,12 @@ export const createProductController = async (req, res) => {
             folder: "products",
           });
           fs.unlinkSync(file.path); // remove temp file
-          return {
-            url: result.secure_url,
-            public_id: result.public_id,
-          };
+          return { url: result.secure_url, public_id: result.public_id };
         })
       );
     }
 
+    // ✅ Create Product
     const product = new productModel({
       name,
       slug: slugify(name),
@@ -64,14 +79,10 @@ export const createProductController = async (req, res) => {
       shipping: shipping === "true" || shipping === true,
       category: category
         ? category
-        : Array.isArray(categories)
-        ? categories[0]
-        : JSON.parse(categories || "[]")[0],
+        : parsedCategories[0],
       categories: category
         ? [category]
-        : Array.isArray(categories)
-        ? categories
-        : JSON.parse(categories || "[]"),
+        : parsedCategories,
       subcategories: subcategories
         ? Array.isArray(subcategories)
           ? subcategories
@@ -96,6 +107,7 @@ export const createProductController = async (req, res) => {
     });
   }
 };
+
 
 // ------------------ GET ALL PRODUCTS ------------------
 export const getProductController = async (req, res) => {

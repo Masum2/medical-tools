@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+
+
 const orderSchema = new mongoose.Schema(
   {
     products: [
@@ -10,9 +12,13 @@ const orderSchema = new mongoose.Schema(
           required: true,
         },
         quantity: { type: Number, required: true },
-           brand: { type: String },   // ✅ যোগ করা হলো
-        color: { type: String },   // ✅ যোগ করা হলো
-        size: { type: String },    // ✅ যোগ করা হলো
+        brand: { type: String },
+        color: { type: String },
+        size: { type: String },
+
+        // 🟢 price fields যোগ করো
+        price: { type: Number, required: true },          // original price
+        discountPrice: { type: Number, default: 0 },      // discounted price
       },
     ],
     buyer: {
@@ -29,6 +35,8 @@ const orderSchema = new mongoose.Schema(
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       district: { type: String, required: true },
+      area: { type: String },
+      shippingFee: { type: Number, default: 0 },
     },
     paymentMethod: {
       type: String,
@@ -59,14 +67,10 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "processing", "shipped", "delivered"],
       default: "pending",
     },
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
-    shippingFee: {
-  type: Number,
-  default: 0,
-},
+    subTotal: { type: Number, required: true },
+    totalAmount: { type: Number, required: true },
+    shippingFee: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

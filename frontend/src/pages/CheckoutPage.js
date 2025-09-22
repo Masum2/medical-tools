@@ -42,7 +42,8 @@ const CheckoutPage = () => {
 
   // subtotal
   const subtotal = () =>
-    cart?.reduce((total, item) => total + item.discountPrice * (item.quantity || 1), 0) || 0;
+    cart?.reduce((total, item) => total + item.discountPrice
+ * (item.quantity || 1), 0) || 0;
 
   // shipping fee calculation
 // shipping fee calculation
@@ -107,6 +108,7 @@ const shippingFee =
     }
   };
 
+console.log("Cart in checkout page",cart)
   return (
     <Layout>
       <div className="container pt-3">
@@ -208,8 +210,7 @@ const shippingFee =
                     >
                       <option value="">Select Area</option>
                       <option value="Dhaka City">Dhaka City</option>
-                      <option value="Narayanganj">Narayanganj</option>
-                      <option value="Gazipur">Gazipur</option>
+                      <option value="Narayanganj">Dhaka Sub-area</option>
                     </select>
                   </div>
                 )}

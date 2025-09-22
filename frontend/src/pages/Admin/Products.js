@@ -5,12 +5,16 @@ import toast from "react-hot-toast";
 import { Link, NavLink } from "react-router-dom";
 import { TiEyeOutline } from "react-icons/ti";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { useAuth } from "../../context/auth";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+    const {auth} = useAuth();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [selectedProductId, setSelectedProductId] = useState(null);
   const API = process.env.REACT_APP_API;
 
   // get total count (for pagination)
@@ -113,7 +117,11 @@ const Products = () => {
                           <Link to={`/dashboard/admin/product/${p.slug}`} className="btn btn-sm btn-info me-2">
                             <TiEyeOutline />
                           </Link>
-                          <button className="btn btn-sm btn-danger">
+                          <button className="btn btn-sm btn-danger" onClick={() => {
+    setSelectedProductId(p._id); // store the product to delete
+    setShowDeleteModal(true);    // show modal
+  }}
+  type="button"  >
                             <RiDeleteBinLine />
                           </button>
                         </td>
@@ -123,7 +131,55 @@ const Products = () => {
                 </table>
               )}
             </div>
-
+{showDeleteModal && (
+  <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Confirm Delete</h5>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowDeleteModal(false)}
+          ></button>
+        </div>
+        <div className="modal-body">
+          Are you sure you want to delete this product?
+        </div>
+        <div className="modal-footer">
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+           type="button" // ✅ Add this
+            className="btn btn-danger"
+            onClick={async () => {
+              try {
+                await axios.delete(`${API}/api/v1/product/delete-product/${selectedProductId}`, {
+                  headers: { Authorization: auth?.token }
+                });
+                toast.success("Product deleted successfully");
+                getProducts(); // refresh list
+                getTotal();    // refresh total
+              } catch (error) {
+                console.error(error);
+                toast.error("Error deleting product");
+              } finally {
+                setShowDeleteModal(false); // close modal
+                setSelectedProductId(null);
+              }
+            }}
+          >
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
             {/* Pagination Controls */}
             <div className="d-flex justify-content-center mt-3">
               <button

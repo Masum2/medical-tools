@@ -41,7 +41,7 @@ const CartPage = () => {
     localStorage.setItem("cart", JSON.stringify(newCart));
     toast.success("Item removed from cart");
   };
-
+  console.log("cart",subtotal)
   return (
     <Layout>
       <div className="container py-4">

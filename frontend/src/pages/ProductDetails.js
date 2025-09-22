@@ -777,7 +777,8 @@ const handleReviewSubmit = async (e) => {
                   onClick={() => navigate(`/product/${p.slug}`)}
                 >
                   <img
-                    src={`${API}/api/v1/product/product-photo/${p._id}`}
+                    // src={`${API}/api/v1/product/product-photo/${p._id}`}
+                      src={p.photos?.[0]?.url}
                     alt={p.name}
                     style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
                   />
