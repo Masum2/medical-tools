@@ -11,6 +11,8 @@ import { Editor } from "@tinymce/tinymce-react";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useProduct } from "../../context/product";
 import ProductDescriptionEditor from "../../components/ProductDescriptionEditor";
+import { MdError } from "react-icons/md";
+
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -33,35 +35,38 @@ const CreateProduct = () => {
   const [size, setSize] = useState("");
   const [shipping, setShipping] = useState("");
   const [draggedIndex, setDraggedIndex] = useState(null);
-  
-  // Predefined values
-  
-  const brandOptions = ["Made In Bangladesh", "Made In India", "Made In China", "Made In American", "Made In Japan","No Brand"];
-const colorOptions = [
-  "Red", "Blue", "Green", "Black", "White", "Yellow", "Orange", "Pink", 
-  "Purple", "Brown", "Gray", "Silver", "Gold", "Navy Blue", "Sky Blue", 
-  "Maroon", "Olive", "Teal", "Beige", "Cream", "Peach", "Violet", 
-  "Turquoise", "Lavender", "Charcoal", "Magenta", "Cyan", "Lime", 
-  "Indigo", "Coral", "Salmon", "Chocolate", "Tan", "Mint", "Mustard", 
-  "Plum", "Ruby", "Sapphire", "Emerald", "Bronze", "Copper", "Ivory", 
-  "Khaki", "Rose", "Periwinkle", "Aquamarine", "Crimson", "Fuchsia", 
-  "Mauve", "Burgundy","Ash","Not Specified",
-"Multi-Color",
-"Any Colour",
-"Ramdom Colour"
-];
+  const [loading, setLoading] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
 
-const sizeOptions = [
-  "S", "M", "L", "XL", "XXL",
-   "Free Size", "One Size","Not Specified",
-  "36 X 29 X 9 Cm",
-  "38 X 30 X 10 Cm",
-  "40 X 32 X 11 Cm",
-  "42 X 34 X 12 Cm",
-  "44 X 36 X 13 Cm",
-  "46 X 38 X 14 Cm",
- 
-];
+  const [errorMessages, setErrorMessages] = useState([]); // Array to hold multiple errors
+  // Predefined values
+
+  const brandOptions = ["Made In Bangladesh", "Made In India", "Made In China", "Made In American", "Made In Japan", "No Brand"];
+  const colorOptions = [
+    "Red", "Blue", "Green", "Black", "White", "Yellow", "Orange", "Pink",
+    "Purple", "Brown", "Gray", "Silver", "Gold", "Navy Blue", "Sky Blue",
+    "Maroon", "Olive", "Teal", "Beige", "Cream", "Peach", "Violet",
+    "Turquoise", "Lavender", "Charcoal", "Magenta", "Cyan", "Lime",
+    "Indigo", "Coral", "Salmon", "Chocolate", "Tan", "Mint", "Mustard",
+    "Plum", "Ruby", "Sapphire", "Emerald", "Bronze", "Copper", "Ivory",
+    "Khaki", "Rose", "Periwinkle", "Aquamarine", "Crimson", "Fuchsia",
+    "Mauve", "Burgundy", "Ash", "Not Specified",
+    "Multi-Color",
+    "Any Colour",
+    "Ramdom Colour"
+  ];
+
+  const sizeOptions = [
+    "S", "M", "L", "XL", "XXL",
+    "Free Size", "One Size", "Not Specified",
+    "36 X 29 X 9 Cm",
+    "38 X 30 X 10 Cm",
+    "40 X 32 X 11 Cm",
+    "42 X 34 X 12 Cm",
+    "44 X 36 X 13 Cm",
+    "46 X 38 X 14 Cm",
+
+  ];
 
 
   // Load categories
@@ -124,17 +129,17 @@ const sizeOptions = [
   // Handle drop
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
-    
+
     if (draggedIndex === null || draggedIndex === targetIndex) return;
-    
+
     // Reorder photos array
     const updatedPhotos = [...photos];
     const [movedPhoto] = updatedPhotos.splice(draggedIndex, 1);
     updatedPhotos.splice(targetIndex, 0, movedPhoto);
-    
+
     setPhotos(updatedPhotos);
     setDraggedIndex(null);
-    
+
     // Remove dragging class from all elements
     document.querySelectorAll('.drag-item').forEach(el => {
       el.classList.remove('dragging');
@@ -165,10 +170,27 @@ const sizeOptions = [
   };
 
   const { refreshProducts } = useProduct();
-  
+
   // Create product
   const handleCreate = async () => {
     try {
+      setLoading(true);
+
+      // ✅ Frontend validations
+      const frontendErrors = [];
+      if (!name?.trim()) frontendErrors.push("Name is required");
+      if (!price) frontendErrors.push("Price is required");
+      if (!quantity) frontendErrors.push("Quantity is required");
+      if (selectedCategories.length === 0) frontendErrors.push("Category is required");
+
+      if (frontendErrors.length > 0) {
+        setErrorMessages(frontendErrors);
+        setErrorModalOpen(true);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Prepare FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
@@ -185,11 +207,11 @@ const sizeOptions = [
       if (selectedSubcategories.length > 0)
         formData.append("subcategories", JSON.stringify(selectedSubcategories));
 
-      // Append photos sequentially
       photos.forEach((photo) => {
         if (photo) formData.append("photos", photo);
       });
 
+      // ✅ API Request
       const { data } = await axios.post(
         `${API}/api/v1/product/create-product`,
         formData,
@@ -204,11 +226,17 @@ const sizeOptions = [
       if (data.success) {
         toast.success("✅ Product created");
         navigate("/dashboard/admin/products");
-        refreshProducts(); // HomePage context auto update
+        refreshProducts();
       }
     } catch (error) {
       console.log(error);
-      toast.error("Error creating product");
+
+      // ✅ Backend error handling
+      const backendMessage = error.response?.data?.message || "Something went wrong";
+      setErrorMessages([backendMessage]);
+      setErrorModalOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -225,7 +253,7 @@ const sizeOptions = [
           <div
             className="d-flex flex-wrap justify-content-center align-items-center px-3 py-2 text-white shadow-sm"
             style={{
-              background: "#001219", 
+              background: "#001219",
               position: "sticky",
               top: 0,
               overflowY: "auto",
@@ -237,7 +265,7 @@ const sizeOptions = [
                 fontSize: "18px",
                 margin: "6px 0 6px 20px",
                 textDecoration: 'none',
-                color: '#FFF', 
+                color: '#FFF',
                 backgroundColor: '#0d1b2a'
               }}
             >
@@ -424,8 +452,19 @@ const sizeOptions = [
                 <Option value="1">Yes</Option>
               </Select>
 
-              <button onClick={handleCreate} className="btn btn-primary">
-                Create Product
+              <button
+                onClick={handleCreate}
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span>
+                    <span className="spinner-border spinner-border-sm me-2"></span>
+                    Creating...
+                  </span>
+                ) : (
+                  "Create Product"
+                )}
               </button>
             </div>
 
@@ -463,7 +502,7 @@ const sizeOptions = [
           </div>
         </div>
       </div>
-      
+
       {/* Add some CSS for the drag and drop effect */}
       <style>
         {`
@@ -477,6 +516,52 @@ const sizeOptions = [
           }
         `}
       </style>
+      {errorModalOpen && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff",
+            padding: "20px 30px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            maxWidth: "400px",
+            width: "90%",
+            textAlign: "center",
+
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <h3 style={{ marginBottom: "10px", color: 'red', textAlign: 'center' }}><MdError /></h3>
+
+            </div>
+            <ul style={{ textAlign: "center", paddingLeft: "20px" }}>
+              {errorMessages.map((msg, idx) => (
+                <li key={idx}>{msg}</li>
+              ))}
+            </ul>
+            <button style={{
+              marginTop: "15px",
+              padding: "8px 16px",
+              backgroundColor: "#f44336",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }} onClick={() => setErrorModalOpen(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

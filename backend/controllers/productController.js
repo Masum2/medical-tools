@@ -102,7 +102,7 @@ export const createProductController = async (req, res) => {
     console.error(error);
     res.status(500).json({
       success: false,
-      message: "Error creating product",
+      message: "You Have already upload this product",
       error: error.message,
     });
   }

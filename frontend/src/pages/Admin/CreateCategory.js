@@ -22,14 +22,16 @@ const CreateCategory = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [auth] = useAuth();
-
+  const [loading, setLoading] = useState(false);
   const API = process.env.REACT_APP_API;
 
   // Fetch all categories
   const getAllCategory = async () => {
     try {
+      setLoading(true);
       const { data } = await axios.get(`${API}/api/v1/category/get-category`);
       if (data.success) setCategories(data.category);
+       setLoading(false)
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong in getting category");
@@ -38,6 +40,7 @@ const CreateCategory = () => {
 
   useEffect(() => {
     getAllCategory();
+   
   }, []);
 
   // Handle Add Category
@@ -198,6 +201,14 @@ const CreateCategory = () => {
               <div className="card-body">
                 <h4 className="card-title mb-4">All Categories</h4>
                 <div className="table-responsive">
+                                {loading ? (
+  <div className="d-flex justify-content-center align-items-center py-5">
+    <div className="spinner-border text-primary" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </div>
+    <span className="ms-2">Loading Category...</span>
+  </div>
+) : (
                   <table className="table table-hover align-middle">
                     <thead className="table-info">
                       <tr>
@@ -250,6 +261,7 @@ const CreateCategory = () => {
                       ))}
                     </tbody>
                   </table>
+)}
                 </div>
               </div>
             </div>

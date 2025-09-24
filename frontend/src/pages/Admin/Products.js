@@ -6,6 +6,7 @@ import { Link, NavLink } from "react-router-dom";
 import { TiEyeOutline } from "react-icons/ti";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { useAuth } from "../../context/auth";
+import { AiFillDelete } from "react-icons/ai"; // For delete icon
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -132,34 +133,32 @@ const [selectedProductId, setSelectedProductId] = useState(null);
               )}
             </div>
 {showDeleteModal && (
-  <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+  <div
+    className="modal fade show d-block"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+  >
     <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h5 className="modal-title">Confirm Delete</h5>
+      <div className="modal-content" style={{ textAlign: "center", padding: "30px" }}>
+        {/* Header */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px" }}>
+          <AiFillDelete size={40} color="#ff4d4f" />
+          <h2 style={{ fontWeight: "bold", marginTop: "10px" }}>Are you sure?</h2>
+          <p style={{ fontSize: "14px", color: "#555" }}>
+            Are you sure you want to delete this product? <br />
+            This action cannot be undone.
+          </p>
+        </div>
+
+        {/* Footer Buttons */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
           <button
             type="button"
-            className="btn-close"
-            onClick={() => setShowDeleteModal(false)}
-          ></button>
-        </div>
-        <div className="modal-body">
-          Are you sure you want to delete this product?
-        </div>
-        <div className="modal-footer">
-          <button
-            className="btn btn-secondary"
-            onClick={() => setShowDeleteModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-           type="button" // ✅ Add this
             className="btn btn-danger"
+            style={{ width: "100px" }}
             onClick={async () => {
               try {
                 await axios.delete(`${API}/api/v1/product/delete-product/${selectedProductId}`, {
-                  headers: { Authorization: auth?.token }
+                  headers: { Authorization: auth?.token },
                 });
                 toast.success("Product deleted successfully");
                 getProducts(); // refresh list
@@ -173,13 +172,29 @@ const [selectedProductId, setSelectedProductId] = useState(null);
               }
             }}
           >
-            Yes, Delete
+            Yes
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ width: "100px" }}
+            onClick={() => setShowDeleteModal(false)}
+          >
+            No
           </button>
         </div>
+
+        {/* Close button (top-right) */}
+        <button
+          type="button"
+          className="btn-close position-absolute top-0 end-0 m-3"
+          onClick={() => setShowDeleteModal(false)}
+        ></button>
       </div>
     </div>
   </div>
 )}
+
             {/* Pagination Controls */}
             <div className="d-flex justify-content-center mt-3">
               <button
