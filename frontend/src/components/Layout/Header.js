@@ -123,7 +123,7 @@ console.log("All categories in header",categories)
      <div className="d-flex align-items-center">
   <Link to="/" className="d-flex align-items-center">
     <img
-      src="/images/logo2.png"
+      src="/images/newlg.png"
       alt="Logo"
       style={{ width: isMobile ? "50px" : "80px", height: isMobile ? "50px" : "80px" }}
     />

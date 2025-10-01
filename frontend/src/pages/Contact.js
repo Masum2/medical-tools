@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "./../components/Layout/Layout";
-import { FaHome, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { FaHome, FaPhoneAlt, FaEnvelope, FaClock } from "react-icons/fa";
 
 const Contact = () => {
   return (
@@ -8,7 +8,7 @@ const Contact = () => {
       <div
         className="position-relative"
         style={{
-         backgroundImage: `url('/images/background.jpg')`, // <-- replace with your image path
+          backgroundImage: `url('/images/background.jpg')`, // replace with your background image
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -28,7 +28,13 @@ const Contact = () => {
               className="text-center text-white mx-auto"
               style={{ maxWidth: "700px" }}
             >
-             At HealthProo we bring you quality health tools, gym & massage equipment, and cosmetics to help you look, feel, and live your best.
+              At <span style={{ color: "#F59F27", fontWeight: "bold" }}>HealthProo </span> 
+              we bring you quality healthcare, fitness, and wellness products to help you 
+              live a healthier and more fulfilling life.  
+              <br />
+              <strong>We want to stay in touch with you.</strong> If you have any questions, suggestions, 
+              or product inquiries, please contact us. Healthproo.Com always strives to 
+              serve you quickly and sincerely.
             </p>
 
             <div className="row mt-5 g-5">
@@ -42,10 +48,8 @@ const Contact = () => {
                     <FaHome size={24} />
                   </div>
                   <div>
-                   <h5 className="fw-bold" style={{color:'#FFF'}}>Address</h5>
-                    <p className="mb-0">
-                      4671 Sugar Camp Road, Owatonna, Minnesota, 55060
-                    </p>
+                    <h5 className="fw-bold" style={{ color: "#FFF" }}>Our Address</h5>
+                    <p className="mb-0">Topkhana Road, Segunbagicha, Dhaka-1000</p>
                   </div>
                 </div>
 
@@ -57,8 +61,8 @@ const Contact = () => {
                     <FaPhoneAlt size={24} />
                   </div>
                   <div>
-                    <h5 className="fw-bold" style={{color:'#FFF'}}>Phone</h5>
-                    <p className="mb-0">571-457-2321</p>
+                    <h5 className="fw-bold" style={{ color: "#FFF" }}>Phone</h5>
+                    <p className="mb-0">+8801718-777229</p>
                   </div>
                 </div>
 
@@ -70,8 +74,22 @@ const Contact = () => {
                     <FaEnvelope size={24} />
                   </div>
                   <div>
-                    <h5 className="fw-bold" style={{color:'#FFF'}}>Email</h5>
-                    <p className="mb-0">ntamerrwael@mfano.ga</p>
+                    <h5 className="fw-bold" style={{ color: "#FFF" }}>Email</h5>
+                    <p className="mb-0">support@healthproo.com</p>
+                  </div>
+                </div>
+
+                <div className="d-flex align-items-start mb-4">
+                  <div
+                    className="bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style={{ width: "50px", height: "50px" }}
+                  >
+                    <FaClock size={24} />
+                  </div>
+                  <div>
+                    <h5 className="fw-bold" style={{ color: "#FFF" }}>Office Hours</h5>
+                    <p className="mb-0">Saturday – Thursday: 9:00 AM – 6:30 PM</p>
+                    <p className="mb-0">Friday: Closed</p>
                   </div>
                 </div>
               </div>
@@ -105,7 +123,10 @@ const Contact = () => {
                     <button
                       type="submit"
                       className="btn btn-info w-100 fw-bold text-white"
-                      style={{backgroundColor:'#F53711',border:'1px solid #F53711'}}
+                      style={{
+                        backgroundColor: "#F53711",
+                        border: "1px solid #F53711",
+                      }}
                     >
                       Send
                     </button>
@@ -115,7 +136,7 @@ const Contact = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> 
     </Layout>
   );
 };
