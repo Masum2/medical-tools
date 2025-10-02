@@ -29,7 +29,7 @@ const Contact = () => {
               style={{ maxWidth: "700px" }}
             >
               At <span style={{ color: "#F59F27", fontWeight: "bold" }}>HealthProo </span> 
-              we bring you quality healthcare, fitness, and wellness products to help you 
+              we bring you quality healthcare, fitness products to help you 
               live a healthier and more fulfilling life.  
               <br />
               <strong>We want to stay in touch with you.</strong> If you have any questions, suggestions, 

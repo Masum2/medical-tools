@@ -34,7 +34,7 @@ const Footer = () => {
                   color: "#ccc",
                 }}
               >
-                Healthproo.Com <br /> – Your Health, Our Priority.
+                Healthproo.Com <br /> Your Health, Our Priority.
               </span>
             </div>
 
