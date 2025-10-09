@@ -417,13 +417,13 @@ const AdminOrders = () => {
   {/* Left: Logo + Company Name */}
   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
     <img
-      src="/images/logo2.png"
+      src="/images/newlg.png"
       style={{ width: "50px", height: "50px" }}
       alt="logo"
     />
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", }}>
       <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px",color:'#000' }}>HealthProo</p>
-      <p style={{ margin: 0, fontSize: "12px",color:'#000' }}>A reliable path to a healthy life</p>
+      <p style={{ margin: 0, fontSize: "12px",color:'#000' }}>Your Health, Our Priority.</p>
     </div>
   </div>
 
