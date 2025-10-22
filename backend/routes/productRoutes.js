@@ -10,7 +10,8 @@ import {
  productSubcategoryController,
 
  relatedProductController,
- searchProductController
+ searchProductController,
+ 
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 import { getProductController } from "../controllers/productController.js";
@@ -79,5 +80,7 @@ router.get("/product-category/:slug", productCategoryController);
 
 // router.post("/create-order", requireSignIn, createOrderController);
 router.get("/subcategory/:subSlug", productSubcategoryController);
+// search product for update
+// ✅ Search Route
 
 export default router;

@@ -392,31 +392,31 @@ export const productListController = async (req, res) => {
 };
 
 // ------------------ SEARCH PRODUCT ------------------
-export const searchProductController = async (req, res) => {
-  try {
-    const { keyword } = req.params;
-    const results = await productModel
-      .find({
-        $or: [
-          { name: { $regex: keyword, $options: "i" } },
-          { description: { $regex: keyword, $options: "i" } },
-        ],
-      })
-      .select("-photo");
+// export const searchProductController = async (req, res) => {
+//   try {
+//     const { keyword } = req.params;
+//     const results = await productModel
+//       .find({
+//         $or: [
+//           { name: { $regex: keyword, $options: "i" } },
+//           { description: { $regex: keyword, $options: "i" } },
+//         ],
+//       })
+//       .select("-photo");
 
-    res.status(200).send({
-      success: true,
-      results,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).send({
-      success: false,
-      message: "Error searching products",
-      error,
-    });
-  }
-};
+//     res.status(200).send({
+//       success: true,
+//       results,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(400).send({
+//       success: false,
+//       message: "Error searching products",
+//       error,
+//     });
+//   }
+// };
 
 // ------------------ RELATED PRODUCTS ------------------
 export const relatedProductController = async (req, res) => {
@@ -492,6 +492,49 @@ export const productSubcategoryController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error fetching products by subcategory",
+      error: error.message,
+    });
+  }
+};
+// controllers/productController.js
+export const searchProductController = async (req, res) => {
+  try {
+    const { keyword } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = {
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { description: { $regex: keyword, $options: "i" } },
+        { brand: { $regex: keyword, $options: "i" } },
+        { color: { $regex: keyword, $options: "i" } },
+        { size: { $regex: keyword, $options: "i" } },
+      ],
+    };
+
+    const total = await productModel.countDocuments(query);
+
+    const products = await productModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .select("-reviews -__v"); // Optional: heavy fields remove
+
+    res.status(200).json({
+      success: true,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      products,
+    });
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while searching products",
       error: error.message,
     });
   }

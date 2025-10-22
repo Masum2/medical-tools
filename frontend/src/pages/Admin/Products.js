@@ -10,59 +10,108 @@ import { AiFillDelete } from "react-icons/ai";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  console.log("page",page)
   const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { auth } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
+  const { auth } = useAuth();
   const API = process.env.REACT_APP_API;
+  const ITEMS_PER_PAGE = 8; // pagination এ ৮টা প্রতি পেজ
 
+  // ----------------------------
+  // Fetch total product count
+  // ----------------------------
   const getTotal = async () => {
     try {
       const { data } = await axios.get(`${API}/api/v1/product/product-count`);
-      setTotal(data.total);
+      setTotal(data.total || 0);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
+  // ----------------------------
+  // Fetch products per page
+  // ----------------------------
   const getProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/api/v1/product/product-list/${page}`);
-      setProducts(data.products);
-      setAllProducts(data.products);
+      const { data } = await axios.get(
+        `${API}/api/v1/product/product-list/${page}`
+      );
+      setProducts(data?.products || []);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("Something went wrong");
       setLoading(false);
     }
   };
 
+  // ----------------------------
+  // Search products via API
+  // ----------------------------
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      let url = "";
+      if (searchTerm.trim() === "") {
+        url = `${API}/api/v1/product/product-list/${page}`;
+      } else {
+        url = `${API}/api/v1/product/search/${searchTerm}?page=${page}&limit=8`;
+      }
+
+      const { data } = await axios.get(url);
+      setProducts(data.products || []);
+      setTotal(data.total || 0);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching products");
+      setLoading(false);
+    }
+  };
+
+  fetchProducts();
+}, [page, searchTerm]);
+  // ----------------------------
+  // Initial load
+  // ----------------------------
   useEffect(() => {
     getTotal();
+    getProducts();
   }, []);
 
-  useEffect(() => {
-    getProducts();
-  }, [page]);
-
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setProducts(allProducts);
-    } else {
-      const filtered = allProducts.filter((p) =>
-        p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // ----------------------------
+  // Delete product
+  // ----------------------------
+  const handleDelete = async () => {
+    try {
+      await axios.delete(
+        `${API}/api/v1/product/delete-product/${selectedProductId}`,
+        {
+          headers: { Authorization: auth?.token },
+        }
       );
-      setProducts(filtered);
+      toast.success("Product deleted successfully");
+      setShowDeleteModal(false);
+      setSelectedProductId(null);
+      getProducts();
+      getTotal();
+    } catch (error) {
+      console.error(error);
+      toast.error("Error deleting product");
+      setShowDeleteModal(false);
+      setSelectedProductId(null);
     }
-  }, [searchTerm, allProducts]);
+  };
 
+  // ----------------------------
+  // Render
+  // ----------------------------
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">
@@ -100,59 +149,57 @@ const Products = () => {
           </div>
 
           {/* Search Section */}
-       {/* Search Section */}
-<div
-  style={{
-    backgroundColor: "#0d1b2a",
-    color: "white",
-    textAlign: "center",
-    padding: "10px 10px",
-    borderBottom: "3px solid #1b263b",
-  }}
->
-  <h3 style={{ fontWeight: "600", letterSpacing: "0.5px" }}>
-    🔍 Search Products
-  </h3>
+          <div
+            style={{
+              backgroundColor: "#0d1b2a",
+              color: "white",
+              textAlign: "center",
+              padding: "10px 10px",
+              borderBottom: "3px solid #1b263b",
+            }}
+          >
+            <h3 style={{ fontWeight: "600", letterSpacing: "0.5px" }}>
+              🔍 Search Products
+            </h3>
 
-  <div
-    className="d-flex justify-content-center align-items-center mt-3 gap-2"
-    style={{ width: "100%" }}
-  >
-    <input
-      type="text"
-      placeholder="Type product name here..."
-      className="form-control"
-      style={{
-        maxWidth: "400px",
-        borderRadius: "30px",
-        padding: "10px 20px",
-        textAlign: "center",
-        border: "1px solid #ccc",
-        flex: "1",
-      }}
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-    />
+            <div
+              className="d-flex justify-content-center align-items-center mt-3 gap-2"
+              style={{ width: "100%" }}
+            >
+              <input
+                type="text"
+                placeholder="Type product name here..."
+                className="form-control"
+                style={{
+                  maxWidth: "400px",
+                  borderRadius: "30px",
+                  padding: "10px 20px",
+                  textAlign: "center",
+                  border: "1px solid #ccc",
+                  flex: "1",
+                }}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
 
-    {/* Reset Button */}
-    {searchTerm && (
-      <button
-        className="btn btn-outline-light"
-        style={{
-          borderRadius: "30px",
-          padding: "8px 16px",
-          fontWeight: "500",
-          transition: "0.3s",
-          whiteSpace: "nowrap",
-        }}
-        onClick={() => setSearchTerm("")}
-      >
-        Reset
-      </button>
-    )}
-  </div>
-</div>
-
+              {/* Reset Button */}
+              {searchTerm && (
+                <button
+                  className="btn btn-outline-light"
+                  style={{
+                    borderRadius: "30px",
+                    padding: "8px 16px",
+                    fontWeight: "500",
+                    transition: "0.3s",
+                    whiteSpace: "nowrap",
+                  }}
+                  onClick={() => setSearchTerm("")}
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* Product Table */}
           <div style={{ padding: "20px" }}>
@@ -166,7 +213,7 @@ const Products = () => {
                     <span className="visually-hidden">Loading...</span>
                   </div>
                 </div>
-              ) : products.length === 0 ? (
+              ) : !products || products.length === 0 ? (
                 <div className="text-center text-muted py-4">
                   No products found
                 </div>
@@ -189,8 +236,10 @@ const Products = () => {
                   <tbody className="text-center">
                     {products.map((p, index) => (
                       <tr key={p._id}>
-                        <td>{(page - 1) * 8 + index + 1}</td>
-                        <td>{`HP-${1000 + (page - 1) * 8 + index + 1}`}</td>
+                        <td>{(page - 1) * ITEMS_PER_PAGE + index + 1}</td>
+                        <td>{`HP-${
+                          1000 + (page - 1) * ITEMS_PER_PAGE + index + 1
+                        }`}</td>
                         <td>{p.name?.substring(0, 20)}</td>
                         <td>
                           <img
@@ -275,25 +324,7 @@ const Products = () => {
                         type="button"
                         className="btn btn-danger"
                         style={{ width: "100px" }}
-                        onClick={async () => {
-                          try {
-                            await axios.delete(
-                              `${API}/api/v1/product/delete-product/${selectedProductId}`,
-                              {
-                                headers: { Authorization: auth?.token },
-                              }
-                            );
-                            toast.success("Product deleted successfully");
-                            getProducts();
-                            getTotal();
-                          } catch (error) {
-                            console.error(error);
-                            toast.error("Error deleting product");
-                          } finally {
-                            setShowDeleteModal(false);
-                            setSelectedProductId(null);
-                          }
-                        }}
+                        onClick={handleDelete}
                       >
                         Yes
                       </button>
@@ -327,11 +358,11 @@ const Products = () => {
                 Prev
               </button>
               <span className="align-self-center">
-                Page {page} of {Math.ceil(total / 8)}
+                Page {page} of {Math.ceil(total / ITEMS_PER_PAGE)}
               </span>
               <button
                 className="btn btn-secondary ms-2"
-                disabled={page >= Math.ceil(total / 8)}
+                disabled={page >= Math.ceil(total / ITEMS_PER_PAGE)}
                 onClick={() => setPage(page + 1)}
               >
                 Next

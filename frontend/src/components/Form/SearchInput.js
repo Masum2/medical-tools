@@ -8,20 +8,21 @@ const SearchInput = () => {
   const navigate = useNavigate();
   const API = process.env.REACT_APP_API;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const { data } = await axios.get(
-        `${API}/api/v1/product/search/${values.keyword}`
-      );
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const { data } = await axios.get(
+      `${API}/api/v1/product/search/${values.keyword}?page=1&limit=100`
+    );
 
-      // ✅ API returns { results: [...] } so save the array
-      setValues({ ...values, results: data.results });
-      navigate("/search");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    // ✅ data.products contains the results
+    setValues({ ...values, results: data.products });
+    navigate("/search");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 
   return (
     <form
