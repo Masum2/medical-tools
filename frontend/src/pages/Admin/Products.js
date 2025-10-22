@@ -6,19 +6,21 @@ import { Link, NavLink } from "react-router-dom";
 import { TiEyeOutline } from "react-icons/ti";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { useAuth } from "../../context/auth";
-import { AiFillDelete } from "react-icons/ai"; // For delete icon
+import { AiFillDelete } from "react-icons/ai";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  console.log("page",page)
   const [total, setTotal] = useState(0);
-    const {auth} = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const { auth } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [selectedProductId, setSelectedProductId] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const API = process.env.REACT_APP_API;
 
-  // get total count (for pagination)
   const getTotal = async () => {
     try {
       const { data } = await axios.get(`${API}/api/v1/product/product-count`);
@@ -28,12 +30,12 @@ const [selectedProductId, setSelectedProductId] = useState(null);
     }
   };
 
-  // get products by page
   const getProducts = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`${API}/api/v1/product/product-list/${page}`);
       setProducts(data.products);
+      setAllProducts(data.products);
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -50,33 +52,123 @@ const [selectedProductId, setSelectedProductId] = useState(null);
     getProducts();
   }, [page]);
 
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setProducts(allProducts);
+    } else {
+      const filtered = allProducts.filter((p) =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setProducts(filtered);
+    }
+  }, [searchTerm, allProducts]);
+
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">
         {/* Sidebar */}
-        <div className="col-12 col-md-3 col-lg-2 p-0 border-end" style={{ minHeight: "100vh" }}>
+        <div
+          className="col-12 col-md-3 col-lg-2 p-0 border-end"
+          style={{ minHeight: "100vh" }}
+        >
           <AdminMenu />
         </div>
 
         {/* Main Content */}
-        <div className="col-12 col-md-9 col-lg-10 d-flex flex-column" style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}>
-          
+        <div
+          className="col-12 col-md-9 col-lg-10 d-flex flex-column"
+          style={{ backgroundColor: "#f4f5f7", minHeight: "100vh" }}
+        >
           {/* Top Header */}
-          <div className="d-flex justify-content-between align-items-center px-3 py-2 text-white shadow-sm"
-            style={{ background: "#001219", position: "sticky", top: 0 }}>
-            <NavLink to="/" style={{ fontSize: "18px", textDecoration: 'none', color: '#FFF', backgroundColor: '#0d1b2a', padding: "6px 12px", borderRadius: "4px" }}>
+          <div
+            className="d-flex justify-content-between align-items-center px-3 py-2 text-white shadow-sm"
+            style={{ background: "#001219", position: "sticky", top: 0 }}
+          >
+            <NavLink
+              to="/"
+              style={{
+                fontSize: "18px",
+                textDecoration: "none",
+                color: "#FFF",
+                backgroundColor: "#0d1b2a",
+                padding: "6px 12px",
+                borderRadius: "4px",
+              }}
+            >
               All Product
             </NavLink>
           </div>
 
+          {/* Search Section */}
+       {/* Search Section */}
+<div
+  style={{
+    backgroundColor: "#0d1b2a",
+    color: "white",
+    textAlign: "center",
+    padding: "10px 10px",
+    borderBottom: "3px solid #1b263b",
+  }}
+>
+  <h3 style={{ fontWeight: "600", letterSpacing: "0.5px" }}>
+    🔍 Search Products
+  </h3>
+
+  <div
+    className="d-flex justify-content-center align-items-center mt-3 gap-2"
+    style={{ width: "100%" }}
+  >
+    <input
+      type="text"
+      placeholder="Type product name here..."
+      className="form-control"
+      style={{
+        maxWidth: "400px",
+        borderRadius: "30px",
+        padding: "10px 20px",
+        textAlign: "center",
+        border: "1px solid #ccc",
+        flex: "1",
+      }}
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+
+    {/* Reset Button */}
+    {searchTerm && (
+      <button
+        className="btn btn-outline-light"
+        style={{
+          borderRadius: "30px",
+          padding: "8px 16px",
+          fontWeight: "500",
+          transition: "0.3s",
+          whiteSpace: "nowrap",
+        }}
+        onClick={() => setSearchTerm("")}
+      >
+        Reset
+      </button>
+    )}
+  </div>
+</div>
+
+
           {/* Product Table */}
-          <div style={{ padding: '20px' }}>
+          <div style={{ padding: "20px" }}>
             <div className="table-responsive">
               {loading ? (
-                <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{ height: "200px" }}
+                >
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center text-muted py-4">
+                  No products found
                 </div>
               ) : (
                 <table className="table table-bordered table-hover align-middle">
@@ -95,17 +187,20 @@ const [selectedProductId, setSelectedProductId] = useState(null);
                     </tr>
                   </thead>
                   <tbody className="text-center">
-                    {products?.map((p, index) => (
+                    {products.map((p, index) => (
                       <tr key={p._id}>
                         <td>{(page - 1) * 8 + index + 1}</td>
-                        <td>{`HP-${1000 + ((page - 1) * 8 + index + 1)}`}</td>
+                        <td>{`HP-${1000 + (page - 1) * 8 + index + 1}`}</td>
                         <td>{p.name?.substring(0, 20)}</td>
                         <td>
                           <img
-                            // src={`${API}/api/v1/product/product-photo/${p._id}?index=0`}
                             src={p.photos?.[0]?.url}
                             alt={p.name}
-                            style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                            }}
                             className="rounded"
                           />
                         </td>
@@ -115,14 +210,20 @@ const [selectedProductId, setSelectedProductId] = useState(null);
                         <td>{p.quantity}</td>
                         <td>{p.price}</td>
                         <td>
-                          <Link to={`/dashboard/admin/product/${p.slug}`} className="btn btn-sm btn-info me-2">
+                          <Link
+                            to={`/dashboard/admin/product/${p.slug}`}
+                            className="btn btn-sm btn-info me-2"
+                          >
                             <TiEyeOutline />
                           </Link>
-                          <button className="btn btn-sm btn-danger" onClick={() => {
-    setSelectedProductId(p._id); // store the product to delete
-    setShowDeleteModal(true);    // show modal
-  }}
-  type="button"  >
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => {
+                              setSelectedProductId(p._id);
+                              setShowDeleteModal(true);
+                            }}
+                            type="button"
+                          >
                             <RiDeleteBinLine />
                           </button>
                         </td>
@@ -132,68 +233,89 @@ const [selectedProductId, setSelectedProductId] = useState(null);
                 </table>
               )}
             </div>
-{showDeleteModal && (
-  <div
-    className="modal fade show d-block"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content" style={{ textAlign: "center", padding: "30px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px" }}>
-          <AiFillDelete size={40} color="#ff4d4f" />
-          <h2 style={{ fontWeight: "bold", marginTop: "10px" }}>Are you sure?</h2>
-          <p style={{ fontSize: "14px", color: "#555" }}>
-            Are you sure you want to delete this product? <br />
-            This action cannot be undone.
-          </p>
-        </div>
 
-        {/* Footer Buttons */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
-          <button
-            type="button"
-            className="btn btn-danger"
-            style={{ width: "100px" }}
-            onClick={async () => {
-              try {
-                await axios.delete(`${API}/api/v1/product/delete-product/${selectedProductId}`, {
-                  headers: { Authorization: auth?.token },
-                });
-                toast.success("Product deleted successfully");
-                getProducts(); // refresh list
-                getTotal();    // refresh total
-              } catch (error) {
-                console.error(error);
-                toast.error("Error deleting product");
-              } finally {
-                setShowDeleteModal(false); // close modal
-                setSelectedProductId(null);
-              }
-            }}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ width: "100px" }}
-            onClick={() => setShowDeleteModal(false)}
-          >
-            No
-          </button>
-        </div>
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+              <div
+                className="modal fade show d-block"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+              >
+                <div className="modal-dialog modal-dialog-centered">
+                  <div
+                    className="modal-content"
+                    style={{ textAlign: "center", padding: "30px" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <AiFillDelete size={40} color="#ff4d4f" />
+                      <h2 style={{ fontWeight: "bold", marginTop: "10px" }}>
+                        Are you sure?
+                      </h2>
+                      <p style={{ fontSize: "14px", color: "#555" }}>
+                        Are you sure you want to delete this product? <br />
+                        This action cannot be undone.
+                      </p>
+                    </div>
 
-        {/* Close button (top-right) */}
-        <button
-          type="button"
-          className="btn-close position-absolute top-0 end-0 m-3"
-          onClick={() => setShowDeleteModal(false)}
-        ></button>
-      </div>
-    </div>
-  </div>
-)}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: "20px",
+                        marginTop: "20px",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ width: "100px" }}
+                        onClick={async () => {
+                          try {
+                            await axios.delete(
+                              `${API}/api/v1/product/delete-product/${selectedProductId}`,
+                              {
+                                headers: { Authorization: auth?.token },
+                              }
+                            );
+                            toast.success("Product deleted successfully");
+                            getProducts();
+                            getTotal();
+                          } catch (error) {
+                            console.error(error);
+                            toast.error("Error deleting product");
+                          } finally {
+                            setShowDeleteModal(false);
+                            setSelectedProductId(null);
+                          }
+                        }}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ width: "100px" }}
+                        onClick={() => setShowDeleteModal(false)}
+                      >
+                        No
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-close position-absolute top-0 end-0 m-3"
+                      onClick={() => setShowDeleteModal(false)}
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Pagination Controls */}
             <div className="d-flex justify-content-center mt-3">
@@ -204,7 +326,9 @@ const [selectedProductId, setSelectedProductId] = useState(null);
               >
                 Prev
               </button>
-              <span className="align-self-center">Page {page} of {Math.ceil(total / 8)}</span>
+              <span className="align-self-center">
+                Page {page} of {Math.ceil(total / 8)}
+              </span>
               <button
                 className="btn btn-secondary ms-2"
                 disabled={page >= Math.ceil(total / 8)}

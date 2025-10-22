@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Layout from "../components/Layout/Layout";
 import { useCart } from "../context/cart";
 import { useProduct } from "../context/product";
@@ -14,7 +14,19 @@ const Shop = () => {
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
   const { products, loadCategories, setProducts, total, setTotal } = useProduct();
+const [isHovered, setIsHovered] = useState(false);
+const controls = useAnimation();
 
+useEffect(() => {
+  if (isHovered) {
+    controls.stop();
+  } else {
+    controls.start({
+      x: ["0%", "-100%"],
+      transition: { repeat: Infinity, ease: "linear", duration: 50 }, // slower scroll (was 25)
+    });
+  }
+}, [isHovered, controls]);
   const [page, setPage] = useState(1);
   const limit = 10;
   const [loading, setLoading] = useState(false);
@@ -86,9 +98,14 @@ const loadMore = async () => {
 
   // slider images
   const images = [
-    "https://www.shutterstock.com/image-photo/elegant-health-fitness-product-showcase-260nw-2664388867.jpg",
-    "/images/slider4.jpeg",
-    "/images/slider3.jpg",
+    // "https://www.shutterstock.com/image-photo/elegant-health-fitness-product-showcase-260nw-2664388867.jpg",
+    // "/images/slider4.jpeg",
+    "/images/slider1.webp",
+    // "/images/slider3.jpg",
+    "/images/slidern.jpg",
+    
+    "/images/slider.webp",
+    
   ];
   const [currentIndex, setCurrentIndex] = useState(0);
   useEffect(() => {
@@ -142,37 +159,38 @@ const loadMore = async () => {
         </section>
 
         {/* Product Categories */}
-        <div className=" my-3 overflow-hidden">
-          <h2 className="text-center mb-4 fw-bold">Shop by Category</h2>
-          <motion.div
-            className="d-flex"
-            animate={{ x: ["0%", "-100%"] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 25 }}
-            style={{ width: "max-content" }}
-          >
-            {[...categories, ...categories]?.map((c, idx) => (
-              <div
-                className="px-2"
-                style={{ width: "250px", flexShrink: 0 }}
-                key={c._id + "-" + idx}
-              >
-                <Link className="dropdown-item" to={`/category/${c.slug}`}>
-                  <div className="d-flex flex-column align-items-center rounded shadow-sm h-100 text-center">
-                    <div className="card-hover position-relative">
-                      <div className="category-tag-small">{c.name}</div>
-                      <img
-                        src={`${API}/api/v1/category/category-photo/${c._id}`}
-                          //  src={c.photos?.[0]?.url}
-                        alt={c.name}
-                        className="img-fluid rounded"
-                      />
-                    </div>
-                  </div>
-                </Link>
+     <div className="my-3 overflow-hidden">
+    <h2 className="text-center mb-4 fw-bold">Shop by Category</h2>
+
+    <motion.div
+      className="d-flex"
+      animate={controls}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ width: "max-content", cursor: "grab" }}
+    >
+      {[...categories, ...categories]?.map((c, idx) => (
+        <div
+          className="px-2"
+          style={{ width: "250px", flexShrink: 0 }}
+          key={c._id + "-" + idx}
+        >
+          <Link className="dropdown-item" to={`/category/${c.slug}`}>
+            <div className="d-flex flex-column align-items-center rounded shadow-sm h-100 text-center">
+              <div className="card-hover position-relative">
+                <div className="category-tag-small">{c.name}</div>
+                <img
+                  src={`${API}/api/v1/category/category-photo/${c._id}`}
+                  alt={c.name}
+                  className="img-fluid rounded"
+                />
               </div>
-            ))}
-          </motion.div>
+            </div>
+          </Link>
         </div>
+      ))}
+    </motion.div>
+  </div>
 
         {/* All Products */}
         <div className=" mx-5 my-5">

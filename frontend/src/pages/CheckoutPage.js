@@ -47,7 +47,16 @@ const CheckoutPage = () => {
 
   // shipping fee calculation
 // shipping fee calculation
-const shippingFee =
+// const shippingFee =
+//   formData.district === "Dhaka"
+//     ? formData.area === "Dhaka City"
+//       ? 70
+//       : 140
+//     : formData.district
+//     ? 140
+//     : 0;
+// shipping fee calculation
+const baseShippingFee =
   formData.district === "Dhaka"
     ? formData.area === "Dhaka City"
       ? 70
@@ -56,6 +65,8 @@ const shippingFee =
     ? 140
     : 0;
 
+// if user already paid shipping, make it 0
+const shippingFee = formData.shippingPaid ? 0 : baseShippingFee;
   // handle form change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -264,10 +275,60 @@ console.log("Cart in checkout page",cart)
                   ৳{subtotal().toFixed(2)}
                 </span>
               </div>
-              <div className="d-flex justify-content-between my-2">
-                <span style={{ fontSize: "14px" }}>Shipping Fee</span>
-                <span style={{ fontSize: "14px" }}>৳{shippingFee}</span>
-              </div>
+            {/* Shipping Fee */}
+<div className="d-flex justify-content-between my-2">
+  <span style={{ fontSize: "14px" }}>Shipping Fee</span>
+  <span style={{ fontSize: "14px" }}>৳{shippingFee}</span>
+</div>
+
+{/* Already Paid Shipping Option */}
+{/* Already Paid Shipping Option */}
+<div
+  className={`mt-3 p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between ${
+    formData.shippingPaid ? "border border-success bg-light" : "border border-0"
+  }`}
+  style={{
+    cursor: "pointer",
+    transition: "all 0.2s ease-in-out",
+  }}
+  onClick={() =>
+    setFormData({
+      ...formData,
+      shippingPaid: !formData.shippingPaid,
+    })
+  }
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f8f9fa")}
+  onMouseLeave={(e) =>
+    (e.currentTarget.style.backgroundColor = formData.shippingPaid
+      ? "#f8f9fa"
+      : "#fff")
+  }
+>
+  <div className="d-flex align-items-center gap-2">
+    <div
+      className={`rounded-circle d-flex align-items-center justify-content-center ${
+        formData.shippingPaid ? "bg-success text-white" : "border border-secondary"
+      }`}
+      style={{
+        width: "22px",
+        height: "22px",
+        fontSize: "14px",
+        transition: "all 0.2s ease-in-out",
+      }}
+    >
+      {formData.shippingPaid && <i className="bi bi-check-lg"></i>}
+    </div>
+    <label
+      htmlFor="paidShipping"
+      className="form-check-label fw-semibold mb-0"
+      style={{ fontSize: "14px", cursor: "pointer" }}
+    >
+      I have already paid the shipping fee
+    </label>
+  </div>
+</div>
+
+
               <hr />
               <div className="d-flex justify-content-between fw-bold my-2">
                 <span>Total</span>
