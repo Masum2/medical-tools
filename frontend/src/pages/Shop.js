@@ -213,7 +213,7 @@ const loadMore = async () => {
             {products.map((p) => (
               <div key={p._id} className="product-card">
                 <div className="card h-100 shadow-sm border-0 rounded-lg hover:shadow-md transition-all">
-                  <div
+                  {/* <div
                     className="d-flex justify-content-center align-items-center p-3"
                     style={{ cursor: "pointer" }}
                     onClick={() => navigate(`/product/${p.slug}`)}
@@ -226,7 +226,23 @@ const loadMore = async () => {
                       style={{ maxHeight: "160px", objectFit: "contain" }}
                       loading="lazy"
                     />
-                  </div>
+                  </div> */}
+<a
+  href={`/product/${p.slug}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="d-flex justify-content-center align-items-center p-3 text-decoration-none"
+  style={{ cursor: "pointer" }}
+>
+  <img
+    src={p.photos?.[0]?.url}
+    alt={p.name}
+    className="img-fluid"
+    style={{ maxHeight: "160px", objectFit: "contain" }}
+    loading="lazy"
+  />
+</a>
+                  
                   <div className="card-body d-flex flex-column">
                     <p className="fw-bold mb-2" style={{ fontSize: "14px" }}>
                       {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}

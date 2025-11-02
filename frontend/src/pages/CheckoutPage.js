@@ -25,7 +25,7 @@ const CheckoutPage = () => {
 
   const API = process.env.REACT_APP_API;
 
-  // Form State
+  // Form Data
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -37,47 +37,47 @@ const CheckoutPage = () => {
     district: "",
     area: "",
     paymentMethod: "",
-
+    shippingPaid: false,
+    pricePaid: false,
   });
 
-  // subtotal
-  const subtotal = () =>
-    cart?.reduce((total, item) => total + item.discountPrice
- * (item.quantity || 1), 0) || 0;
+  // Subtotal
+  const baseSubtotal =
+    cart?.reduce(
+      (total, item) => total + item.discountPrice * (item.quantity || 1),
+      0
+    ) || 0;
 
-  // shipping fee calculation
-// shipping fee calculation
-// const shippingFee =
-//   formData.district === "Dhaka"
-//     ? formData.area === "Dhaka City"
-//       ? 70
-//       : 140
-//     : formData.district
-//     ? 140
-//     : 0;
-// shipping fee calculation
-const baseShippingFee =
-  formData.district === "Dhaka"
-    ? formData.area === "Dhaka City"
-      ? 70
-      : 140
-    : formData.district
-    ? 140
-    : 0;
+  const subtotal = formData.pricePaid ? 0 : baseSubtotal;
 
-// if user already paid shipping, make it 0
-const shippingFee = formData.shippingPaid ? 0 : baseShippingFee;
-  // handle form change
+  // Shipping fee
+  const baseShippingFee =
+    formData.district === "Dhaka"
+      ? formData.area === "Dhaka City"
+        ? 70
+        : 140
+      : formData.district
+      ? 140
+      : 0;
+
+  const shippingFee = formData.shippingPaid ? 0 : baseShippingFee;
+
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // handle order
+  // ✅ Handle order submission
   const handleOrder = async (paymentMethod) => {
     try {
       const formDataToSend = new FormData();
 
-      formDataToSend.append("cart", JSON.stringify(cart));
+      // ✅ Adjust cart if product price is already paid
+      const updatedCart = formData.pricePaid
+        ? cart.map((item) => ({ ...item, discountPrice: 0 }))
+        : cart;
+
+      formDataToSend.append("cart", JSON.stringify(updatedCart));
       formDataToSend.append("firstName", formData.firstName);
       formDataToSend.append("lastName", formData.lastName);
       formDataToSend.append("email", formData.email);
@@ -119,7 +119,6 @@ const shippingFee = formData.shippingPaid ? 0 : baseShippingFee;
     }
   };
 
-console.log("Cart in checkout page",cart)
   return (
     <Layout>
       <div className="container pt-3">
@@ -188,7 +187,6 @@ console.log("Cart in checkout page",cart)
               </div>
 
               <div className="row">
-                {/* District */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">District</label>
                   <select
@@ -209,7 +207,6 @@ console.log("Cart in checkout page",cart)
                   </select>
                 </div>
 
-                {/* Area under Dhaka */}
                 {formData.district === "Dhaka" && (
                   <div className="col-md-4 mb-3">
                     <label className="form-label">Area</label>
@@ -226,7 +223,6 @@ console.log("Cart in checkout page",cart)
                   </div>
                 )}
 
-                {/* City (Upazila/Thana) */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Upozila/Thana</label>
                   <input
@@ -239,7 +235,6 @@ console.log("Cart in checkout page",cart)
                   />
                 </div>
 
-                {/* Postal Code */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Postal Code</label>
                   <input
@@ -271,71 +266,106 @@ console.log("Cart in checkout page",cart)
                 <span style={{ fontSize: "14px" }}>
                   Subtotal ({cart.length} items)
                 </span>
-                <span style={{ fontSize: "14px" }}>
-                  ৳{subtotal().toFixed(2)}
-                </span>
+                <span style={{ fontSize: "14px" }}>৳{subtotal.toFixed(2)}</span>
               </div>
-            {/* Shipping Fee */}
-<div className="d-flex justify-content-between my-2">
-  <span style={{ fontSize: "14px" }}>Shipping Fee</span>
-  <span style={{ fontSize: "14px" }}>৳{shippingFee}</span>
-</div>
 
-{/* Already Paid Shipping Option */}
-{/* Already Paid Shipping Option */}
-<div
-  className={`mt-3 p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between ${
-    formData.shippingPaid ? "border border-success bg-light" : "border border-0"
-  }`}
-  style={{
-    cursor: "pointer",
-    transition: "all 0.2s ease-in-out",
-  }}
-  onClick={() =>
-    setFormData({
-      ...formData,
-      shippingPaid: !formData.shippingPaid,
-    })
-  }
-  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f8f9fa")}
-  onMouseLeave={(e) =>
-    (e.currentTarget.style.backgroundColor = formData.shippingPaid
-      ? "#f8f9fa"
-      : "#fff")
-  }
->
-  <div className="d-flex align-items-center gap-2">
-    <div
-      className={`rounded-circle d-flex align-items-center justify-content-center ${
-        formData.shippingPaid ? "bg-success text-white" : "border border-secondary"
-      }`}
-      style={{
-        width: "22px",
-        height: "22px",
-        fontSize: "14px",
-        transition: "all 0.2s ease-in-out",
-      }}
-    >
-      {formData.shippingPaid && <i className="bi bi-check-lg"></i>}
-    </div>
-    <label
-      htmlFor="paidShipping"
-      className="form-check-label fw-semibold mb-0"
-      style={{ fontSize: "14px", cursor: "pointer" }}
-    >
-      I have already paid the shipping fee
-    </label>
-  </div>
-</div>
+              <div className="d-flex justify-content-between my-2">
+                <span style={{ fontSize: "14px" }}>Shipping Fee</span>
+                <span style={{ fontSize: "14px" }}>৳{shippingFee}</span>
+              </div>
 
+              {/* Already Paid Shipping Option */}
+              <div
+                className={`mt-3 p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between ${
+                  formData.shippingPaid
+                    ? "border border-success bg-light"
+                    : "border border-0"
+                }`}
+                style={{
+                  cursor: "pointer",
+                  transition: "all 0.2s ease-in-out",
+                }}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    shippingPaid: !formData.shippingPaid,
+                  })
+                }
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <div
+                    className={`rounded-circle d-flex align-items-center justify-content-center ${
+                      formData.shippingPaid
+                        ? "bg-success text-white"
+                        : "border border-secondary"
+                    }`}
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      fontSize: "14px",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  >
+                    {formData.shippingPaid && <i className="bi bi-check-lg"></i>}
+                  </div>
+                  <label
+                    className="form-check-label fw-semibold mb-0"
+                    style={{ fontSize: "14px", cursor: "pointer" }}
+                  >
+                    I have already paid the shipping fee
+                  </label>
+                </div>
+              </div>
+
+              {/* Already Paid Product Price Option */}
+              <div
+                className={`mt-2 p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between ${
+                  formData.pricePaid
+                    ? "border border-success bg-light"
+                    : "border border-0"
+                }`}
+                style={{
+                  cursor: "pointer",
+                  transition: "all 0.2s ease-in-out",
+                }}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    pricePaid: !formData.pricePaid,
+                  })
+                }
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <div
+                    className={`rounded-circle d-flex align-items-center justify-content-center ${
+                      formData.pricePaid
+                        ? "bg-success text-white"
+                        : "border border-secondary"
+                    }`}
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      fontSize: "14px",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  >
+                    {formData.pricePaid && <i className="bi bi-check-lg"></i>}
+                  </div>
+                  <label
+                    className="form-check-label fw-semibold mb-0"
+                    style={{ fontSize: "14px", cursor: "pointer" }}
+                  >
+                    I have already paid the product price
+                  </label>
+                </div>
+              </div>
 
               <hr />
               <div className="d-flex justify-content-between fw-bold my-2">
                 <span>Total</span>
-                <span>৳{(subtotal() + shippingFee).toFixed(2)}</span>
+                <span>৳{(subtotal + shippingFee).toFixed(2)}</span>
               </div>
 
-              {/* PLACE ORDER BUTTON */}
               <button
                 className="btn w-100 mt-3 text-white"
                 style={{
@@ -385,13 +415,16 @@ console.log("Cart in checkout page",cart)
                 </div>
 
                 <div className="modal-body">
-                  {/* Payment Method Selection */}
                   <div className="d-flex justify-content-center flex-wrap gap-4 mt-3">
                     {[
                       { id: "bkash", label: "Bkash", img: "/images/bkash.png" },
                       { id: "nogod", label: "Nagad", img: "/images/nogod.png" },
                       { id: "bank", label: "Bank", img: "/images/bank.jpg" },
-                      { id: "cod", label: "Cash on Delivery", img: "/images/cash.jpg" },
+                      {
+                        id: "cod",
+                        label: "Cash on Delivery",
+                        img: "/images/cash.jpg",
+                      },
                     ].map((pm) => (
                       <div
                         key={pm.id}
@@ -421,8 +454,10 @@ console.log("Cart in checkout page",cart)
                         <span
                           style={{
                             fontSize: "14px",
-                            fontWeight: selectedPayment === pm.id ? "600" : "500",
-                            color: selectedPayment === pm.id ? "#42BAC9" : "#333",
+                            fontWeight:
+                              selectedPayment === pm.id ? "600" : "500",
+                            color:
+                              selectedPayment === pm.id ? "#42BAC9" : "#333",
                           }}
                         >
                           {pm.label}
@@ -431,7 +466,6 @@ console.log("Cart in checkout page",cart)
                     ))}
                   </div>
 
-                  {/* Payment Info + Screenshot */}
                   {selectedPayment && selectedPayment !== "cod" && (
                     <div className="mt-4 p-4 border rounded-3 bg-light shadow-sm">
                       {selectedPayment === "bkash" && (
@@ -490,7 +524,9 @@ console.log("Cart in checkout page",cart)
                         {!screenshotPreview ? (
                           <>
                             <i className="bi bi-cloud-upload fs-1 text-secondary"></i>
-                            <span className="text-muted mt-2">Click to Upload</span>
+                            <span className="text-muted mt-2">
+                              Click to Upload
+                            </span>
                           </>
                         ) : (
                           <img

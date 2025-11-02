@@ -30,7 +30,7 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState("details");
   const [selectedImage, setSelectedImage] = useState("");
   const [images, setImages] = useState([]);
-const [photosByColor, setPhotosByColor] = useState({});
+  const [photosByColor, setPhotosByColor] = useState({});
   // useEffect(() => {
   //   if (product._id) {
   //     const imgs = product.photos?.length
@@ -44,43 +44,43 @@ const [photosByColor, setPhotosByColor] = useState({});
   //   }
   // }, [product]);
 
-// useEffect(() => {
-//   if (product._id) {
-//     const imgs = product.photos?.length
-//       ? product.photos.map((_, index) =>
-//           `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
-//         )
-//       : [`${API}/api/v1/product/product-photo/${product._id}`];
+  // useEffect(() => {
+  //   if (product._id) {
+  //     const imgs = product.photos?.length
+  //       ? product.photos.map((_, index) =>
+  //           `${API}/api/v1/product/product-photo/${product._id}?index=${index}`
+  //         )
+  //       : [`${API}/api/v1/product/product-photo/${product._id}`];
 
-//     setImages(imgs);
-//     setSelectedImage(imgs[0]);
+  //     setImages(imgs);
+  //     setSelectedImage(imgs[0]);
 
-//     // ✅ Color অনুযায়ী image auto assign
-//     if (product.color?.length > 0) {
-//       const mapping = {};
-//       product.color.forEach((c, idx) => {
-//         mapping[c] = [imgs[idx] || imgs[0]]; // না থাকলে fallback প্রথম image
-//       });
-//       setPhotosByColor(mapping);
-//     }
-//   }
-// }, [product]);
+  //     // ✅ Color অনুযায়ী image auto assign
+  //     if (product.color?.length > 0) {
+  //       const mapping = {};
+  //       product.color.forEach((c, idx) => {
+  //         mapping[c] = [imgs[idx] || imgs[0]]; // না থাকলে fallback প্রথম image
+  //       });
+  //       setPhotosByColor(mapping);
+  //     }
+  //   }
+  // }, [product]);
 
-useEffect(() => {
-  if (product._id) {
-    const imgs = product.photos?.map(photo => photo.url) || [];
-    setImages(imgs);
-    setSelectedImage(imgs[0]);
+  useEffect(() => {
+    if (product._id) {
+      const imgs = product.photos?.map(photo => photo.url) || [];
+      setImages(imgs);
+      setSelectedImage(imgs[0]);
 
-    if (product.color?.length > 0) {
-      const mapping = {};
-      product.color.forEach((c, idx) => {
-        mapping[c] = [imgs[idx] || imgs[0]]; // fallback to first image
-      });
-      setPhotosByColor(mapping);
+      if (product.color?.length > 0) {
+        const mapping = {};
+        product.color.forEach((c, idx) => {
+          mapping[c] = [imgs[idx] || imgs[0]]; // fallback to first image
+        });
+        setPhotosByColor(mapping);
+      }
     }
-  }
-}, [product]);
+  }, [product]);
   // Fetch product
   useEffect(() => {
     if (params?.slug) getProduct();
@@ -141,40 +141,40 @@ useEffect(() => {
   };
 
   // Submit Review
-// Submit Review
-const handleReviewSubmit = async (e) => {
-  e.preventDefault();
+  // Submit Review
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!newReview.stars || !newReview.comment) {
-    toast.error("Please select rating and write comment");
-    return;
-  }
-
-  try {
-    const { data } = await axios.post(
-      `${API}/api/v1/reviews/${product._id}`,
-      {
-        stars: newReview.stars,
-        comment: newReview.comment,
-      },
-      {
-        headers: {
-          Authorization: auth?.token, // ✅ token must be sent
-        },
-      }
-    );
-
-    if (data.success) {
-      setReviews(data.reviews); // update reviews in UI
-      setRating(data.averageRating); // update rating
-      setNewReview({ stars: 0, comment: "" }); // reset form
-      toast.success(data.message);
+    if (!newReview.stars || !newReview.comment) {
+      toast.error("Please select rating and write comment");
+      return;
     }
-  } catch (error) {
-    console.error("Error submitting review:", error);
-    toast.error("Failed to submit review");
-  }
-};
+
+    try {
+      const { data } = await axios.post(
+        `${API}/api/v1/reviews/${product._id}`,
+        {
+          stars: newReview.stars,
+          comment: newReview.comment,
+        },
+        {
+          headers: {
+            Authorization: auth?.token, // ✅ token must be sent
+          },
+        }
+      );
+
+      if (data.success) {
+        setReviews(data.reviews); // update reviews in UI
+        setRating(data.averageRating); // update rating
+        setNewReview({ stars: 0, comment: "" }); // reset form
+        toast.success(data.message);
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("Failed to submit review");
+    }
+  };
 
 
 
@@ -182,67 +182,67 @@ const handleReviewSubmit = async (e) => {
     <Layout>
       <div className="container py-4 bg-white">
         {/* Breadcrumb */}
-      {/* Breadcrumb */}
-<div
-  style={{
-    paddingBottom: "5px",
-    fontSize: "14px",
-    color: "#555",
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-    justifyContent: "center",
-  }}
->
-  <p
-    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
-    onClick={() => navigate("/")}
-  >
-    Home
-  </p>
-  <FaAngleRight />
-
-  {/* Category */}
-  {product?.category && (
-    <>
-      <p
-        style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
-        onClick={() => navigate(`/category/${product.category.slug}`)}
-      >
-        {product.category.name}
-      </p>
-      <FaAngleRight />
-    </>
-  )}
-
-  {/* Subcategory */}
-  {product?.subcategories?.length > 0 && (
-    <>
-      {product.subcategories.map((sub, idx) => (
-        <React.Fragment key={sub}>
+        {/* Breadcrumb */}
+        <div
+          style={{
+            paddingBottom: "5px",
+            fontSize: "14px",
+            color: "#555",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            justifyContent: "center",
+          }}
+        >
           <p
             style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
-            onClick={() => navigate(`/subcategory/${sub}`)} // অথবা slug থাকলে `/subcategory/${sub.slug}`
+            onClick={() => navigate("/")}
           >
-            {sub}
+            Home
           </p>
-          {idx < product.subcategories.length - 1 && <FaAngleRight />}
-        </React.Fragment>
-      ))}
-    </>
-  )}
+          <FaAngleRight />
 
-  {/* Product Name */}
-  <FaAngleRight />
-  {/* <p style={{ margin: 0 }}>{product?.name}</p> */}
-<p style={{ margin: 0 }}>
-  {product?.name?.length > 60
-    ? product.name.substring(0, 60) + "..."
-    : product?.name || ""}
-</p>
+          {/* Category */}
+          {product?.category && (
+            <>
+              <p
+                style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+                onClick={() => navigate(`/category/${product.category.slug}`)}
+              >
+                {product.category.name}
+              </p>
+              <FaAngleRight />
+            </>
+          )}
 
-</div>
+          {/* Subcategory */}
+          {product?.subcategories?.length > 0 && (
+            <>
+              {product.subcategories.map((sub, idx) => (
+                <React.Fragment key={sub}>
+                  <p
+                    style={{ margin: 0, cursor: "pointer", color: "#00a297" }}
+                    onClick={() => navigate(`/subcategory/${sub}`)} // অথবা slug থাকলে `/subcategory/${sub.slug}`
+                  >
+                    {sub}
+                  </p>
+                  {idx < product.subcategories.length - 1 && <FaAngleRight />}
+                </React.Fragment>
+              ))}
+            </>
+          )}
+
+          {/* Product Name */}
+          <FaAngleRight />
+          {/* <p style={{ margin: 0 }}>{product?.name}</p> */}
+          <p style={{ margin: 0 }}>
+            {product?.name?.length > 60
+              ? product.name.substring(0, 60) + "..."
+              : product?.name || ""}
+          </p>
+
+        </div>
 
         <div className="row g-4">
           {/* LEFT IMAGE GALLERY */}
@@ -315,29 +315,29 @@ const handleReviewSubmit = async (e) => {
             {/* Price */}
             <div className="d-flex justify-content-between">
 
-<h4 className="fw-bold mb-3">
-  {product.discountPrice && product.discountPrice > 0 ? (
-    <>
-      {/* Discounted Price */}
-      <span className="text-danger me-2">
-        ৳ {product.discountPrice}
-      </span>
+              <h4 className="fw-bold mb-3">
+                {product.discountPrice && product.discountPrice > 0 ? (
+                  <>
+                    {/* Discounted Price */}
+                    <span className="text-danger me-2">
+                      ৳ {product.discountPrice}
+                    </span>
 
-      {/* Original Price (Strike-through) */}
-      <small className="text-muted text-decoration-line-through">
-        ৳ {product.price}
-      </small>
+                    {/* Original Price (Strike-through) */}
+                    <small className="text-muted text-decoration-line-through">
+                      ৳ {product.price}
+                    </small>
 
-      {/* Discount Badge */}
-      <span className="badge bg-danger ms-2">
-        {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
-      </span>
-    </>
-  ) : (
-    /* No discount */
-    <span className="text-danger me-2">৳ {product.price}</span>
-  )}
-</h4>
+                    {/* Discount Badge */}
+                    <span className="badge bg-danger ms-2">
+                      {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+                    </span>
+                  </>
+                ) : (
+                  /* No discount */
+                  <span className="text-danger me-2">৳ {product.price}</span>
+                )}
+              </h4>
 
 
 
@@ -361,50 +361,50 @@ const handleReviewSubmit = async (e) => {
             {/* Brand Selector */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>
-             {product.color && (
-  <div className="mb-3">
-    <strong>Color:</strong>
-    <div className="d-flex gap-3 mt-2 flex-wrap">
-      {product.color?.map((c, idx) => (
-        <div
-          key={idx}
-          onClick={() => {
-            setSelectedColor(c);
-            if (photosByColor[c]) {
-              setSelectedImage(photosByColor[c][0]);
-            }
-          }}
-          style={{
-            border: selectedColor
-              ? selectedColor === c
-                ? `2px solid ${c}`
-                : "1px solid #ccc"
-              : idx === 0
-              ? `2px solid ${c}`
-              : "1px solid #ccc",
-            borderRadius: "6px",
-            padding: "2px",
-            display: "inline-block",
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={photosByColor?.[c]?.[0] || images[0]}
-            alt={c}
-            style={{
-              width: "45px",
-              height: "40px",
-              objectFit: "cover",
-              borderRadius: "4px",
-              marginBottom: "5px",
-            }}
-          />
-          <p style={{ textAlign: "center", fontSize: "11px", fontWeight: "bold" }}>{c}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+                {product.color && (
+                  <div className="mb-3">
+                    <strong>Color:</strong>
+                    <div className="d-flex gap-3 mt-2 flex-wrap">
+                      {product.color?.map((c, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedColor(c);
+                            if (photosByColor[c]) {
+                              setSelectedImage(photosByColor[c][0]);
+                            }
+                          }}
+                          style={{
+                            border: selectedColor
+                              ? selectedColor === c
+                                ? `2px solid ${c}`
+                                : "1px solid #ccc"
+                              : idx === 0
+                                ? `2px solid ${c}`
+                                : "1px solid #ccc",
+                            borderRadius: "6px",
+                            padding: "2px",
+                            display: "inline-block",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <img
+                            src={photosByColor?.[c]?.[0] || images[0]}
+                            alt={c}
+                            style={{
+                              width: "45px",
+                              height: "40px",
+                              objectFit: "cover",
+                              borderRadius: "4px",
+                              marginBottom: "5px",
+                            }}
+                          />
+                          <p style={{ textAlign: "center", fontSize: "11px", fontWeight: "bold" }}>{c}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 {product.brand && (
@@ -473,14 +473,14 @@ const handleReviewSubmit = async (e) => {
             <div className="d-flex gap-3">
               <button className="btn  px-4 d-flex align-items-center gap-2 justify-content-center"
                 style={{ backgroundColor: '#F77E1B', color: '#FFF', width: '200px', textAlign: 'center' }}
-                  onClick={() => {
+                onClick={() => {
                   const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
 
                   const cartItem = {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
-                    discountPrice:product.discountPrice,
+                    discountPrice: product.discountPrice,
                     color: selectedColor,
                     brand: selectedBrand,
                     size: selectedSize,
@@ -502,7 +502,7 @@ const handleReviewSubmit = async (e) => {
                     navigate(auth?.token ? "/checkout" : "/login")
                   }
                 }}
-               
+
               >Buy Now</button>
               {/* <button
                 className="btn  px-4 d-flex align-items-center gap-2 justify-content-center"
@@ -515,7 +515,7 @@ const handleReviewSubmit = async (e) => {
               >
                 <IoCartOutline /> Add to Cart
               </button> */}
-              <button
+              {/* <button
                 className="btn px-4 d-flex align-items-center gap-2 justify-content-center"
                 style={{ backgroundColor: "rgb(0, 162, 151)", color: "#FFF", width: "200px", textAlign: "center" }}
                 onClick={() => {
@@ -525,15 +525,15 @@ const handleReviewSubmit = async (e) => {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
-                     discountPrice:product.discountPrice,
+                    discountPrice: product.discountPrice,
                     color: selectedColor,
                     brand: selectedBrand,
                     size: selectedSize,
                     quantity: quantity,      // User select করা quantity
                     stock: product.quantity, // Admin থেকে আসা stock
                     // image: images[0],
-                      image: selectedImage || images[0], // ✅ selected color অনুযায়ী image save হবে
-                    
+                    image: selectedImage || images[0], // ✅ selected color অনুযায়ী image save হবে
+
                   };
 
                   // চেক করবো product আগে থেকেই cart এ আছে কিনা
@@ -550,7 +550,38 @@ const handleReviewSubmit = async (e) => {
                 }}
               >
                 Add to Cart
-              </button>
+              </button> */}
+<button
+  className="btn px-4 d-flex align-items-center gap-2 justify-content-center"
+  style={{ backgroundColor: "rgb(0, 162, 151)", color: "#FFF", width: "200px", textAlign: "center" }}
+  onClick={() => {
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // uniqueId helps to treat different variants as separate cart items
+    const cartItem = {
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      discountPrice: product.discountPrice,
+      color: selectedColor || "Default",
+      brand: selectedBrand || "Default",
+      size: selectedSize || "Default",
+      quantity: quantity,
+      stock: product.quantity,
+      image: selectedImage || images[0],
+      uniqueId: Date.now() + Math.random(), // ✅ makes each added item unique
+    };
+
+    // Allow multiple variants — no duplicate restriction
+    const updatedCart = [...existingCart, cartItem];
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    toast.success("Item added to cart");
+  }}
+>
+  Add to Cart
+</button>
 
 
             </div>
@@ -561,7 +592,7 @@ const handleReviewSubmit = async (e) => {
         </div>
         {/* TABS SECTION */}
         <div className="container mt-5">
-          <ul className="nav nav-tabs justify-content-left" style={{ backgroundColor: "#dee2e6",padding:'8px'}}>
+          <ul className="nav nav-tabs justify-content-left" style={{ backgroundColor: "#dee2e6", padding: '8px' }}>
             <li className="nav-item">
               <button
                 className={`nav-link ${activeTab === "details" ? "active" : ""}`}
@@ -646,17 +677,17 @@ const handleReviewSubmit = async (e) => {
           </ul>
 
           <div className="tab-content border p-4 bg-white shadow-sm">
-{activeTab === "details" && (
-<div
-  className="ql-editor"
-  dangerouslySetInnerHTML={{ __html: product?.description || "" }}
-  style={{
-    paddingLeft: "20px",
-    marginBottom: "1rem",
-    lineHeight: "1.6",
-  }}
-/>
-)}
+            {activeTab === "details" && (
+              <div
+                className="ql-editor"
+                dangerouslySetInnerHTML={{ __html: product?.description || "" }}
+                style={{
+                  paddingLeft: "20px",
+                  marginBottom: "1rem",
+                  lineHeight: "1.6",
+                }}
+              />
+            )}
             {activeTab === "policy" && <div className="bg-light rounded p-3 shadow-sm">
               <h6 className="fw-bold">Delivery</h6>
               <p className="text-muted small">Fast delivery available in your area</p>
@@ -667,25 +698,25 @@ const handleReviewSubmit = async (e) => {
             {activeTab === "reviews" && (
               <>
                 <h5 className="fw-bold mb-3">Customer Reviews</h5>
-{reviews.map((r) => (
-  <div key={r._id} className="border-bottom pb-3 mb-3">
-    <strong>{r.name}</strong>
-    <div className="d-flex align-items-center text-warning" style={{ gap: "2px" }}>
-      {renderStars(r.stars)}
-    </div>
-    <p className="mb-1">{r.comment}</p>
+                {reviews.map((r) => (
+                  <div key={r._id} className="border-bottom pb-3 mb-3">
+                    <strong>{r.name}</strong>
+                    <div className="d-flex align-items-center text-warning" style={{ gap: "2px" }}>
+                      {renderStars(r.stars)}
+                    </div>
+                    <p className="mb-1">{r.comment}</p>
 
-    {/* Admin reply */}
-    {r.reply && (
-      <div className="mt-1 p-2 bg-light rounded">
-        <strong>Admin Reply:</strong>
-        <p className="mb-0">{r.reply}</p>
-      </div>
-    )}
+                    {/* Admin reply */}
+                    {r.reply && (
+                      <div className="mt-1 p-2 bg-light rounded">
+                        <strong>Admin Reply:</strong>
+                        <p className="mb-0">{r.reply}</p>
+                      </div>
+                    )}
 
-    <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
-  </div>
-))}
+                    <small className="text-muted">{new Date(r.createdAt).toLocaleDateString()}</small>
+                  </div>
+                ))}
 
 
                 {/* Review Form */}
@@ -778,7 +809,7 @@ const handleReviewSubmit = async (e) => {
                 >
                   <img
                     // src={`${API}/api/v1/product/product-photo/${p._id}`}
-                      src={p.photos?.[0]?.url}
+                    src={p.photos?.[0]?.url}
                     alt={p.name}
                     style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
                   />

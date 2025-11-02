@@ -225,7 +225,7 @@ const HomePage = () => {
                     <div key={p._id} className="col-sm-6 col-md-3 mb-3">
                       <div className="product-card shadow-sm rounded-lg border bg-white h-100 d-flex flex-column">
                         {/* Image */}
-                        <div
+                        {/* <div
                           className="d-flex justify-content-center align-items-center"
                           style={{ cursor: "pointer" }}
                           onClick={() => navigate(`/product/${p.slug}`)}
@@ -238,8 +238,23 @@ const HomePage = () => {
                             style={{ maxHeight: "150px", objectFit: "contain" }}
                             loading="lazy"
                           />
-                        </div>
-
+                        </div> */}
+ <a
+  href={`/product/${p.slug}`}
+  target="_blank"
+                          className="d-flex justify-content-center align-items-center"
+                          style={{ cursor: "pointer" }}
+                          // onClick={() => navigate(`/product/${p.slug}`)}
+                        >
+                          <img
+                            // src={`${API}/api/v1/product/product-photo/${p._id}`}
+                            src={p.photos?.[0]?.url}
+                            alt={p.name}
+                            className="img-fluid"
+                            style={{ maxHeight: "150px", objectFit: "contain" }}
+                            loading="lazy"
+                          />
+                        </a>
                         {/* Content */}
                         <div className="px-3 text-left flex-grow-1 d-flex flex-column">
                           <p className="fw-bold mb-1" style={{ fontSize: "14px" }}>
