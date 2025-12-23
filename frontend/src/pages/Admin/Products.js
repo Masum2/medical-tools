@@ -16,13 +16,58 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
-  const { auth } = useAuth();
+  const [auth] = useAuth();
+  
   const API = process.env.REACT_APP_API;
-  const ITEMS_PER_PAGE = 8; // pagination এ ৮টা প্রতি পেজ
+  const ITEMS_PER_PAGE = 8;
 
-  // ----------------------------
+  // ✅ Helper function to get product image
+  const getProductImage = (product) => {
+    // Case 1: New schema - defaultPhotos
+    if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+      return product.defaultPhotos[0].url;
+    }
+    
+    // Case 2: Old schema - photos
+    if (product.photos && product.photos.length > 0) {
+      return product.photos[0].url || product.photos[0].secure_url;
+    }
+    
+    // Case 3: Fallback to empty string
+    return '';
+  };
+
+  // ✅ Helper function to get colors
+  const getProductColors = (product) => {
+    // New schema
+    if (product.availableColors && product.availableColors.length > 0) {
+      return product.availableColors;
+    }
+    
+    // Old schema
+    if (product.color && product.color.length > 0) {
+      return product.color;
+    }
+    
+    return [];
+  };
+
+  // ✅ Helper function to get sizes
+  const getProductSizes = (product) => {
+    // New schema
+    if (product.availableSizes && product.availableSizes.length > 0) {
+      return product.availableSizes;
+    }
+    
+    // Old schema
+    if (product.size && product.size.length > 0) {
+      return product.size;
+    }
+    
+    return [];
+  };
+
   // Fetch total product count
-  // ----------------------------
   const getTotal = async () => {
     try {
       const { data } = await axios.get(`${API}/api/v1/product/product-count`);
@@ -32,9 +77,7 @@ const Products = () => {
     }
   };
 
-  // ----------------------------
   // Fetch products per page
-  // ----------------------------
   const getProducts = async () => {
     try {
       setLoading(true);
@@ -50,44 +93,38 @@ const Products = () => {
     }
   };
 
-  // ----------------------------
-  // Search products via API
-  // ----------------------------
-useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      let url = "";
-      if (searchTerm.trim() === "") {
-        url = `${API}/api/v1/product/product-list/${page}`;
-      } else {
-        url = `${API}/api/v1/product/search/${searchTerm}?page=${page}&limit=8`;
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        let url = "";
+        if (searchTerm.trim() === "") {
+          url = `${API}/api/v1/product/product-list/${page}`;
+        } else {
+          url = `${API}/api/v1/product/search/${searchTerm}?page=${page}&limit=8`;
+        }
+
+        const { data } = await axios.get(url);
+        setProducts(data.products || []);
+        setTotal(data.total || 0);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+        toast.error("Error fetching products");
+        setLoading(false);
       }
+    };
 
-      const { data } = await axios.get(url);
-      setProducts(data.products || []);
-      setTotal(data.total || 0);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching products");
-      setLoading(false);
-    }
-  };
+    fetchProducts();
+  }, [page, searchTerm]);
 
-  fetchProducts();
-}, [page, searchTerm]);
-  // ----------------------------
   // Initial load
-  // ----------------------------
   useEffect(() => {
     getTotal();
     getProducts();
   }, []);
 
-  // ----------------------------
   // Delete product
-  // ----------------------------
   const handleDelete = async () => {
     try {
       await axios.delete(
@@ -109,9 +146,6 @@ useEffect(() => {
     }
   };
 
-  // ----------------------------
-  // Render
-  // ----------------------------
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">
@@ -228,56 +262,81 @@ useEffect(() => {
                       <th>Brand</th>
                       <th>Color</th>
                       <th>Size</th>
-                      <th>Quantity</th>
-                      <th>Price</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody className="text-center">
-                    {products.map((p, index) => (
-                      <tr key={p._id}>
-                        <td>{(page - 1) * ITEMS_PER_PAGE + index + 1}</td>
-                        <td>{`HP-${
-                          1000 + (page - 1) * ITEMS_PER_PAGE + index + 1
-                        }`}</td>
-                        <td>{p.name?.substring(0, 20)}</td>
-                        <td>
-                          <img
-                            src={p.photos?.[0]?.url}
-                            alt={p.name}
-                            style={{
-                              width: "60px",
-                              height: "60px",
-                              objectFit: "cover",
-                            }}
-                            className="rounded"
-                          />
-                        </td>
-                        <td>{p.brand?.join(", ")}</td>
-                        <td>{p.color?.join(", ")}</td>
-                        <td>{p.size?.join(", ")}</td>
-                        <td>{p.quantity}</td>
-                        <td>{p.price}</td>
-                        <td>
-                          <Link
-                            to={`/dashboard/admin/product/${p.slug}`}
-                            className="btn btn-sm btn-info me-2"
-                          >
-                            <TiEyeOutline />
-                          </Link>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => {
-                              setSelectedProductId(p._id);
-                              setShowDeleteModal(true);
-                            }}
-                            type="button"
-                          >
-                            <RiDeleteBinLine />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {products.map((p, index) => {
+                      const productImage = getProductImage(p);
+                      const productColors = getProductColors(p);
+                      const productSizes = getProductSizes(p);
+                      
+                      return (
+                        <tr key={p._id}>
+                          <td>{(page - 1) * ITEMS_PER_PAGE + index + 1}</td>
+                          <td>{`HP-${
+                            1000 + (page - 1) * ITEMS_PER_PAGE + index + 1
+                          }`}</td>
+                          <td>{p.name?.substring(0, 20)}</td>
+                          <td>
+                            {productImage ? (
+                              <img
+                                src={productImage}
+                                alt={p.name}
+                                style={{
+                                  width: "60px",
+                                  height: "60px",
+                                  objectFit: "cover",
+                                }}
+                                className="rounded"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.parentElement.innerHTML = 
+                                    '<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border-radius:4px;color:#666;font-size:12px;">No Image</div>';
+                                }}
+                              />
+                            ) : (
+                              <div 
+                                style={{
+                                  width: "60px",
+                                  height: "60px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  background: "#f0f0f0",
+                                  borderRadius: "4px",
+                                  color: "#666",
+                                  fontSize: "12px"
+                                }}
+                              >
+                                No Image
+                              </div>
+                            )}
+                          </td>
+                          <td>{p.brand?.join(", ")}</td>
+                          <td>{productColors.join(", ")}</td>
+                          <td>{productSizes.join(", ")}</td>
+                          <td>
+                            <Link
+                              to={`/dashboard/admin/product/${p.slug}`}
+                              className="btn btn-sm btn-info me-2"
+                            >
+                              <TiEyeOutline />
+                            </Link>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => {
+                                setSelectedProductId(p._id);
+                                setShowDeleteModal(true);
+                              }}
+                              type="button"
+                            >
+                              <RiDeleteBinLine />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import Layout from "./../components/Layout/Layout";
 import { useAuth } from "../context/auth";
 import axios from "axios";
-import { Checkbox, Radio, Skeleton } from "antd";
+import { Checkbox, Radio, Skeleton, Badge, Tag } from "antd";
 import { Prices } from "../components/Prices";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { IoCartOutline } from "react-icons/io5";
 import { useProduct } from "../context/product";
+import { motion, AnimatePresence } from "framer-motion";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -25,14 +26,176 @@ const HomePage = () => {
     refreshProducts
   } = useProduct();
 
-  const [checked, setChecked] = useState([]); // category filter
-  const [subChecked, setSubChecked] = useState([]); // subcategory filter
-  const [radio, setRadio] = useState([]); // price filter
+  const [checked, setChecked] = useState([]);
+  const [subChecked, setSubChecked] = useState([]);
+  const [radio, setRadio] = useState([]);
   const [page, setPage] = useState(1);
   const [cart, setCart] = useCart();
   const [loading, setLoading] = useState(false);
   const API = process.env.REACT_APP_API;
-  const limit = 8;
+  const limit = 10;
+
+  // ✅ Get display price for product (ALL systems)
+  const getDisplayPrice = (product) => {
+    // Check which system the product uses
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      // ✅ Color Variations System
+      const colorKeys = Object.keys(product.colorVariations);
+      if (colorKeys.length > 0) {
+        const firstColor = colorKeys[0];
+        const variations = product.colorVariations[firstColor];
+        if (variations && variations.length > 0) {
+          const firstVariation = variations[0];
+          return {
+            price: firstVariation.price,
+            discountPrice: firstVariation.discountPrice,
+            hasDiscount: firstVariation.discountPrice > 0,
+            minPrice: product.minPrice,
+            maxPrice: product.maxPrice,
+            system: 'colorVariations'
+          };
+        }
+      }
+      
+      // Fallback to min/max price
+      return {
+        price: product.minPrice || 0,
+        discountPrice: 0,
+        hasDiscount: false,
+        minPrice: product.minPrice,
+        maxPrice: product.maxPrice,
+        system: 'colorVariations'
+      };
+    }
+    
+    // ✅ OLD System: variations array
+    if (product.variations && product.variations.length > 0) {
+      const firstVariation = product.variations[0];
+      return {
+        price: firstVariation.price,
+        discountPrice: firstVariation.discountPrice,
+        hasDiscount: firstVariation.discountPrice > 0,
+        system: 'variations'
+      };
+    }
+    
+    // ✅ Simple Product System
+    return {
+      price: product.basePrice || product.price,
+      discountPrice: product.baseDiscountPrice || product.discountPrice,
+      hasDiscount: (product.baseDiscountPrice || product.discountPrice) > 0,
+      system: 'simple'
+    };
+  };
+
+  // ✅ Get variation summary for display
+  const getVariationSummary = (product) => {
+    // Color Variations System
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      const colorKeys = Object.keys(product.colorVariations);
+      const colors = colorKeys;
+      const sizes = new Set();
+      let totalVariations = 0;
+      
+      colorKeys.forEach(color => {
+        const variations = product.colorVariations[color];
+        if (variations) {
+          totalVariations += variations.length;
+          variations.forEach(v => sizes.add(v.size));
+        }
+      });
+      
+      return {
+        sizes: Array.from(sizes).slice(0, 3),
+        colors: colors.slice(0, 2),
+        totalVariations,
+        system: 'colorVariations'
+      };
+    }
+    
+    // OLD System: variations array
+    if (product.variations && product.variations.length > 0) {
+      const sizes = [...new Set(product.variations.map(v => v.size))];
+      const colors = [...new Set(product.variations.map(v => v.color))];
+      
+      return {
+        sizes: sizes.slice(0, 3),
+        colors: colors.slice(0, 2),
+        totalVariations: product.variations.length,
+        system: 'variations'
+      };
+    }
+    
+    return null;
+  };
+
+  // ✅ Check if product has variations
+  const hasVariations = (product) => {
+    // Color Variations System
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      return Object.keys(product.colorVariations).length > 0;
+    }
+    
+    // OLD System
+    return product.variations && product.variations.length > 0;
+  };
+
+  // ✅ Get product image
+  const getProductImage = (product) => {
+    // First try color-specific images
+    if (product.colorImages && product.colorImages.length > 0) {
+      return product.colorImages[0].images?.[0]?.url;
+    }
+    
+    // Then try default photos
+    if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+      return product.defaultPhotos[0]?.url;
+    }
+    
+    // Then old photos array
+    if (product.photos && product.photos.length > 0) {
+      return product.photos[0]?.url;
+    }
+    
+    // Fallback
+    return "/images/default-product.jpg";
+  };
+
+  // ✅ Add to cart function
+  const handleAddToCart = (p) => {
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const found = existingCart.find((item) => item._id === p._id);
+
+    if (found) {
+      toast.error("Item already added to cart");
+    } else {
+      const displayPrice = getDisplayPrice(p);
+      const variationsExist = hasVariations(p);
+      
+      const cartItem = {
+        _id: p._id,
+        name: p.name,
+        price: displayPrice.price,
+        discountPrice: displayPrice.discountPrice,
+        quantity: 1,
+        image: getProductImage(p),
+        hasVariations: variationsExist,
+        slug: p.slug,
+        useSimpleProduct: p.useSimpleProduct,
+        colorVariations: p.colorVariations || null,
+        variations: p.variations || null,
+        basePrice: p.basePrice,
+        baseDiscountPrice: p.baseDiscountPrice,
+        availableColors: p.availableColors || [],
+        availableSizes: p.availableSizes || []
+      };
+      
+      const updatedCart = [...existingCart, cartItem];
+      setCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      toast.success("Item added to cart");
+    }
+  };
 
   // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
@@ -107,34 +270,42 @@ const HomePage = () => {
     else refreshProducts();
   }, [checked, subChecked, radio]);
 
-  // ---------------- ADD TO CART ----------------
-  const handleAddToCart = (p) => {
-    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const found = existingCart.find(item => item._id === p._id);
-
-    if (found) {
-      toast.error("Item already added to cart");
-    } else {
-      const cartItem = {
-        _id: p._id,
-        name: p.name,
-        price: p.price,
-         discountPrice:p.discountPrice,
-        quantity: 1,
-        // image: `${API}/api/v1/product/product-photo/${p._id}`,
-        image: p.photos?.[0]?.url
-      };
-      const updatedCart = [...existingCart, cartItem];
-      setCart(updatedCart);
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-      toast.success("Item added to cart");
-    }
-  };
+  // slider images
+  const images = [
+    "/images/book1.jpg",
+    "/images/book3.webp",
+    "/images/book2.avif",
+  ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   return (
     <Layout title={"All Products - Best Offers"}>
-      <div className="">
-        <div className="row" style={{ backgroundColor: "#eff0f5", padding: "20px" }}>
+      <div style={{ backgroundColor: "#eff0f5" }}>
+        {/* Hero Slider */}
+        {/* <section className="relative w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
+          <AnimatePresence>
+            <motion.img
+              key={currentIndex}
+              src={images[currentIndex]}
+              alt={`Slide ${currentIndex}`}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+            />
+          </AnimatePresence>
+        </section> */}
+
+        {/* Filter Section */}
+        <div className="row m-0" style={{ padding: "20px" }}>
           {/* Sidebar */}
           <div className="col-md-3">
             <div className="p-3 mb-3 border rounded bg-white">
@@ -187,7 +358,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Products */}
+          {/* Products Grid */}
           <div className="col-md-9">
             {loading && products.length === 0 ? (
               <div
@@ -220,101 +391,121 @@ const HomePage = () => {
               </div>
             ) : (
               <>
-                <div className="row">
-                  {products.map(p => (
-                    <div key={p._id} className="col-sm-6 col-md-3 mb-3">
-                      <div className="product-card shadow-sm rounded-lg border bg-white h-100 d-flex flex-column">
-                        {/* Image */}
-                        {/* <div
-                          className="d-flex justify-content-center align-items-center"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => navigate(`/product/${p.slug}`)}
-                        >
-                          <img
-                            // src={`${API}/api/v1/product/product-photo/${p._id}`}
-                            src={p.photos?.[0]?.url}
-                            alt={p.name}
-                            className="img-fluid"
-                            style={{ maxHeight: "150px", objectFit: "contain" }}
-                            loading="lazy"
-                          />
-                        </div> */}
- <a
-  href={`/product/${p.slug}`}
-  target="_blank"
-                          className="d-flex justify-content-center align-items-center"
-                          style={{ cursor: "pointer" }}
-                          // onClick={() => navigate(`/product/${p.slug}`)}
-                        >
-                          <img
-                            // src={`${API}/api/v1/product/product-photo/${p._id}`}
-                            src={p.photos?.[0]?.url}
-                            alt={p.name}
-                            className="img-fluid"
-                            style={{ maxHeight: "150px", objectFit: "contain" }}
-                            loading="lazy"
-                          />
-                        </a>
-                        {/* Content */}
-                        <div className="px-3 text-left flex-grow-1 d-flex flex-column">
-                          <p className="fw-bold mb-1" style={{ fontSize: "14px" }}>
-                            {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}
-                          </p>
+                {/* Product Grid - Same as Shop page */}
+                <div className="product-grid">
+                  {products.map((p) => {
+                    const variationsExist = hasVariations(p);
+                    const displayPrice = getDisplayPrice(p);
+                    const variationSummary = variationsExist ? getVariationSummary(p) : null;
+                    const productImage = getProductImage(p);
 
-                          {/* Price + Discount */}
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              marginTop: "8px",
-                              paddingBottom: "10px",
-                              gap: "8px",
-                              flexWrap: "wrap",
-                            }}
+                    return (
+                      <div key={p._id} className="product-card">
+                        <div className="card h-100 shadow-sm border-0 rounded-lg hover:shadow-md transition-all">
+                          {/* Product Image */}
+                          <a
+                            href={`/product/${p.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="d-flex justify-content-center align-items-center p-3 text-decoration-none"
+                            style={{ cursor: "pointer", height: "200px" }}
                           >
-                            {p.discountPrice && p.discountPrice > 0 ? (
-                              <>
-                                <span className="text-danger fw-bold">৳ {p.discountPrice}</span>
-                                <small className="text-muted text-decoration-line-through">
-                                  ৳ {p.price}
+                            <img
+                              src={productImage}
+                              alt={p.name}
+                              className="img-fluid"
+                              style={{ 
+                                maxHeight: "100%", 
+                                maxWidth: "100%",
+                                objectFit: "contain" 
+                              }}
+                              loading="lazy"
+                            />
+                          </a>
+                          
+                          <div className="card-body d-flex flex-column">
+                            {/* Product Name */}
+                            <p className="fw-bold mb-2" style={{ fontSize: "14px" }}>
+                              {p.name.length > 30 ? p.name.substring(0, 30) + "..." : p.name}
+                            </p>
+
+                            {/* Price Display */}
+                            <div className="mb-2 d-flex align-items-center gap-2 flex-wrap">
+                              {displayPrice.hasDiscount ? (
+                                <>
+                                  <span className="text-danger fw-bold">৳ {displayPrice.discountPrice}</span>
+                                  <small className="text-muted text-decoration-line-through">
+                                    ৳ {displayPrice.price}
+                                  </small>
+                                  <span className="badge bg-danger" style={{ fontSize: "10px" }}>
+                                    {Math.round(((displayPrice.price - displayPrice.discountPrice) / displayPrice.price) * 100)}% OFF
+                                  </span>
+                                </>
+                              ) : (
+                                displayPrice.system !== 'colorVariations' && (
+                                  <span className="text-danger fw-bold">৳ {displayPrice.price}</span>
+                                )
+                              )}
+                            </div>
+
+                            {/* Price Range for Color Variations */}
+                            {/* {displayPrice.system === 'colorVariations' && displayPrice.minPrice !== displayPrice.maxPrice && (
+                              <div className="mb-1">
+                                <small className="text-success fw-bold">
+                                  ৳{displayPrice.minPrice} - ৳{displayPrice.maxPrice}
                                 </small>
-                                <span className="badge bg-danger">
-                                  {Math.round(((p.price - p.discountPrice) / p.price) * 100)}% OFF
+                              </div>
+                            )} */}
+
+                            {/* Variation Summary */}
+                            {/* {variationsExist && variationSummary && (
+                              <div className="mb-2 small text-muted">
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                  <span className="badge bg-info" style={{ fontSize: "10px" }}>
+                                    {variationSummary.totalVariations} Options
+                                  </span>
+                                  {variationSummary.sizes.length > 0 && (
+                                    <span>
+                                      <strong>Sizes:</strong> {variationSummary.sizes.join(', ')}
+                                      {variationSummary.sizes.length > 3 && "..."}
+                                    </span>
+                                  )}
+                                </div>
+                                {variationSummary.colors.length > 0 && (
+                                  <div>
+                                    <strong>Colors:</strong> {variationSummary.colors.join(', ')}
+                                    {variationSummary.colors.length > 2 && "..."}
+                                  </div>
+                                )}
+                              </div>
+                            )} */}
+
+                            {/* Simple Product Indicator */}
+                            {/* {p.useSimpleProduct === true && !variationsExist && (
+                              <div className="mb-2">
+                                <span className="badge bg-secondary" style={{ fontSize: "10px" }}>
+                                  Single Price
                                 </span>
-                              </>
-                            ) : (
-                              <span className="text-danger fw-bold">৳ {p.price}</span>
-                            )}
+                              </div>
+                            )} */}
+
+                            {/* Add to Cart Button */}
+                            <button
+                              onClick={() => handleAddToCart(p)}
+                              className="mt-auto w-100 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded transition"
+                              style={{ 
+                                fontSize: "14px", 
+                                border: "none",
+                                cursor: "pointer"
+                              }}
+                            >
+                              Add to Cart
+                            </button>
                           </div>
                         </div>
-
-                        {/* ✅ Add to Cart Button (separate line) */}
-                        {/* ✅ Add to Cart Button (inline styled) */}
-                        <div className="px-3 pb-3">
-                          <button
-                            onClick={() => handleAddToCart(p)}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#00a297",
-                              color: "#fff",
-                              fontWeight: 600,
-                              padding: "8px 0",
-                              border: "none",
-                              borderRadius: "6px",
-                              fontSize: "14px",
-                              cursor: "pointer",
-                              transition: "all 0.3s ease",
-                            }}
-                            onMouseOver={e => (e.currentTarget.style.backgroundColor = "#008f82")}
-                            onMouseOut={e => (e.currentTarget.style.backgroundColor = "#00a297")}
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
-
+                    );
+                  })}
                 </div>
 
                 {/* Load More */}
@@ -343,9 +534,36 @@ const HomePage = () => {
 
       <style>
         {`
+          .product-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+          }
+          .product-card {
+            transition: transform 0.3s ease;
+          }
           .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+          }
+          @media (max-width: 1200px) {
+            .product-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          @media (max-width: 992px) {
+            .product-grid {
+              grid-template-columns: repeat(3, 1fr);
+            }
+          }
+          @media (max-width: 768px) {
+            .product-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 576px) {
+            .product-grid {
+              grid-template-columns: 1fr;
+            }
           }
         `}
       </style>

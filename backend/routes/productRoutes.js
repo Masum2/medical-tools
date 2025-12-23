@@ -1,86 +1,109 @@
 import express from "express";
 import {
-
   createProductController,
-  productCategoryController,
-  productCountController,
+  getProductController,
+  getSingleProductController,
+  getProductVariationController,
+  productPhotoController,
+  deleteProductController,
+  updateProductController,
   productFiltersController,
- productListController,
-
- productSubcategoryController,
-
- relatedProductController,
- searchProductController,
- 
+  productCountController,
+  productListController,
+  searchProductController,
+  relatedProductController,
+  productCategoryController,
+  productSubcategoryController,
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
-import { getProductController } from "../controllers/productController.js";
-import { getSingleProductController } from "../controllers/productController.js";
-import { deleteProductController } from "../controllers/productController.js";
-import { productPhotoController } from "../controllers/productController.js";
-import { updateProductController } from "../controllers/productController.js";
-import formidable from "express-formidable";
 import multer from "multer";
-const upload = multer({ dest: "uploads/" });
+
 const router = express.Router();
 
-//routes for create product
-// Apply formidable only to specific routes
+// ✅ Multer Configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  }
+});
+
+// ✅ Upload Middleware for variations
+// ✅ Upload Middleware - colorImages field যোগ করুন
+const uploadMiddleware = upload.fields([
+  { name: "photos", maxCount: 5 }, // Default photos
+  { name: "colorImages", maxCount: 20 }, // Color-specific photos (নতুন)
+  { name: "variationPhotos", maxCount: 0 }, // পুরানো system-এর জন্য (যদি লাগে)
+]);
+
+// ==================== PRODUCT ROUTES ====================
+
+// ✅ CREATE PRODUCT
 router.post(
   "/create-product",
   requireSignIn,
   isAdmin,
-  upload.array("photos", 5),
-  (req, res, next) => {
-    console.log("FILES:", req.files);
-    console.log("BODY:", req.body);
-    next();
-  },
+  uploadMiddleware,
   createProductController
 );
 
-
-//routes
+// ✅ UPDATE PRODUCT
 router.put(
-  "/update-product/:pid",
+  // "/update-product/:pid",
+  "/update-product/:slug",
   requireSignIn,
   isAdmin,
-    upload.array("photos", 5),
-  (req, res, next) => {
-    console.log("FILES:", req.files);
-    console.log("BODY:", req.body);
-    next();
-  },
+  uploadMiddleware, // ✅ Same middleware for consistency
   updateProductController
 );
-// get all product
-router.get('/get-product',getProductController);
-//single product
+
+// ✅ GET ALL PRODUCTS
+router.get('/get-product', getProductController);
+
+// ✅ GET SINGLE PRODUCT
 router.get("/get-product/:slug", getSingleProductController);
-//get photo
+
+// ✅ GET PRODUCT VARIATION WISE
+router.get("/get-product-variation/:slug", getProductVariationController); // ✅ Fixed route name
+
+// ✅ GET PRODUCT PHOTO
 router.get("/product-photo/:pid", productPhotoController);
 
-//delete rproduct
-router.delete("/delete-product/:pid", deleteProductController);
-// filter product
-router.post('/product-filters',productFiltersController)
-//product count
-router.get("/product-count", productCountController);
-//product per page
-router.get("/product-list/:page", productListController);
-// search product
+// ✅ DELETE PRODUCT
+router.delete("/delete-product/:pid", 
+  requireSignIn, 
+  isAdmin,
+  deleteProductController
+);
 
-//search product
+// ✅ FILTER PRODUCTS
+router.post('/product-filters', productFiltersController);
+
+// ✅ PRODUCT COUNT
+router.get("/product-count", productCountController);
+
+// ✅ PRODUCT PAGINATION
+router.get("/product-list/:page", productListController);
+
+// ✅ SEARCH PRODUCT
 router.get("/search/:keyword", searchProductController);
 
-//similar product
+// ✅ RELATED PRODUCTS
 router.get("/related-product/:pid/:cid", relatedProductController);
-//category wise product
+
+// ✅ CATEGORY WISE PRODUCT
 router.get("/product-category/:slug", productCategoryController);
 
-// router.post("/create-order", requireSignIn, createOrderController);
+// ✅ SUBCATEGORY WISE PRODUCT
 router.get("/subcategory/:subSlug", productSubcategoryController);
-// search product for update
-// ✅ Search Route
 
 export default router;

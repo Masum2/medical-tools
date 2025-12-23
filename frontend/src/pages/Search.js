@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import Layout from "./../components/Layout/Layout";
 import { useSearch } from "../context/search";
 import { useNavigate } from "react-router-dom";
-import { FaRegHeart } from "react-icons/fa";
-import { IoCartOutline } from "react-icons/io5";
 import { toast } from "react-hot-toast";
 import { useCart } from "../context/cart";
 
@@ -15,207 +13,221 @@ const Search = () => {
 
   // ✅ make sure it's always an array
   const results = Array.isArray(values?.results) ? values.results : [];
-  console.log("values", values);
+  console.log("Search results data:", results);
+ const [loading, setLoading] = useState(false);
+  // ✅ Function to get product image - সব ধরণের schema support করে
+  const getProductImage = (product) => {
+    // First try: defaultPhotos (new schema)
+    if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+      // Check if it's an object with url property or just a string
+      const photo = product.defaultPhotos[0];
+      return photo.url || photo;
+    }
+    
+    // Second try: photos (old schema)
+    if (product.photos && product.photos.length > 0) {
+      const photo = product.photos[0];
+      return photo.url || photo;
+    }
+    
+    // Third try: API endpoint as fallback
+    return `${API}/api/v1/product/product-photo/${product._id}`;
+  };
+
+  // ✅ Function to get display price
+  const getDisplayPrice = (product) => {
+    // Use basePrice/baseDiscountPrice (new schema) or price/discountPrice (old schema)
+    const price = product.basePrice || product.price || 0;
+    const discountPrice = product.baseDiscountPrice || product.discountPrice || 0;
+    
+    return {
+      price: price,
+      discountPrice: discountPrice,
+      hasDiscount: discountPrice > 0 && discountPrice < price
+    };
+  };
+
+  // ✅ Calculate discount percentage
+  const calculateDiscount = (basePrice, discountPrice) => {
+    if (!basePrice || !discountPrice || basePrice <= discountPrice) return 0;
+    return Math.round(((basePrice - discountPrice) / basePrice) * 100);
+  };
+
+  // ✅ Add to cart function
+  const handleAddToCart = (p) => {
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const found = existingCart.find((item) => item._id === p._id);
+
+    if (found) {
+      toast.error("Item already added to cart");
+    } else {
+      const priceInfo = getDisplayPrice(p);
+      const productImage = getProductImage(p);
+      
+      const cartItem = {
+        _id: p._id,
+        name: p.name,
+        price: priceInfo.discountPrice || priceInfo.price,
+        originalPrice: priceInfo.price,
+        quantity: 1,
+        image: productImage,
+        slug: p.slug,
+      };
+      
+      const updatedCart = [...existingCart, cartItem];
+      setCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      toast.success("Item added to cart");
+    }
+  };
 
   return (
     <Layout title={"Search results"}>
-      <div className="container">
-        <div className="text-center">
-          <h1>Search Results</h1>
-          <h6>
+      <div className="container mx-5 my-5">
+        <div className="text-center mb-4">
+          <h2 className="fw-bold mb-3">Search Results</h2>
+          <h5 className="text-muted">
             {results.length < 1
               ? "No Products Found"
-              : `Found ${results.length}`}
-          </h6>
+              : `Found ${results.length} product${results.length > 1 ? 's' : ''}`}
+          </h5>
+        </div>
 
-          {/* ✅ GRID DESIGN START */}
-          <div className="search-grid">
-            {results.map((p) => (
-              <div
-                key={p._id}
-                className="search-card"
-              >
-                {/* ❤️ Wishlist Button */}
-                {/* <div className="wishlist-btn">
-                  <button className="wishlist-icon">
-                    <FaRegHeart />
-                  </button>
-                </div> */}
-
-                {/* 🖼️ Product Image */}
-                <div
-                  className="product-image"
-                  onClick={() => navigate(`/product/${p.slug}`)}
-                >
-                  <img
-                    src={`${API}/api/v1/product/product-photo/${p._id}`}
-                    alt={p.name}
-                  />
-                </div>
-
-                {/* 📄 Product Details */}
-                <div className="product-info">
-                  <p className="product-name">
-                    {p.name.length > 25
-                      ? p.name.substring(0, 25) + "..."
-                      : p.name}
-                  </p>
-
-                  <div className="price-cart">
-                    <h6 className="product-price">৳ {p.price}</h6>
-                    <div
-                      className="cart-btn"
-                      onClick={() => {
-                        const existingCart =
-                          JSON.parse(localStorage.getItem("cart")) || [];
-
-                        // Check if product already exists
-                        const found = existingCart.find(
-                          (item) => item._id === p._id
-                        );
-
-                        if (found) {
-                          toast.error("Item already added to cart");
-                        } else {
-                          const cartItem = {
-                            _id: p._id,
-                            name: p.name,
-                            price: p.price,
-                            quantity: 1,
-                            image: `${API}/api/v1/product/product-photo/${p._id}`,
-                          };
-                          const updatedCart = [...existingCart, cartItem];
-                          setCart(updatedCart);
-                          localStorage.setItem(
-                            "cart",
-                            JSON.stringify(updatedCart)
-                          );
-                          toast.success("Item added to cart");
-                        }
-                      }}
+        {/* Product Grid - Shop page এর মতো */}
+        {results.length > 0 && (
+          <div className="product-grid">
+            {results.map((p) => {
+              const priceInfo = getDisplayPrice(p);
+              const discountPercent = calculateDiscount(
+                priceInfo.price,
+                priceInfo.discountPrice
+              );
+              const productImage = getProductImage(p);
+              
+              return (
+                <div key={p._id} className="product-card">
+                  <div className="card h-100 shadow-sm border-0 rounded-lg hover:shadow-md transition-all">
+                    {/* Product Image */}
+                    <a
+                      href={`/product/${p.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="d-flex justify-content-center align-items-center p-3 text-decoration-none"
+                      style={{ cursor: "pointer", height: "200px", backgroundColor: "#f9f9f9" }}
                     >
-                      <IoCartOutline />
+                      <img
+                        src={productImage}
+                        alt={p.name}
+                        className="img-fluid"
+                        style={{ 
+                          maxHeight: "100%", 
+                          maxWidth: "100%",
+                          objectFit: "contain" 
+                        }}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.src = "/images/default-product.jpg";
+                          e.target.onerror = null;
+                        }}
+                      />
+                    </a>
+                    
+                    <div className="card-body d-flex flex-column">
+                      {/* Product Name */}
+                      <p className="fw-bold mb-2" style={{ fontSize: "14px" }}>
+                        {p.name && p.name.length > 30 
+                          ? p.name.substring(0, 30) + "..." 
+                          : p.name}
+                      </p>
+
+                      {/* Price Display */}
+                      <div className="mb-2 d-flex align-items-center gap-2 flex-wrap">
+                        {priceInfo.hasDiscount ? (
+                          <>
+                            <span className="text-danger fw-bold">
+                              ৳ {priceInfo.discountPrice}
+                            </span>
+                            <small className="text-muted text-decoration-line-through">
+                              ৳ {priceInfo.price}
+                            </small>
+                            <span className="badge bg-danger" style={{ fontSize: "10px" }}>
+                              {discountPercent}% OFF
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-danger fw-bold">
+                            ৳ {priceInfo.price || "N/A"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={() => handleAddToCart(p)}
+                        className="mt-auto w-100 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded transition"
+                        style={{ 
+                          fontSize: "14px", 
+                          border: "none",
+                          cursor: "pointer",
+                          backgroundColor: "#00a297",
+                          transition: "background-color 0.3s"
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = "#00857a"}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = "#00a297"}
+                      >
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          {/* ✅ GRID DESIGN END */}
-        </div>
+        )}
+
+        {/* No Products Message */}
+        {!loading && results.length === 0 && (
+          <div className="text-center py-5">
+            <h4>No products found</h4>
+            <p>Try different search terms</p>
+          </div>
+        )}
+
+        {/* CSS - Shop page এর মতো */}
+        <style jsx>{`
+          .product-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+          }
+          .product-card {
+            transition: transform 0.3s ease;
+          }
+          .product-card:hover {
+            transform: translateY(-5px);
+          }
+          @media (max-width: 1200px) {
+            .product-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          @media (max-width: 992px) {
+            .product-grid {
+              grid-template-columns: repeat(3, 1fr);
+            }
+          }
+          @media (max-width: 768px) {
+            .product-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 576px) {
+            .product-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
       </div>
-
-      {/* ✅ Responsive CSS */}
-      <style jsx>{`
-        .search-grid {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 15px;
-          margin-top: 20px;
-        }
-
-        .search-card {
-          background: #fff;
-          border: 1px solid #eee;
-          border-radius: 8px;
-          padding: 10px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-        .wishlist-btn {
-          display: flex;
-          justify-content: flex-end;
-          margin-bottom: 5px;
-        }
-
-        .wishlist-icon {
-          background: #fff;
-          color: #00a297;
-          border-radius: 50%;
-          padding: 5px;
-          cursor: pointer;
-          border: 1px solid #00a297;
-        }
-
-        .product-image {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          cursor: pointer;
-          height: 150px;
-        }
-
-        .product-image img {
-          max-height: 100%;
-          max-width: 100%;
-          object-fit: contain;
-        }
-
-        .product-info {
-          margin-top: 10px;
-        }
-
-        .product-name {
-          font-weight: bold;
-          font-size: 14px;
-          margin: 0;
-        }
-
-        .price-cart {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 8px;
-        }
-
-        .product-price {
-          color: red;
-          font-weight: bold;
-          margin: 0;
-        }
-
-        .cart-btn {
-          cursor: pointer;
-          color: #fff;
-          font-weight: bold;
-          background-color: #00a297;
-          padding: 4px;
-          border-radius: 2px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* Tablet */
-        @media (max-width: 1024px) {
-          .search-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        /* Mobile */
-        @media (max-width: 768px) {
-          .search-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        /* Small Mobile */
-        @media (max-width: 480px) {
-          .search-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-          }
-          .product-image {
-            height: 120px;
-          }
-          .product-name {
-            font-size: 12px;
-          }
-        }
-      `}</style>
     </Layout>
   );
 };

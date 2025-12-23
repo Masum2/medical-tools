@@ -14,6 +14,9 @@ const Shop = () => {
   const [cart, setCart] = useCart();
   const API = process.env.REACT_APP_API;
   const { products, loadCategories, setProducts, total, setTotal } = useProduct();
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [loading, setLoading] = useState(false);
 const [isHovered, setIsHovered] = useState(false);
 const controls = useAnimation();
 
@@ -27,34 +30,20 @@ useEffect(() => {
     });
   }
 }, [isHovered, controls]);
-  const [page, setPage] = useState(1);
-  const limit = 10;
-  const [loading, setLoading] = useState(false);
-  console.log("products",products)
-useEffect(() => {
-  const init = async () => {
-    setLoading(true);
-    try {
-      // Load categories and first page in parallel
-      const [catData, productData] = await Promise.all([
-        loadCategories(),
-        axios.get(`${API}/api/v1/product/product-list/1?limit=${limit}`)
-      ]);
-
-      setProducts(productData.data.products);
-      setTotal(productData.data.total);
-    } catch (error) {
-      console.log(error);
-    }
-    setLoading(false);
-  };
-  init();
-}, []);
   // initial data load
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([loadCategories(), fetchProducts(1)]);
+      try {
+        const [catData, productData] = await Promise.all([
+          loadCategories(),
+          axios.get(`${API}/api/v1/product/product-list/1?limit=${limit}`)
+        ]);
+        setProducts(productData.data.products);
+        setTotal(productData.data.total);
+      } catch (error) {
+        console.log(error);
+      }
       setLoading(false);
     };
     init();
@@ -77,45 +66,130 @@ useEffect(() => {
     }
   };
 
-  // load more
-// Load More function
-const loadMore = async () => {
-  if (loading) return; // prevent multiple clicks
-  setLoading(true);
-  try {
-    const nextPage = page + 1;
-    const { data } = await axios.get(
-      `${API}/api/v1/product/product-list/${nextPage}?limit=${limit}`
-    );
-    setProducts((prev) => [...prev, ...data.products]);
-    setPage(nextPage);
-    setTotal(data.total);
-  } catch (error) {
-    console.log(error);
-  }
-  setLoading(false);
-};
+  // Load More function
+  const loadMore = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const nextPage = page + 1;
+      const { data } = await axios.get(
+        `${API}/api/v1/product/product-list/${nextPage}?limit=${limit}`
+      );
+      setProducts((prev) => [...prev, ...data.products]);
+      setPage(nextPage);
+      setTotal(data.total);
+    } catch (error) {
+      console.log(error);
+    }
+    setLoading(false);
+  };
 
-  // slider images
-  const images = [
-    // "https://www.shutterstock.com/image-photo/elegant-health-fitness-product-showcase-260nw-2664388867.jpg",
-    // "/images/slider4.jpeg",
-    "/images/slider1.webp",
-    // "/images/slider3.jpg",
-    "/images/slidern.jpg",
+  // ✅ Get display price for product (ALL systems)
+  const getDisplayPrice = (product) => {
+    // Check which system the product uses
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      // ✅ Color Variations System
+      const colorKeys = Object.keys(product.colorVariations);
+      if (colorKeys.length > 0) {
+        const firstColor = colorKeys[0];
+        const variations = product.colorVariations[firstColor];
+        if (variations && variations.length > 0) {
+          const firstVariation = variations[0];
+          return {
+            price: firstVariation.price,
+            discountPrice: firstVariation.discountPrice,
+            hasDiscount: firstVariation.discountPrice > 0,
+            minPrice: product.minPrice,
+            maxPrice: product.maxPrice,
+            system: 'colorVariations'
+          };
+        }
+      }
+      
+      // Fallback to min/max price
+      return {
+        price: product.minPrice || 0,
+        discountPrice: 0,
+        hasDiscount: false,
+        minPrice: product.minPrice,
+        maxPrice: product.maxPrice,
+        system: 'colorVariations'
+      };
+    }
     
-    "/images/slider.webp",
+    // ✅ OLD System: variations array
+    if (product.variations && product.variations.length > 0) {
+      const firstVariation = product.variations[0];
+      return {
+        price: firstVariation.price,
+        discountPrice: firstVariation.discountPrice,
+        hasDiscount: firstVariation.discountPrice > 0,
+        system: 'variations'
+      };
+    }
     
-  ];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [images.length]);
+    // ✅ Simple Product System
+    return {
+      price: product.basePrice || product.price,
+      discountPrice: product.baseDiscountPrice || product.discountPrice,
+      hasDiscount: (product.baseDiscountPrice || product.discountPrice) > 0,
+      system: 'simple'
+    };
+  };
 
-  // add to cart
+  // ✅ Get variation summary for display
+  const getVariationSummary = (product) => {
+    // Color Variations System
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      const colorKeys = Object.keys(product.colorVariations);
+      const colors = colorKeys;
+      const sizes = new Set();
+      let totalVariations = 0;
+      
+      colorKeys.forEach(color => {
+        const variations = product.colorVariations[color];
+        if (variations) {
+          totalVariations += variations.length;
+          variations.forEach(v => sizes.add(v.size));
+        }
+      });
+      
+      return {
+        sizes: Array.from(sizes).slice(0, 3),
+        colors: colors.slice(0, 2),
+        totalVariations,
+        system: 'colorVariations'
+      };
+    }
+    
+    // OLD System: variations array
+    if (product.variations && product.variations.length > 0) {
+      const sizes = [...new Set(product.variations.map(v => v.size))];
+      const colors = [...new Set(product.variations.map(v => v.color))];
+      
+      return {
+        sizes: sizes.slice(0, 3),
+        colors: colors.slice(0, 2),
+        totalVariations: product.variations.length,
+        system: 'variations'
+      };
+    }
+    
+    return null;
+  };
+
+  // ✅ Check if product has variations
+  const hasVariations = (product) => {
+    // Color Variations System
+    if (product.useSimpleProduct === false && product.colorVariations) {
+      return Object.keys(product.colorVariations).length > 0;
+    }
+    
+    // OLD System
+    return product.variations && product.variations.length > 0;
+  };
+
+  // ✅ Add to cart function
   const handleAddToCart = (p) => {
     const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
     const found = existingCart.find((item) => item._id === p._id);
@@ -123,21 +197,70 @@ const loadMore = async () => {
     if (found) {
       toast.error("Item already added to cart");
     } else {
+      const displayPrice = getDisplayPrice(p);
+      const variationsExist = hasVariations(p);
+      
       const cartItem = {
         _id: p._id,
         name: p.name,
-        price: p.price,
-        discountPrice:p.discountPrice,
+        price: displayPrice.price,
+        discountPrice: displayPrice.discountPrice,
         quantity: 1,
-        // image: `${API}/api/v1/product/product-photo/${p._id}`,
-       image: p.photos?.[0]?.url
+        image: p.defaultPhotos?.[0]?.url || p.photos?.[0]?.url,
+        hasVariations: variationsExist,
+        slug: p.slug,
+        // ✅ নতুন ফিল্ড যোগ করেছি
+        useSimpleProduct: p.useSimpleProduct,
+        colorVariations: p.colorVariations || null,
+        variations: p.variations || null,
+        basePrice: p.basePrice,
+        baseDiscountPrice: p.baseDiscountPrice,
+        availableColors: p.availableColors || [],
+        availableSizes: p.availableSizes || []
       };
+      
       const updatedCart = [...existingCart, cartItem];
       setCart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
       toast.success("Item added to cart");
     }
   };
+
+  // ✅ Get product image
+  const getProductImage = (product) => {
+    // First try color-specific images
+    if (product.colorImages && product.colorImages.length > 0) {
+      return product.colorImages[0].images?.[0]?.url;
+    }
+    
+    // Then try default photos
+    if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+      return product.defaultPhotos[0]?.url;
+    }
+    
+    // Then old photos array
+    if (product.photos && product.photos.length > 0) {
+      return product.photos[0]?.url;
+    }
+    
+    // Fallback
+    return "/images/default-product.jpg";
+  };
+
+  // slider images
+  const images = [
+    "/images/newslide.png",
+    "/images/slider2.jpeg",
+    "/images/slidenew2.png",
+  ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   return (
     <Layout>
@@ -159,7 +282,7 @@ const loadMore = async () => {
         </section>
 
         {/* Product Categories */}
-     <div className="my-3 overflow-hidden">
+       <div className="my-3 overflow-hidden">
     <h2 className="text-center mb-4 fw-bold">Shop by Category</h2>
 
     <motion.div
@@ -193,8 +316,8 @@ const loadMore = async () => {
   </div>
 
         {/* All Products */}
-        <div className=" mx-5 my-5">
-          <h2 className="text-center mb-4 fw-bold">Choose Your Products</h2>
+        <div className="mx-5 my-5">
+          <h2 className="mb-4 fw-bold">All Product</h2>
 
           {/* Initial Loader */}
           {loading && products.length === 0 && (
@@ -208,129 +331,203 @@ const loadMore = async () => {
           )}
 
           {/* Product Grid */}
-          {/* Product Grid */}
           <div className="product-grid">
-            {products.map((p) => (
-              <div key={p._id} className="product-card">
-                <div className="card h-100 shadow-sm border-0 rounded-lg hover:shadow-md transition-all">
-                  {/* <div
-                    className="d-flex justify-content-center align-items-center p-3"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/product/${p.slug}`)}
-                  >
-                    <img
-                      // src={`${API}/api/v1/product/product-photo/${p._id}`}
-                       src={p.photos?.[0]?.url}
-                      alt={p.name}
-                      className="img-fluid"
-                      style={{ maxHeight: "160px", objectFit: "contain" }}
-                      loading="lazy"
-                    />
-                  </div> */}
-<a
-  href={`/product/${p.slug}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="d-flex justify-content-center align-items-center p-3 text-decoration-none"
-  style={{ cursor: "pointer" }}
->
-  <img
-    src={p.photos?.[0]?.url}
-    alt={p.name}
-    className="img-fluid"
-    style={{ maxHeight: "160px", objectFit: "contain" }}
-    loading="lazy"
-  />
-</a>
-                  
-                  <div className="card-body d-flex flex-column">
-                    <p className="fw-bold mb-2" style={{ fontSize: "14px" }}>
-                      {p.name.length > 20 ? p.name.substring(0, 20) + "..." : p.name}
-                    </p>
-                    <div className="mb-2 d-flex align-items-center gap-2 flex-wrap">
-                      {p.discountPrice && p.discountPrice > 0 ? (
-                        <>
-                          <span className="text-danger fw-bold">৳ {p.discountPrice}</span>
-                          <small className="text-muted text-decoration-line-through">
-                            ৳ {p.price}
-                          </small>
-                          <span className="badge bg-danger">
-                            {Math.round(((p.price - p.discountPrice) / p.price) * 100)}% OFF
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-danger fw-bold">৳ {p.price}</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleAddToCart(p)}
-                      className="mt-auto w-100 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded transition"
-                      style={{ fontSize: "14px", border: "none" }}
+            {products.map((p) => {
+              const variationsExist = hasVariations(p);
+              const displayPrice = getDisplayPrice(p);
+              const variationSummary = variationsExist ? getVariationSummary(p) : null;
+              const productImage = getProductImage(p);
+
+              return (
+                <div key={p._id} className="product-card">
+                  <div className="card h-100 shadow-sm border-0 rounded-lg hover:shadow-md transition-all">
+                    {/* Product Image */}
+                    <a
+                      href={`/product/${p.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="d-flex justify-content-center align-items-center p-3 text-decoration-none"
+                      style={{ cursor: "pointer", height: "200px" }}
                     >
-                      Add to Cart
-                    </button>
+                      <img
+                        src={productImage}
+                        alt={p.name}
+                        className="img-fluid"
+                        style={{ 
+                          maxHeight: "100%", 
+                          maxWidth: "100%",
+                          objectFit: "contain" 
+                        }}
+                        loading="lazy"
+                      />
+                    </a>
+                    
+                    <div className="card-body d-flex flex-column">
+                      {/* Product Name */}
+                      <p className="fw-bold mb-2" style={{ fontSize: "14px" }}>
+                        {p.name.length > 30 ? p.name.substring(0, 30) + "..." : p.name}
+                      </p>
+
+                      {/* Price Range for Color Variations */}
+                      {/* {displayPrice.system === 'colorVariations' && displayPrice.minPrice !== displayPrice.maxPrice && (
+                        <div className="mb-1">
+                          <small className="text-success fw-bold">
+                            ৳{displayPrice.minPrice} - ৳{displayPrice.maxPrice}
+                          </small>
+                        </div>
+                      )} */}
+
+                      {/* Price Display */}
+                      <div className="mb-2 d-flex align-items-center gap-2 flex-wrap">
+                        {displayPrice.hasDiscount ? (
+                          <>
+                            <span className="text-danger fw-bold">৳ {displayPrice.discountPrice}</span>
+                            <small className="text-muted text-decoration-line-through">
+                              ৳ {displayPrice.price}
+                            </small>
+                            <span className="badge bg-danger" style={{ fontSize: "10px" }}>
+                              {Math.round(((displayPrice.price - displayPrice.discountPrice) / displayPrice.price) * 100)}% OFF
+                            </span>
+                          </>
+                        ) : (
+                          displayPrice.system !== 'colorVariations' && (
+                            <span className="text-danger fw-bold">৳ {displayPrice.price}</span>
+                          )
+                        )}
+                      </div>
+
+                      {/* Variation Summary */}
+                      {/* {variationsExist && variationSummary && (
+                        <div className="mb-2 small text-muted">
+                          <div className="d-flex align-items-center gap-2 mb-1">
+                            <span className="badge bg-info" style={{ fontSize: "10px" }}>
+                              {variationSummary.totalVariations} Options
+                            </span>
+                            {variationSummary.sizes.length > 0 && (
+                              <span>
+                                <strong>Sizes:</strong> {variationSummary.sizes.join(', ')}
+                                {variationSummary.sizes.length > 3 && "..."}
+                              </span>
+                            )}
+                          </div>
+                          {variationSummary.colors.length > 0 && (
+                            <div>
+                              <strong>Colors:</strong> {variationSummary.colors.join(', ')}
+                              {variationSummary.colors.length > 2 && "..."}
+                            </div>
+                          )}
+                        </div>
+                      )} */}
+
+                      {/* Simple Product Indicator */}
+                      {/* {p.useSimpleProduct === true && !variationsExist && (
+                        <div className="mb-2">
+                          <span className="badge bg-secondary" style={{ fontSize: "10px" }}>
+                            Single Price
+                          </span>
+                        </div>
+                      )} */}
+
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={() => handleAddToCart(p)}
+                        className="mt-auto w-100 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded transition"
+                        style={{ 
+                          fontSize: "14px", 
+                          border: "none",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* CSS */}
           <style jsx>{`
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
-  }
-  @media (max-width: 992px) {
-    .product-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  @media (max-width: 768px) {
-    .product-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 576px) {
-    .product-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-`}</style>
-
+            .product-grid {
+              display: grid;
+              grid-template-columns: repeat(5, 1fr);
+              gap: 20px;
+            }
+            .product-card {
+              transition: transform 0.3s ease;
+            }
+            .product-card:hover {
+              transform: translateY(-5px);
+            }
+            @media (max-width: 1200px) {
+              .product-grid {
+                grid-template-columns: repeat(4, 1fr);
+              }
+            }
+            @media (max-width: 992px) {
+              .product-grid {
+                grid-template-columns: repeat(3, 1fr);
+              }
+            }
+            @media (max-width: 768px) {
+              .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+              }
+            }
+            @media (max-width: 576px) {
+              .product-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+          `}</style>
 
           {/* Load More Button */}
-      {products.length < total && (
-  <div className="text-center mt-3 mb-5">
-    {loading ? (
-      <button
-        disabled
-        style={{
-          backgroundColor: "#00a297",
-          color: "#FFF",
-          padding: "8px 20px",
-          opacity: 0.7,
-          cursor: "not-allowed",
-        }}
-      >
-        Loading...
-      </button>
-    ) : (
-      <button
-        onClick={loadMore}
-        style={{
-          backgroundColor: "#00a297",
-          color: "#FFF",
-          padding: "8px 20px",
-        }}
-      >
-        Load More
-      </button>
-    )}
-  </div>
-)}
+          {products.length < total && (
+            <div className="text-center mt-3 mb-5">
+              {loading ? (
+                <button
+                  disabled
+                  style={{
+                    backgroundColor: "#00a297",
+                    color: "#FFF",
+                    padding: "8px 20px",
+                    borderRadius: "6px",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                    border: "none"
+                  }}
+                >
+                  Loading...
+                </button>
+              ) : (
+                <button
+                  onClick={loadMore}
+                  style={{
+                    backgroundColor: "#00a297",
+                    color: "#FFF",
+                    padding: "8px 20px",
+                    borderRadius: "6px",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s"
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "#00897b"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "#00a297"}
+                >
+                  Load More Products
+                </button>
+              )}
+            </div>
+          )}
 
+          {/* No Products Message */}
+          {!loading && products.length === 0 && (
+            <div className="text-center py-5">
+              <h4>No products found</h4>
+              <p>Check back later for new arrivals!</p>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

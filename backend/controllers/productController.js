@@ -12,34 +12,38 @@ import { v2 as cloudinary } from "cloudinary";
 
 
 
+// productController.js
 export const createProductController = async (req, res) => {
   try {
     const {
       name,
       description,
-      price,
-      discountPrice,
-      quantity,
+      useVariations,
       brand,
-      color,
-      size,
       shipping,
-      category,
       categories,
       subcategories,
+      // ✅ নতুন ফিল্ড যোগ করুন
+      colorVariations,
+      colorImageData,
+      availableColors,
+      availableSizes,
+      // ✅ videoUrl field যোগ করুন
+      videoUrl
+
     } = req.body;
 
-    // ✅ Individual Field Validation
+    console.log("Received data:", {
+      videoUrl,
+      name,
+      useVariations,
+      colorVariations: colorVariations ? JSON.parse(colorVariations) : null,
+      files: req.files ? Object.keys(req.files) : 'No files'
+    });
+
+    // ✅ Validation
     if (!name?.trim()) {
       return res.status(400).json({ success: false, message: "Name is required" });
-    }
-
-    if (price === undefined) {
-      return res.status(400).json({ success: false, message: "Price is required" });
-    }
-
-    if (quantity === undefined) {
-      return res.status(400).json({ success: false, message: "Quantity is required" });
     }
 
     let parsedCategories = [];
@@ -47,111 +51,417 @@ export const createProductController = async (req, res) => {
       parsedCategories = Array.isArray(categories) ? categories : JSON.parse(categories);
     }
 
-    if (!category && parsedCategories.length === 0) {
+    if (parsedCategories.length === 0) {
       return res.status(400).json({ success: false, message: "Category is required" });
     }
 
-    // ✅ Upload photos to Cloudinary if files exist
-    let uploadedPhotos = [];
-    if (req.files && req.files.length > 0) {
-      uploadedPhotos = await Promise.all(
-        req.files.map(async (file) => {
+    // ✅ Check if using variation system
+    const useVariationSystem = useVariations === "true" || useVariations === true;
+    
+    // ✅ Parse color variations if provided
+    let parsedColorVariations = [];
+    if (colorVariations && useVariationSystem) {
+      parsedColorVariations = Array.isArray(colorVariations) ? colorVariations : JSON.parse(colorVariations);
+      
+      if (parsedColorVariations.length === 0) {
+        return res.status(400).json({ success: false, message: "At least one color variation is required" });
+      }
+    }
+
+    // ✅ Parse color image data
+    let parsedColorImageData = [];
+    if (colorImageData) {
+      parsedColorImageData = Array.isArray(colorImageData) ? colorImageData : JSON.parse(colorImageData);
+    }
+
+    // ✅ Upload default photos to Cloudinary
+    let uploadedDefaultPhotos = [];
+    if (req.files?.photos && req.files.photos.length > 0) {
+      uploadedDefaultPhotos = await Promise.all(
+        req.files.photos.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "products",
           });
-          fs.unlinkSync(file.path); // remove temp file
+          // Remove temp file
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
           return { url: result.secure_url, public_id: result.public_id };
         })
       );
     }
 
-    // ✅ Create Product
-    const product = new productModel({
+    // ✅ Create base product data
+    const productData = {
       name,
       slug: slugify(name),
       description,
-      price,
-      discountPrice: discountPrice || 0,
-      quantity,
-      brand: Array.isArray(brand) ? brand : JSON.parse(brand || "[]"),
-      color: Array.isArray(color) ? color : JSON.parse(color || "[]"),
-      size: Array.isArray(size) ? size : JSON.parse(size || "[]"),
+      brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand || "[]")) : [],
       shipping: shipping === "true" || shipping === true,
-      category: category
-        ? category
-        : parsedCategories[0],
-      categories: category
-        ? [category]
-        : parsedCategories,
+      categories: parsedCategories,
       subcategories: subcategories
-        ? Array.isArray(subcategories)
-          ? subcategories
-          : JSON.parse(subcategories)
+        ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories || "[]"))
         : [],
-      photos: uploadedPhotos,
-    });
+      defaultPhotos: uploadedDefaultPhotos,
+      // ✅ Simple product flag
+      useSimpleProduct: !useVariationSystem,
+        // ✅ videoUrl যোগ করুন (optional)
+     videoUrl: videoUrl?.trim() || "", // ✅ এখানে পরিবর্তন করুন
+    };
 
-    await product.save();
+    // ✅ Handle NEW color-based variation system
+    if (useVariationSystem && parsedColorVariations.length > 0) {
+      // Initialize colorVariations as Map
+      productData.colorVariations = new Map();
+      productData.colorImages = [];
+      
+      // Process color images if available
+      const colorPhotoFiles = req.files?.colorImages || [];
+      console.log(`Found ${colorPhotoFiles.length} color image files`);
+      
+      // ✅ Process each color variation
+      for (const colorVar of parsedColorVariations) {
+        const color = colorVar.color;
+        
+        // Find images for this specific color
+        const photosForThisColor = [];
+        if (colorPhotoFiles.length > 0 && parsedColorImageData.length > 0) {
+          for (let i = 0; i < parsedColorImageData.length; i++) {
+            if (parsedColorImageData[i].color === color && colorPhotoFiles[i]) {
+              photosForThisColor.push(colorPhotoFiles[i]);
+            }
+          }
+        }
+        
+        // Upload color-specific photos to Cloudinary
+        let uploadedColorImages = [];
+        if (photosForThisColor.length > 0) {
+          uploadedColorImages = await Promise.all(
+            photosForThisColor.map(async (file) => {
+              const result = await cloudinary.uploader.upload(file.path, {
+                folder: "products/colors",
+              });
+              // Remove temp file
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+              return { url: result.secure_url, public_id: result.public_id };
+            })
+          );
+        }
+        
+        // Add color images to product data
+        if (uploadedColorImages.length > 0) {
+          productData.colorImages.push({
+            color: color,
+            images: uploadedColorImages
+          });
+        }
+        
+        // Process sizes for this color
+        const colorVariationsArray = colorVar.sizes.map(size => ({
+          size: size.size,
+          price: parseFloat(size.price),
+          discountPrice: size.discountPrice ? parseFloat(size.discountPrice) : 0,
+          quantity: parseInt(size.quantity),
+          sku: `${slugify(name)}-${color}-${size.size}`.toUpperCase().replace(/\s+/g, '-')
+        }));
+        
+        // Add to colorVariations Map (Mongoose will convert this)
+        productData.colorVariations.set(color, colorVariationsArray);
+      }
+      
+      // Set available colors and sizes
+      productData.availableColors = parsedColorVariations.map(cv => cv.color);
+      productData.availableSizes = [...new Set(
+        parsedColorVariations.flatMap(cv => cv.sizes.map(s => s.size))
+      )];
+      
+      const product = new productModel(productData);
+      await product.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Product created successfully",
-      product,
-    });
+      res.status(201).json({
+        success: true,
+        message: "Product with color variations created successfully",
+        product,
+      });
+
+    } else {
+      // ✅ Simple product system (without variations)
+      const {
+        basePrice,
+        baseDiscountPrice,
+        baseQuantity,
+        color, // Simple color array
+        size  // Simple size array
+      } = req.body;
+      
+      if (!basePrice) {
+        return res.status(400).json({ success: false, message: "Base price is required" });
+      }
+      if (!baseQuantity) {
+        return res.status(400).json({ success: false, message: "Base quantity is required" });
+      }
+
+      productData.basePrice = parseFloat(basePrice);
+      productData.baseDiscountPrice = baseDiscountPrice ? parseFloat(baseDiscountPrice) : 0;
+      productData.baseQuantity = parseInt(baseQuantity);
+      productData.useSimpleProduct = true;
+      
+      // Handle simple color/size arrays
+      const simpleColors = color ? 
+        (Array.isArray(color) ? color : JSON.parse(color || "[]")) 
+        : [];
+      const simpleSizes = size ? 
+        (Array.isArray(size) ? size : JSON.parse(size || "[]")) 
+        : [];
+      
+      productData.availableColors = simpleColors;
+      productData.availableSizes = simpleSizes;
+
+      const product = new productModel(productData);
+      await product.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Product created successfully",
+        product,
+      });
+    }
+
   } catch (error) {
-    console.error(error);
+    console.error("Create Product Error:", error);
+    
+    // ✅ Clean up uploaded files in case of error
+    if (req.files) {
+      Object.values(req.files).flat().forEach(file => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: "You Have already upload this product",
+      message: "Error creating product",
       error: error.message,
     });
   }
 };
 
 
+
+// ------------------ GET ALL PRODUCTS ------------------
 // ------------------ GET ALL PRODUCTS ------------------
 export const getProductController = async (req, res) => {
   try {
     const products = await productModel
       .find({})
-      .populate("category", "name slug") // শুধু দরকারি ফিল্ড
-      .select("-photos.data")            // buffer বাদ দিলাম
+      .populate("categories", "name slug") // ✅ categories populate করুন
       .limit(12)
       .sort({ createdAt: -1 });
 
-    res.status(200).send({
+    // Convert Maps to Objects for all products
+    const processedProducts = products.map(product => {
+      const productObj = product.toObject();
+      
+      if (product.colorVariations && product.colorVariations.size > 0) {
+        const colorVariationsObj = {};
+        for (const [color, variations] of product.colorVariations) {
+          colorVariationsObj[color] = variations;
+        }
+        productObj.colorVariations = colorVariationsObj;
+      }
+      
+      return productObj;
+    });
+
+    res.status(200).json({
       success: true,
       count: products.length,
-      products,
+      products: processedProducts,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({
+    console.error("Get Products Error:", error);
+    res.status(500).json({
       success: false,
       message: "Error fetching products",
       error: error.message,
     });
   }
 };
+// ✅ GET PRODUCT WITH VARIATIONS
+export const getProductWithVariationsController = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    const product = await productModel
+      .findOne({ slug })
+      .populate("category")
+      .populate("categories");
 
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // ✅ Group variations by color and size for easy frontend handling
+    const variationsByColor = {};
+    const variationsBySize = {};
+
+    product.variations.forEach(variation => {
+      // Group by color
+      if (!variationsByColor[variation.color]) {
+        variationsByColor[variation.color] = [];
+      }
+      variationsByColor[variation.color].push(variation);
+
+      // Group by size
+      if (!variationsBySize[variation.size]) {
+        variationsBySize[variation.size] = [];
+      }
+      variationsBySize[variation.size].push(variation);
+    });
+
+    res.status(200).json({
+      success: true,
+      product: {
+        ...product.toObject(),
+        variationsByColor,
+        variationsBySize,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching product with variations",
+      error: error.message,
+    });
+  }
+};
+
+// ✅ GET SPECIFIC VARIATION
+// productController.js - getProductVariationController
+export const getProductVariationController = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    // শুধুমাত্র categories populate করুন (category নয়)
+    const product = await productModel
+      .findOne({ slug })
+      .populate("categories"); // শুধু এটা রাখুন
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // ✅ Convert Map to Object for frontend compatibility
+    const productForResponse = product.toObject();
+    
+    if (product.colorVariations && product.colorVariations.size > 0) {
+      // Convert Map to regular object for JSON response
+      const colorVariationsObj = {};
+      for (const [color, variations] of product.colorVariations) {
+        colorVariationsObj[color] = variations;
+      }
+      productForResponse.colorVariations = colorVariationsObj;
+    }
+
+    // ✅ Calculate available sizes and colors for frontend
+    if (!product.useSimpleProduct && product.colorVariations && product.colorVariations.size > 0) {
+      // Get all unique colors
+      const colors = Array.from(product.colorVariations.keys());
+      
+      // Get all unique sizes from all color variations
+      const allSizesSet = new Set();
+      for (const variations of product.colorVariations.values()) {
+        variations.forEach(v => allSizesSet.add(v.size));
+      }
+      
+      productForResponse.availableColors = colors;
+      productForResponse.availableSizes = Array.from(allSizesSet);
+    } else {
+      // For simple products
+      productForResponse.availableColors = product.availableColors || [];
+      productForResponse.availableSizes = product.availableSizes || [];
+    }
+
+    res.status(200).json({
+      success: true,
+      product: productForResponse,
+    });
+  } catch (error) {
+    console.error("Get Product Variation Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching product with variations",
+      error: error.message,
+    });
+  }
+};
+// ------------------ GET SINGLE PRODUCT ------------------
 // ------------------ GET SINGLE PRODUCT ------------------
 export const getSingleProductController = async (req, res) => {
   try {
     const product = await productModel
       .findOne({ slug: req.params.slug })
-      .select("-photo")
-      .populate("category");
+      .populate("categories", "_id name slug") // ✅ শুধু categories populate করুন
+      .exec();
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
 
-    res.status(200).send({
+    // ✅ Convert Map to Object for frontend
+    const productForResponse = product.toObject();
+    
+    // Convert colorVariations Map to regular object
+    if (product.colorVariations && product.colorVariations.size > 0) {
+      const colorVariationsObj = {};
+      for (const [color, variations] of product.colorVariations) {
+        colorVariationsObj[color] = variations;
+      }
+      productForResponse.colorVariations = colorVariationsObj;
+    }
+
+    // ✅ Calculate available sizes and colors for frontend (যদি pre-save middleware না করে থাকেন)
+    if (!product.useSimpleProduct && product.colorVariations && product.colorVariations.size > 0) {
+      // Get all unique colors
+      const colors = Array.from(product.colorVariations.keys());
+      
+      // Get all unique sizes from all color variations
+      const allSizesSet = new Set();
+      for (const variations of product.colorVariations.values()) {
+        variations.forEach(v => allSizesSet.add(v.size));
+      }
+      
+      productForResponse.availableColors = colors;
+      productForResponse.availableSizes = Array.from(allSizesSet);
+    } else if (product.useSimpleProduct) {
+      // For simple products
+      productForResponse.availableColors = product.availableColors || [];
+      productForResponse.availableSizes = product.availableSizes || [];
+    }
+
+    res.status(200).json({
       success: true,
-      product,
+      product: productForResponse,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({
+    console.error("Get Single Product Error:", error);
+    res.status(500).json({
       success: false,
-      message: "Error fetching single product",
-      error,
+      message: "Error fetching product",
+      error: error.message,
     });
   }
 };
@@ -199,97 +509,411 @@ export const deleteProductController = async (req, res) => {
 };
 
 // ------------------ UPDATE PRODUCT ------------------
+// export const updateProductController = async (req, res) => {
+//   try {
+//     const {
+//       name,
+//       description,
+//       price,
+//       categories,
+//       subcategories,
+//       quantity,
+//       shipping,
+//       brand,
+//       color,
+//       size,
+//       discountPrice,
+//       replaceIndex // 👉 ফ্রন্টএন্ড থেকে পাঠানো index (যেমন 4)
+//     } = req.body; // ✅ multer => req.body
+
+//     // Validation
+//     if (!name || !description || !price || !categories || !quantity) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Name, Description, Price, Categories, and Quantity are required",
+//       });
+//     }
+
+//     // আগের প্রোডাক্ট বের করো
+//     const existingProduct = await productModel.findById(req.params.pid);
+//     if (!existingProduct) {
+//       return res.status(404).json({ error: "Product not found" });
+//     }
+
+//     // Update data তৈরি করো
+//     const updateData = {
+//       name,
+//       slug: slugify(name),
+//       description,
+//       price,
+//       category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0],
+//       categories: Array.isArray(categories) ? categories : JSON.parse(categories),
+//       subcategories: subcategories
+//         ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories))
+//         : [],
+//       quantity,
+//       shipping: shipping === "true" || shipping === true,
+//       brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand)) : [],
+//       color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
+//       size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
+//       discountPrice: discountPrice !== undefined 
+//         ? Number(discountPrice) 
+//         : existingProduct.discountPrice,
+//       photos: existingProduct.photos, // পুরানো সব ছবি রেখে দাও
+//     };
+
+//     // ✅ নতুন ছবি এলে শুধু নির্দিষ্ট index replace করো অথবা push করো
+//     if (req.files && req.files.length > 0) {
+//       const uploadedPhotos = await Promise.all(
+//         req.files.map(async (file) => {
+//           const result = await cloudinary.uploader.upload(file.path, {
+//             folder: "products",
+//           });
+//           fs.unlinkSync(file.path); // temp file delete
+//           return {
+//             url: result.secure_url,
+//             public_id: result.public_id,
+//           };
+//         })
+//       );
+
+//       if (replaceIndex !== undefined && updateData.photos[replaceIndex]) {
+//         // 👉 নির্দিষ্ট index replace
+//         updateData.photos[replaceIndex] = uploadedPhotos[0];
+//       } else {
+//         // 👉 নতুন ছবি add হবে
+//         updateData.photos.push(...uploadedPhotos);
+//       }
+//     }
+
+//     // DB Update
+//     const product = await productModel.findByIdAndUpdate(
+//       req.params.pid,
+//       updateData,
+//       { new: true }
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "✅ Product updated successfully",
+//       product,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Error updating product",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// ------------------ UPDATE PRODUCT ------------------
+// ------------------ UPDATE PRODUCT ------------------
+// productController.js - updateProductController function এ পরিবর্তন করুন
+// productController.js - updateProductController function
+// productController.js - updateProductController (Fixed Version)
+
 export const updateProductController = async (req, res) => {
   try {
+    const { slug } = req.params;
     const {
       name,
       description,
-      price,
+      useVariations,
+      brand,
+      shipping,
       categories,
       subcategories,
-      quantity,
-      shipping,
-      brand,
+      colorVariations,
+      colorImageData,
+      basePrice,
+      baseDiscountPrice,
+      baseQuantity,
       color,
       size,
-      discountPrice,
-      replaceIndex // 👉 ফ্রন্টএন্ড থেকে পাঠানো index (যেমন 4)
-    } = req.body; // ✅ multer => req.body
+      videoUrl // ✅ এই লাইন যোগ করুন
+    } = req.body;
 
-    // Validation
-    if (!name || !description || !price || !categories || !quantity) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, Description, Price, Categories, and Quantity are required",
+    console.log("=== UPDATE PRODUCT START ===");
+    console.log("Slug:", slug);
+    console.log("Use Variations:", useVariations);
+    console.log("Color Variations from frontend:", colorVariations ? JSON.parse(colorVariations) : null);
+    console.log("Files received:", req.files ? Object.keys(req.files) : 'No files');
+    console.log("Color Images files:", req.files?.colorImages?.length || 0);
+
+    // ✅ Find existing product
+    const existingProduct = await productModel.findOne({ slug: slug });
+    if (!existingProduct) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Product not found" 
       });
     }
 
-    // আগের প্রোডাক্ট বের করো
-    const existingProduct = await productModel.findById(req.params.pid);
-    if (!existingProduct) {
-      return res.status(404).json({ error: "Product not found" });
+    console.log("Existing product found:", existingProduct.name);
+    console.log("Existing colorImages:", existingProduct.colorImages);
+    console.log("Existing colorVariations:", existingProduct.colorVariations);
+
+    // ✅ Parse data from frontend
+    let parsedColorVariations = [];
+    if (colorVariations) {
+      parsedColorVariations = Array.isArray(colorVariations) ? colorVariations : JSON.parse(colorVariations);
+      console.log("Parsed color variations:", parsedColorVariations);
     }
 
-    // Update data তৈরি করো
+    let parsedColorImageData = [];
+    if (colorImageData) {
+      parsedColorImageData = Array.isArray(colorImageData) ? colorImageData : JSON.parse(colorImageData);
+      console.log("Parsed color image data:", parsedColorImageData);
+    }
+
+    // ✅ Prepare update data
     const updateData = {
       name,
       slug: slugify(name),
       description,
-      price,
-      category: Array.isArray(categories) ? categories[0] : JSON.parse(categories)[0],
-      categories: Array.isArray(categories) ? categories : JSON.parse(categories),
-      subcategories: subcategories
-        ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories))
-        : [],
-      quantity,
+       videoUrl: videoUrl?.trim() || "", // ✅ এখানে যোগ করুন
+      brand: brand ? JSON.parse(brand) : existingProduct.brand,
       shipping: shipping === "true" || shipping === true,
-      brand: brand ? (Array.isArray(brand) ? brand : JSON.parse(brand)) : [],
-      color: color ? (Array.isArray(color) ? color : JSON.parse(color)) : [],
-      size: size ? (Array.isArray(size) ? size : JSON.parse(size)) : [],
-      discountPrice: discountPrice !== undefined 
-        ? Number(discountPrice) 
-        : existingProduct.discountPrice,
-      photos: existingProduct.photos, // পুরানো সব ছবি রেখে দাও
+      categories: categories ? JSON.parse(categories) : existingProduct.categories,
+      subcategories: subcategories ? JSON.parse(subcategories) : existingProduct.subcategories,
+      useSimpleProduct: useVariations === "false",
     };
 
-    // ✅ নতুন ছবি এলে শুধু নির্দিষ্ট index replace করো অথবা push করো
-    if (req.files && req.files.length > 0) {
-      const uploadedPhotos = await Promise.all(
-        req.files.map(async (file) => {
+    // ✅ Handle default photos (optional)
+    if (req.files?.photos && req.files.photos.length > 0) {
+      const uploadedDefaultPhotos = await Promise.all(
+        req.files.photos.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "products",
           });
-          fs.unlinkSync(file.path); // temp file delete
-          return {
-            url: result.secure_url,
-            public_id: result.public_id,
-          };
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+          return { url: result.secure_url, public_id: result.public_id };
         })
       );
 
-      if (replaceIndex !== undefined && updateData.photos[replaceIndex]) {
-        // 👉 নির্দিষ্ট index replace
-        updateData.photos[replaceIndex] = uploadedPhotos[0];
+      // Keep existing photos or merge
+      if (existingProduct.defaultPhotos && existingProduct.defaultPhotos.length > 0) {
+        updateData.defaultPhotos = [...existingProduct.defaultPhotos, ...uploadedDefaultPhotos].slice(0, 5);
       } else {
-        // 👉 নতুন ছবি add হবে
-        updateData.photos.push(...uploadedPhotos);
+        updateData.defaultPhotos = uploadedDefaultPhotos;
       }
+    } else {
+      // Keep existing photos
+      updateData.defaultPhotos = existingProduct.defaultPhotos;
     }
 
-    // DB Update
-    const product = await productModel.findByIdAndUpdate(
-      req.params.pid,
+    // ✅ Handle color-based variation system
+    if (useVariations === "true" && parsedColorVariations.length > 0) {
+      console.log("Processing color variations update...");
+      
+      // 1. Process color variations (sizes and prices)
+      const colorVariationsMap = new Map();
+      
+      // Start with existing variations
+      if (existingProduct.colorVariations && existingProduct.colorVariations.size > 0) {
+        for (const [color, variations] of existingProduct.colorVariations) {
+          colorVariationsMap.set(color, variations);
+        }
+      }
+      
+      // Update with new sizes data from frontend
+      for (const colorVar of parsedColorVariations) {
+        const color = colorVar.color;
+        
+        if (colorVar.sizes && Array.isArray(colorVar.sizes)) {
+          const colorVariationsArray = colorVar.sizes.map(size => ({
+            size: size.size,
+            price: parseFloat(size.price),
+            discountPrice: size.discountPrice ? parseFloat(size.discountPrice) : 0,
+            quantity: parseInt(size.quantity),
+            sku: `${slugify(name)}-${color}-${size.size}`.toUpperCase().replace(/\s+/g, '-')
+          }));
+          
+          colorVariationsMap.set(color, colorVariationsArray);
+        }
+      }
+      
+      // 2. Process color images - MOST IMPORTANT PART
+      let finalColorImages = [];
+      
+      // Step 1: Start with ALL existing color images
+      if (existingProduct.colorImages && Array.isArray(existingProduct.colorImages)) {
+        console.log("Keeping existing color images:", existingProduct.colorImages.length);
+        finalColorImages = [...existingProduct.colorImages];
+      }
+      
+      // Step 2: Process new color images from frontend
+      const colorPhotoFiles = req.files?.colorImages || [];
+      console.log(`Received ${colorPhotoFiles.length} new color image files`);
+      
+      if (colorPhotoFiles.length > 0 && parsedColorImageData.length > 0) {
+        // Group new images by color
+        const newImagesByColor = {};
+        
+        parsedColorImageData.forEach((imgData, index) => {
+          if (index < colorPhotoFiles.length) {
+            const color = imgData.color;
+            if (!newImagesByColor[color]) {
+              newImagesByColor[color] = [];
+            }
+            newImagesByColor[color].push(colorPhotoFiles[index]);
+          }
+        });
+        
+        console.log("New images grouped by color:", Object.keys(newImagesByColor));
+        
+        // Upload and add new images for each color
+        for (const [color, files] of Object.entries(newImagesByColor)) {
+          console.log(`Uploading ${files.length} new images for color: ${color}`);
+          
+          const uploadedImages = await Promise.all(
+            files.map(async (file) => {
+              const result = await cloudinary.uploader.upload(file.path, {
+                folder: `products/colors/${slugify(name)}`,
+              });
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+              return {
+                url: result.secure_url,
+                public_id: result.public_id,
+                uploadedAt: new Date()
+              };
+            })
+          );
+          
+          // Find if this color already has images in the array
+          const existingColorIndex = finalColorImages.findIndex(img => img.color === color);
+          
+          if (existingColorIndex !== -1) {
+            // Merge with existing images
+            const existingImages = finalColorImages[existingColorIndex].images || [];
+            finalColorImages[existingColorIndex] = {
+              color: color,
+              images: [...existingImages, ...uploadedImages]
+            };
+            console.log(`Merged ${uploadedImages.length} new images with existing ones for color ${color}`);
+          } else {
+            // Add new entry
+            finalColorImages.push({
+              color: color,
+              images: uploadedImages
+            });
+            console.log(`Added new color entry for ${color} with ${uploadedImages.length} images`);
+          }
+        }
+      }
+      
+      // Step 3: Remove colors that no longer exist in variations
+      if (colorVariationsMap.size > 0) {
+        finalColorImages = finalColorImages.filter(colorImg => 
+          colorVariationsMap.has(colorImg.color)
+        );
+      }
+      
+      // Step 4: Add empty image arrays for colors that don't have any images yet
+      Array.from(colorVariationsMap.keys()).forEach(color => {
+        const hasImages = finalColorImages.some(img => img.color === color);
+        if (!hasImages) {
+          finalColorImages.push({
+            color: color,
+            images: []
+          });
+        }
+      });
+      
+      // 3. Update the data
+      updateData.colorVariations = colorVariationsMap;
+      updateData.colorImages = finalColorImages;
+      updateData.availableColors = Array.from(colorVariationsMap.keys());
+      updateData.availableSizes = [...new Set(
+        Array.from(colorVariationsMap.values()).flatMap(variations => 
+          variations.map(v => v.size)
+        )
+      )];
+      
+      console.log("Final colorImages after update:", finalColorImages);
+      console.log("Final colorVariations:", Array.from(colorVariationsMap.entries()));
+      
+    } else if (useVariations === "false") {
+      // Handle simple product
+      console.log("Updating as simple product");
+      
+      if (!basePrice) {
+        return res.status(400).json({ success: false, message: "Base price is required" });
+      }
+      if (!baseQuantity) {
+        return res.status(400).json({ success: false, message: "Base quantity is required" });
+      }
+
+      updateData.basePrice = parseFloat(basePrice);
+      updateData.baseDiscountPrice = baseDiscountPrice ? parseFloat(baseDiscountPrice) : 0;
+      updateData.baseQuantity = parseInt(baseQuantity);
+      updateData.useSimpleProduct = true;
+      
+      const simpleColors = color ? JSON.parse(color) : [];
+      const simpleSizes = size ? JSON.parse(size) : [];
+      
+      updateData.availableColors = simpleColors;
+      updateData.availableSizes = simpleSizes;
+      
+      // Clear variation data
+      updateData.colorVariations = undefined;
+      updateData.colorImages = [];
+    }
+
+    console.log("Update data to save:", {
+      name: updateData.name,
+      colorVariationsSize: updateData.colorVariations?.size || 0,
+      colorImagesLength: updateData.colorImages?.length || 0
+    });
+
+    // ✅ Update product in database
+    const product = await productModel.findOneAndUpdate(
+      { slug: slug },
       updateData,
-      { new: true }
+      { new: true, runValidators: true }
     );
+
+    console.log("Product updated successfully");
+    console.log("=== UPDATE PRODUCT END ===");
+
+    // ✅ Convert Map to Object for response
+    const productResponse = product.toObject();
+    if (product.colorVariations && product.colorVariations.size > 0) {
+      const colorVariationsObj = {};
+      for (const [color, variations] of product.colorVariations) {
+        colorVariationsObj[color] = variations;
+      }
+      productResponse.colorVariations = colorVariationsObj;
+    }
 
     res.status(200).json({
       success: true,
       message: "✅ Product updated successfully",
-      product,
+      product: productResponse,
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("❌ Update Product Error:", error);
+    
+    // Clean up uploaded files
+    if (req.files) {
+      Object.values(req.files).flat().forEach(file => {
+        if (fs.existsSync(file.path)) {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (cleanupErr) {
+            console.error("Cleanup error:", cleanupErr);
+          }
+        }
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Error updating product",
@@ -297,9 +921,6 @@ export const updateProductController = async (req, res) => {
     });
   }
 };
-
-
-
 
 
 

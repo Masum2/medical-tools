@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
-import { Editor } from "@tinymce/tinymce-react";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useProduct } from "../../context/product";
 import ProductDescriptionEditor from "../../components/ProductDescriptionEditor";
@@ -26,21 +25,35 @@ const CreateProduct = () => {
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [name, setName] = useState("");
+   const [videoUrl, setVideoUrl] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [discountPrice, setDiscountPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
-  const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
   const [shipping, setShipping] = useState("");
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessages, setErrorMessages] = useState([]);
 
-  const [errorMessages, setErrorMessages] = useState([]); // Array to hold multiple errors
+  // ✅ Variation system states
+  const [useVariations, setUseVariations] = useState(false);
+  const [selectedColor, setSelectedColor] = useState("");
+  const [colorVariations, setColorVariations] = useState([]); // Array of {color, sizes: [], colorImages: []}
+  
+  // For adding new size to a color
+  const [selectedColorForSize, setSelectedColorForSize] = useState("");
+  const [newSize, setNewSize] = useState("");
+  const [newSizePrice, setNewSizePrice] = useState("");
+  const [newSizeDiscountPrice, setNewSizeDiscountPrice] = useState("");
+  const [newSizeQuantity, setNewSizeQuantity] = useState("");
+
+  // ✅ Simple product states (এই গুলো যোগ করুন)
+  const [basePrice, setBasePrice] = useState("");
+  const [baseDiscountPrice, setBaseDiscountPrice] = useState("");
+  const [baseQuantity, setBaseQuantity] = useState("");
+  const [color, setColor] = useState([]);
+  const [size, setSize] = useState([]);
+
   // Predefined values
-
   const brandOptions = ["Made In Bangladesh", "Made In India", "Made In China", "Made In American", "Made In Japan", "No Brand"];
   const colorOptions = [
     "Red", "Blue", "Green", "Black", "White", "Yellow", "Orange", "Pink",
@@ -53,7 +66,7 @@ const CreateProduct = () => {
     "Mauve", "Burgundy", "Ash", "Not Specified",
     "Multi-Color",
     "Any Colour",
-    "Ramdom Colour"
+    "Random Colour"
   ];
 
   const sizeOptions = [
@@ -65,9 +78,7 @@ const CreateProduct = () => {
     "42 X 34 X 12 Cm",
     "44 X 36 X 13 Cm",
     "46 X 38 X 14 Cm",
-
   ];
-
 
   // Load categories
   useEffect(() => {
@@ -110,78 +121,190 @@ const CreateProduct = () => {
     setSelectedSubcategories(updated);
   };
 
-  // Handle drag start
+  // ✅ Add color to variations WITH INITIAL IMAGES
+  const addColor = () => {
+    if (!selectedColor) {
+      toast.error("Please select a color");
+      return;
+    }
+    
+    if (colorVariations.find(cv => cv.color === selectedColor)) {
+      toast.error("This color already added");
+      return;
+    }
+    
+    setColorVariations([...colorVariations, {
+      color: selectedColor,
+      sizes: [],
+      colorImages: [] // Separate images for this color
+    }]);
+    setSelectedColor("");
+  };
+
+  // ✅ Remove color from variations
+  const removeColor = (colorToRemove) => {
+    setColorVariations(colorVariations.filter(cv => cv.color !== colorToRemove));
+  };
+
+  // ✅ Handle color-specific image upload
+  const handleColorImageChange = (e, color) => {
+    const files = Array.from(e.target.files);
+    
+    setColorVariations(prev => prev.map(cv => {
+      if (cv.color === color) {
+        return {
+          ...cv,
+          colorImages: [...(cv.colorImages || []), ...files].slice(0, 5) // Max 5 images per color
+        };
+      }
+      return cv;
+    }));
+  };
+
+  // ✅ Remove color image
+  const removeColorImage = (color, imageIndex) => {
+    setColorVariations(prev => prev.map(cv => {
+      if (cv.color === color) {
+        const updatedImages = [...cv.colorImages];
+        updatedImages.splice(imageIndex, 1);
+        return {
+          ...cv,
+          colorImages: updatedImages
+        };
+      }
+      return cv;
+    }));
+  };
+
+  // ✅ Add size to a specific color
+  const addSizeToColor = () => {
+    if (!selectedColorForSize || !newSize || !newSizePrice || !newSizeQuantity) {
+      toast.error("Please select color, size, price and quantity");
+      return;
+    }
+
+    const updatedColorVariations = [...colorVariations];
+    const colorIndex = updatedColorVariations.findIndex(cv => cv.color === selectedColorForSize);
+    
+    if (colorIndex === -1) {
+      toast.error("Color not found");
+      return;
+    }
+
+    // Check if size already exists for this color
+    if (updatedColorVariations[colorIndex].sizes.find(s => s.size === newSize)) {
+      toast.error("This size already exists for selected color");
+      return;
+    }
+
+    updatedColorVariations[colorIndex].sizes.push({
+      size: newSize,
+      price: parseFloat(newSizePrice),
+      discountPrice: newSizeDiscountPrice ? parseFloat(newSizeDiscountPrice) : 0,
+      quantity: parseInt(newSizeQuantity)
+    });
+
+    setColorVariations(updatedColorVariations);
+    
+    // Reset form
+    setNewSize("");
+    setNewSizePrice("");
+    setNewSizeDiscountPrice("");
+    setNewSizeQuantity("");
+  };
+
+  // ✅ Remove size from a color
+  const removeSizeFromColor = (color, sizeToRemove) => {
+    const updatedColorVariations = [...colorVariations];
+    const colorIndex = updatedColorVariations.findIndex(cv => cv.color === color);
+    
+    if (colorIndex !== -1) {
+      updatedColorVariations[colorIndex].sizes = updatedColorVariations[colorIndex].sizes
+        .filter(s => s.size !== sizeToRemove);
+      
+      // If no sizes left, remove the color entirely
+      if (updatedColorVariations[colorIndex].sizes.length === 0) {
+        updatedColorVariations.splice(colorIndex, 1);
+      }
+      
+      setColorVariations(updatedColorVariations);
+    }
+  };
+
+  // Handle main photo upload (keep your existing code)
   const handleDragStart = (e, index) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
-    // Add a small delay to make the drag image appear correctly
     setTimeout(() => {
       e.target.classList.add("dragging");
     }, 0);
   };
 
-  // Handle drag over
   const handleDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
 
-  // Handle drop
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
-
     if (draggedIndex === null || draggedIndex === targetIndex) return;
-
-    // Reorder photos array
     const updatedPhotos = [...photos];
     const [movedPhoto] = updatedPhotos.splice(draggedIndex, 1);
     updatedPhotos.splice(targetIndex, 0, movedPhoto);
-
     setPhotos(updatedPhotos);
     setDraggedIndex(null);
-
-    // Remove dragging class from all elements
     document.querySelectorAll('.drag-item').forEach(el => {
       el.classList.remove('dragging');
     });
   };
 
-  // Handle drag end
   const handleDragEnd = () => {
     setDraggedIndex(null);
-    // Remove dragging class from all elements
     document.querySelectorAll('.drag-item').forEach(el => {
       el.classList.remove('dragging');
     });
   };
 
-  // Handle multiple photos selection sequentially
   const handlePhotoChange = (e, index) => {
     const selectedFiles = Array.from(e.target.files);
     const updatedPhotos = [...photos];
-
     selectedFiles.forEach((file, idx) => {
       if (index + idx < 5) {
         updatedPhotos[index + idx] = file;
       }
     });
-
     setPhotos(updatedPhotos);
   };
 
   const { refreshProducts } = useProduct();
 
-  // Create product
+  // ✅ Create product with new variation system
   const handleCreate = async () => {
     try {
       setLoading(true);
 
-      // ✅ Frontend validations
+      // ✅ Validation
       const frontendErrors = [];
       if (!name?.trim()) frontendErrors.push("Name is required");
-      if (!price) frontendErrors.push("Price is required");
-      if (!quantity) frontendErrors.push("Quantity is required");
+      if (!photos || photos.filter(p => p).length === 0) frontendErrors.push("At least one main photo is required");
       if (selectedCategories.length === 0) frontendErrors.push("Category is required");
+
+      if (useVariations) {
+        if (colorVariations.length === 0) {
+          frontendErrors.push("At least one color variation is required");
+        } else {
+          // Check each color has at least one size
+          colorVariations.forEach(cv => {
+            if (cv.sizes.length === 0) {
+              frontendErrors.push(`Color "${cv.color}" has no sizes added`);
+            }
+          });
+        }
+      } else {
+        // ✅ Simple product validation
+        if (!basePrice) frontendErrors.push("Base price is required");
+        if (!baseQuantity) frontendErrors.push("Base quantity is required");
+      }
 
       if (frontendErrors.length > 0) {
         setErrorMessages(frontendErrors);
@@ -190,26 +313,58 @@ const CreateProduct = () => {
         return;
       }
 
-      // ✅ Prepare FormData
+      // ✅ Prepare FormData for NEW system
       const formData = new FormData();
       formData.append("name", name);
+
       formData.append("description", description);
-      formData.append("price", price);
-      formData.append("discountPrice", discountPrice);
-      formData.append("quantity", quantity);
+      formData.append("useVariations", useVariations);
       formData.append("brand", JSON.stringify(brand));
-      formData.append("color", JSON.stringify(color));
-      formData.append("size", JSON.stringify(size));
       formData.append("shipping", shipping);
-
-      if (selectedCategories.length > 0)
-        formData.append("categories", JSON.stringify(selectedCategories));
-      if (selectedSubcategories.length > 0)
+        formData.append("videoUrl", videoUrl || ""); 
+      formData.append("categories", JSON.stringify(selectedCategories));
+      
+      if (selectedSubcategories.length > 0) {
         formData.append("subcategories", JSON.stringify(selectedSubcategories));
+      }
 
+      if (useVariations) {
+        // ✅ Format data for new color-based system
+        formData.append("colorVariations", JSON.stringify(colorVariations));
+        
+        // Add color images with metadata
+        const colorImageData = [];
+        colorVariations.forEach(cv => {
+          if (cv.colorImages && cv.colorImages.length > 0) {
+            cv.colorImages.forEach((image, index) => {
+              formData.append("colorImages", image);
+              colorImageData.push({
+                color: cv.color,
+                imageIndex: index
+              });
+            });
+          }
+        });
+        
+        if (colorImageData.length > 0) {
+          formData.append("colorImageData", JSON.stringify(colorImageData));
+        }
+        
+      } else {
+        // ✅ Simple product system
+        formData.append("basePrice", basePrice);
+        formData.append("baseDiscountPrice", baseDiscountPrice || "");
+        formData.append("baseQuantity", baseQuantity);
+        formData.append("color", JSON.stringify(color));
+        formData.append("size", JSON.stringify(size));
+      }
+
+      // ✅ Add default photos
       photos.forEach((photo) => {
         if (photo) formData.append("photos", photo);
       });
+
+      console.log("Sending form data...");
 
       // ✅ API Request
       const { data } = await axios.post(
@@ -224,14 +379,12 @@ const CreateProduct = () => {
       );
 
       if (data.success) {
-        toast.success("✅ Product created");
+        toast.success("✅ Product created successfully");
         navigate("/dashboard/admin/products");
         refreshProducts();
       }
     } catch (error) {
-      console.log(error);
-
-      // ✅ Backend error handling
+      console.log("Create product error:", error);
       const backendMessage = error.response?.data?.message || "Something went wrong";
       setErrorMessages([backendMessage]);
       setErrorModalOpen(true);
@@ -274,13 +427,13 @@ const CreateProduct = () => {
           </div>
           <div className="row" style={{ padding: "20px", marginLeft: '20px' }}>
             <div className="col-md-9">
-              {/* Product Images Upload with Drag & Drop */}
+              {/* Main Product Images Upload */}
               <div className="mb-3">
                 <h5 className="mb-2">
-                  Product Images <span className="text-danger">*</span>
+                  Main Product Images <span className="text-danger">*</span>
                 </h5>
                 <small className="text-muted d-block mb-3">
-                  Upload between 1 to 5 images. Drag and drop to reorder.
+                  Upload between 1 to 5 main images. Drag and drop to reorder.
                 </small>
 
                 <div className="d-flex flex-wrap gap-3">
@@ -362,96 +515,374 @@ const CreateProduct = () => {
                   ))}
                 </div>
               </div>
+   <div className="mb-3">
+                <label className="form-label">Product Name *</label>
+                <input
+                  type="text"
+                  placeholder="Product Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="form-control"
+                  required
+                />
+              </div>
 
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="form-control mb-3"
-              />
+              <div className="mb-3">
+                <label className="form-label">Description</label>
+                <ProductDescriptionEditor
+                  description={description}
+                  setDescription={setDescription}
+                />
+              </div>
 
-              <ProductDescriptionEditor
-                description={description}
-                setDescription={setDescription}
-              />
+              {/* ✅ Variation Toggle */}
+              <div className="mb-3">
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={useVariations}
+                    onChange={(e) => setUseVariations(e.target.checked)}
+                    id="useVariations"
+                  />
+                  <label className="form-check-label" htmlFor="useVariations">
+                    Use Color-Size Variations with different prices, quantities & images
+                  </label>
+                </div>
+              </div>
 
-              <input
-                type="number"
-                placeholder="Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="form-control mb-3"
-              />
-              <input
-                type="number"
-                placeholder="Discount Price"
-                value={discountPrice}
-                onChange={(e) => setDiscountPrice(e.target.value)}
-                className="form-control mb-3"
-              />
-              <input
-                type="number"
-                placeholder="Quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="form-control mb-3"
-              />
+              {useVariations ? (
+                /* ✅ Color-Size Variation Management */
+                <div className="mb-4 p-3 border rounded">
+                  <h5>Color-Size Variations</h5>
+                  <small className="text-muted d-block mb-3">
+                    Add colors with specific images, then add multiple sizes with prices for each color
+                  </small>
 
-              <Select
-                mode="tags"
-                style={{ width: "100%" }}
-                placeholder="Select or add brands"
-                value={brand}
-                onChange={(val) => setBrand(val)}
-                className="mb-3"
-              >
-                {brandOptions.map((b) => (
-                  <Option key={b} value={b}>
-                    {b}
-                  </Option>
-                ))}
-              </Select>
+                  {/* ✅ Add Color */}
+                  <div className="row g-2 mb-3">
+                    <div className="col-md-8">
+                      <select
+                        value={selectedColor}
+                        onChange={(e) => setSelectedColor(e.target.value)}
+                        className="form-select"
+                      >
+                        <option value="">Select Color to Add</option>
+                        {colorOptions.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-4">
+                      <button
+                        onClick={addColor}
+                        className="btn btn-primary w-100"
+                        type="button"
+                      >
+                        Add Color
+                      </button>
+                    </div>
+                  </div>
 
-              <Select
-                mode="tags"
-                style={{ width: "100%" }}
-                placeholder="Select or add colors"
-                value={color}
-                onChange={(val) => setColor(val)}
-                className="mb-3"
-              >
-                {colorOptions.map((c) => (
-                  <Option key={c} value={c}>
-                    {c}
-                  </Option>
-                ))}
-              </Select>
+                  {/* ✅ Added Colors with Sizes and Images */}
+                  {colorVariations.map((colorVar, colorIndex) => (
+                    <div key={colorVar.color} className="mb-4 p-3 border rounded">
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="mb-0">
+                          Color: <strong>{colorVar.color}</strong>
+                          <span className="badge bg-secondary ms-2">
+                            {colorVar.sizes.length} sizes
+                          </span>
+                          <span className="badge bg-info ms-2">
+                            {colorVar.colorImages?.length || 0} color images
+                          </span>
+                        </h6>
+                        <button
+                          type="button"
+                          onClick={() => removeColor(colorVar.color)}
+                          className="btn btn-danger btn-sm"
+                        >
+                          <AiOutlineCloseCircle /> Remove Color
+                        </button>
+                      </div>
 
-              <Select
-                mode="tags"
-                style={{ width: "100%" }}
-                placeholder="Select or add sizes"
-                value={size}
-                onChange={(val) => setSize(val)}
-                className="mb-3"
-              >
-                {sizeOptions.map((s) => (
-                  <Option key={s} value={s}>
-                    {s}
-                  </Option>
-                ))}
-              </Select>
-              <Select
-                value={shipping}
-                onChange={(value) => setShipping(value)}
-                placeholder="Shipping"
-                className="w-100 mb-3"
-              >
-                <Option value="0">No</Option>
-                <Option value="1">Yes</Option>
-              </Select>
+                      {/* ✅ Color-Specific Images */}
+                      <div className="mb-3">
+                        <label className="form-label">
+                          Images for {colorVar.color} (Optional)
+                        </label>
+                        <small className="text-muted d-block mb-2">
+                          Upload specific images showing this color variant
+                        </small>
+                        
+                        <div className="d-flex flex-wrap gap-2 mb-3">
+                          {colorVar.colorImages?.map((image, imgIndex) => (
+                            <div key={imgIndex} style={{ position: "relative", width: "80px", height: "80px" }}>
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`${colorVar.color} preview ${imgIndex + 1}`}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                  border: "1px solid #ddd"
+                                }}
+                              />
+                              <AiOutlineCloseCircle
+                                style={{
+                                  position: "absolute",
+                                  top: "-5px",
+                                  right: "-5px",
+                                  fontSize: "18px",
+                                  color: "red",
+                                  cursor: "pointer",
+                                  background: "white",
+                                  borderRadius: "50%",
+                                }}
+                                onClick={() => removeColorImage(colorVar.color, imgIndex)}
+                              />
+                            </div>
+                          ))}
+                          
+                          {(!colorVar.colorImages || colorVar.colorImages.length < 5) && (
+                            <label
+                              className="rounded d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "80px",
+                                height: "80px",
+                                cursor: "pointer",
+                                border: "1px dashed #007bff",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              <PlusOutlined style={{ fontSize: "20px", color: "#007bff" }} />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                hidden
+                                onChange={(e) => handleColorImageChange(e, colorVar.color)}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </div>
 
+                      {/* ✅ Add Sizes to this Color */}
+                      <div className="row g-2 mb-3">
+                        <div className="col-md-3">
+                          <select
+                            value={selectedColorForSize === colorVar.color ? newSize : ""}
+                            onChange={(e) => {
+                              setSelectedColorForSize(colorVar.color);
+                              setNewSize(e.target.value);
+                            }}
+                            className="form-select"
+                          >
+                            <option value="">Select Size</option>
+                            {sizeOptions.map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-md-2">
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            value={selectedColorForSize === colorVar.color ? newSizePrice : ""}
+                            onChange={(e) => setNewSizePrice(e.target.value)}
+                            className="form-control"
+                          />
+                        </div>
+                        <div className="col-md-2">
+                          <input
+                            type="number"
+                            placeholder="Disc. Price"
+                            value={selectedColorForSize === colorVar.color ? newSizeDiscountPrice : ""}
+                            onChange={(e) => setNewSizeDiscountPrice(e.target.value)}
+                            className="form-control"
+                          />
+                        </div>
+                        <div className="col-md-2">
+                          <input
+                            type="number"
+                            placeholder="Qty"
+                            value={selectedColorForSize === colorVar.color ? newSizeQuantity : ""}
+                            onChange={(e) => setNewSizeQuantity(e.target.value)}
+                            className="form-control"
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <button
+                            onClick={addSizeToColor}
+                            className="btn btn-success w-100"
+                            type="button"
+                          >
+                            <PlusOutlined /> Add Size
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* ✅ List of Sizes for this Color */}
+                      {colorVar.sizes.length > 0 && (
+                        <div className="mt-3">
+                          <h6>Sizes for {colorVar.color}:</h6>
+                          <div className="table-responsive">
+                            <table className="table table-sm table-bordered">
+                              <thead>
+                                <tr>
+                                  <th>Size</th>
+                                  <th>Price</th>
+                                  <th>Disc. Price</th>
+                                  <th>Quantity</th>
+                                  <th>Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {colorVar.sizes.map((size, sizeIndex) => (
+                                  <tr key={size.size}>
+                                    <td>{size.size}</td>
+                                    <td>${size.price}</td>
+                                    <td>${size.discountPrice}</td>
+                                    <td>{size.quantity}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeSizeFromColor(colorVar.color, size.size)}
+                                        className="btn btn-danger btn-sm"
+                                      >
+                                        <AiOutlineCloseCircle />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* ✅ Simple Product Form (এই অংশটি আপডেট করুন) */
+                <>
+                  <div className="mb-3">
+                    <h5>Simple Product Details</h5>
+                    <div className="row">
+                      <div className="col-md-4 mb-3">
+                        <label className="form-label">Base Price *</label>
+                        <input
+                          type="number"
+                          placeholder="Base Price"
+                          value={basePrice}
+                          onChange={(e) => setBasePrice(e.target.value)}
+                          className="form-control"
+                          required
+                        />
+                      </div>
+                      <div className="col-md-4 mb-3">
+                        <label className="form-label">Discount Price</label>
+                        <input
+                          type="number"
+                          placeholder="Discount Price"
+                          value={baseDiscountPrice}
+                          onChange={(e) => setBaseDiscountPrice(e.target.value)}
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="col-md-4 mb-3">
+                        <label className="form-label">Quantity *</label>
+                        <input
+                          type="number"
+                          placeholder="Quantity"
+                          value={baseQuantity}
+                          onChange={(e) => setBaseQuantity(e.target.value)}
+                          className="form-control"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <label className="form-label">Colors</label>
+                      <Select
+                        mode="tags"
+                        style={{ width: "100%" }}
+                        placeholder="Select or add colors"
+                        value={color}
+                        onChange={(val) => setColor(val)}
+                      >
+                        {colorOptions.map((c) => (
+                          <Option key={c} value={c}>
+                            {c}
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <label className="form-label">Sizes</label>
+                      <Select
+                        mode="tags"
+                        style={{ width: "100%" }}
+                        placeholder="Select or add sizes"
+                        value={size}
+                        onChange={(val) => setSize(val)}
+                      >
+                        {sizeOptions.map((s) => (
+                          <Option key={s} value={s}>
+                            {s}
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+           
+              <div className="mb-3">
+                <label className="form-label">Brand</label>
+                <Select
+                  mode="tags"
+                  style={{ width: "100%" }}
+                  placeholder="Select or add brands"
+                  value={brand}
+                  onChange={(val) => setBrand(val)}
+                >
+                  {brandOptions.map((b) => (
+                    <Option key={b} value={b}>
+                      {b}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Shipping</label>
+                <Select
+                  value={shipping}
+                  onChange={(value) => setShipping(value)}
+                  placeholder="Select shipping option"
+                  className="w-100"
+                >
+                  <Option value="0">No</Option>
+                  <Option value="1">Yes</Option>
+                </Select>
+              </div>
+  <div className="mb-3">
+                <label className="form-label">Video Url</label>
+                <input
+                  type="text"
+                  placeholder="Paste Video Url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  className="form-control"
+                  
+                />
+              </div>
               <button
                 onClick={handleCreate}
                 className="btn btn-primary"
@@ -470,7 +901,8 @@ const CreateProduct = () => {
 
             {/* Categories + Subcategories */}
             <div className="col-md-3">
-              <h5>Main Categories</h5>
+              <h5>Main Categories *</h5>
+              <small className="text-muted d-block mb-3">Select at least one category</small>
               {categories.map((cat) => (
                 <div key={cat._id}>
                   <Checkbox
@@ -484,6 +916,7 @@ const CreateProduct = () => {
                     cat.subcategories &&
                     cat.subcategories.length > 0 && (
                       <div className="ms-4">
+                        <h6 className="mt-2 mb-2">Subcategories</h6>
                         {cat.subcategories.map((sub, idx) => (
                           <div key={idx}>
                             <Checkbox
@@ -503,19 +936,7 @@ const CreateProduct = () => {
         </div>
       </div>
 
-      {/* Add some CSS for the drag and drop effect */}
-      <style>
-        {`
-          .drag-item.dragging {
-            opacity: 0.5;
-            transform: scale(0.95);
-            z-index: 10;
-          }
-          .drag-item:active {
-            cursor: grabbing;
-          }
-        `}
-      </style>
+      {/* Error Modal */}
       {errorModalOpen && (
         <div style={{
           position: "fixed",
@@ -537,11 +958,9 @@ const CreateProduct = () => {
             maxWidth: "400px",
             width: "90%",
             textAlign: "center",
-
           }}>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <h3 style={{ marginBottom: "10px", color: 'red', textAlign: 'center' }}><MdError /></h3>
-
             </div>
             <ul style={{ textAlign: "center", paddingLeft: "20px" }}>
               {errorMessages.map((msg, idx) => (
