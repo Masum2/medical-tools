@@ -342,6 +342,75 @@ export const getProductWithVariationsController = async (req, res) => {
     });
   }
 };
+// controllers/productController.js - নতুন ফাংশন যোগ করুন
+export const getSimilarProductsController = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const limit = parseInt(req.query.limit) || 8;
+
+    // 1. প্রথমে বর্তমান প্রোডাক্ট খুঁজুন
+    const currentProduct = await productModel.findOne({ slug });
+    
+    if (!currentProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // 2. বর্তমান প্রোডাক্টের categories পান
+    const categoryIds = currentProduct.categories || [];
+    
+    if (categoryIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        products: [],
+        message: "No categories found for this product",
+      });
+    }
+
+    // 3. একই categories যুক্ত প্রোডাক্ট খুঁজুন (বর্তমান প্রোডাক্ট বাদে)
+    const similarProducts = await productModel
+      .find({
+        _id: { $ne: currentProduct._id },
+        categories: { $in: categoryIds },
+        status: true, // শুধুমাত্র active প্রোডাক্ট
+      })
+      .select("name slug price discountPrice defaultPhotos brand availableColors availableSizes")
+      .limit(limit)
+      .populate("categories", "name slug")
+      .sort({ createdAt: -1 });
+
+    // 4. Convert Maps to Objects
+    const processedProducts = similarProducts.map(product => {
+      const productObj = product.toObject();
+      
+      // Convert colorVariations Map to Object if exists
+      if (product.colorVariations && product.colorVariations.size > 0) {
+        const colorVariationsObj = {};
+        for (const [color, variations] of product.colorVariations) {
+          colorVariationsObj[color] = variations;
+        }
+        productObj.colorVariations = colorVariationsObj;
+      }
+      
+      return productObj;
+    });
+
+    res.status(200).json({
+      success: true,
+      count: similarProducts.length,
+      products: processedProducts,
+    });
+  } catch (error) {
+    console.error("Get similar products error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching similar products",
+      error: error.message,
+    });
+  }
+};
 
 // ✅ GET SPECIFIC VARIATION
 // productController.js - getProductVariationController
@@ -1040,29 +1109,142 @@ export const productListController = async (req, res) => {
 // };
 
 // ------------------ RELATED PRODUCTS ------------------
+// controllers/productController.js - relatedProductController ফাংশনটি পরিবর্তন করুন
+// controllers/productController.js - relatedProductController
 export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
 
+    console.log("Related products request:", { pid, cid });
+
     const products = await productModel
       .find({
-        category: cid,
+        categories: { $in: [cid] },
         _id: { $ne: pid },
       })
-      .select("-photo")
-      .limit(3)
-      .populate("category");
+      .select(
+        "name slug description price discountPrice " +
+        "basePrice baseDiscountPrice baseQuantity " +
+        "defaultPhotos photos brand " +
+        "availableColors availableSizes " +
+        "colorVariations colorImages " +
+        "useSimpleProduct minPrice maxPrice " +
+        "videoUrl"
+      )
+      .limit(8)
+      .populate("categories", "name slug")
+      .sort({ createdAt: -1 });
+
+    console.log(`Found ${products.length} related products`);
+
+    // ✅ Product List Controller এর মতো একই logic ব্যবহার করুন
+    const processedProducts = products.map(product => {
+      const productObj = product.toObject();
+      
+      // Convert colorVariations Map to Object
+      if (product.colorVariations && product.colorVariations.size > 0) {
+        const colorVariationsObj = {};
+        for (const [color, variations] of product.colorVariations) {
+          colorVariationsObj[color] = variations;
+        }
+        productObj.colorVariations = colorVariationsObj;
+      }
+      
+      // ✅ EXACTLY SAME LOGIC AS SHOP PAGE
+      // Check which system the product uses
+      let displayPrice = 0;
+      let displayDiscountPrice = 0;
+      let hasDiscount = false;
+      let system = 'simple';
+      
+      if (product.useSimpleProduct === false && product.colorVariations) {
+        // ✅ Color Variations System
+        const colorKeys = Array.from(product.colorVariations.keys());
+        if (colorKeys.length > 0) {
+          const firstColor = colorKeys[0];
+          const variations = product.colorVariations.get(firstColor);
+          if (variations && variations.length > 0) {
+            const firstVariation = variations[0];
+            displayPrice = firstVariation.price;
+            displayDiscountPrice = firstVariation.discountPrice;
+            hasDiscount = firstVariation.discountPrice > 0;
+            system = 'colorVariations';
+          }
+        }
+        
+        // Fallback
+        if (displayPrice === 0) {
+          displayPrice = product.minPrice || 0;
+          displayDiscountPrice = 0;
+          hasDiscount = false;
+        }
+      }
+      // ✅ OLD System: variations array
+      else if (product.variations && product.variations.length > 0) {
+        const firstVariation = product.variations[0];
+        displayPrice = firstVariation.price;
+        displayDiscountPrice = firstVariation.discountPrice;
+        hasDiscount = firstVariation.discountPrice > 0;
+        system = 'variations';
+      }
+      // ✅ Simple Product System
+      else {
+        displayPrice = product.basePrice || product.price || 0;
+        displayDiscountPrice = product.baseDiscountPrice || product.discountPrice || 0;
+        hasDiscount = (product.baseDiscountPrice || product.discountPrice) > 0;
+        system = 'simple';
+      }
+      
+      // Add to product object
+      productObj.displayPrice = displayPrice;
+      productObj.displayDiscountPrice = displayDiscountPrice;
+      productObj.hasDiscount = hasDiscount;
+      productObj.system = system;
+      
+      // ✅ Get display image (SAME AS SHOP PAGE)
+      let displayImage = "/default-image.jpg";
+      
+      // First try color-specific images
+      if (product.colorImages && product.colorImages.length > 0) {
+        displayImage = product.colorImages[0].images?.[0]?.url || displayImage;
+      }
+      // Then try default photos
+      else if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+        displayImage = product.defaultPhotos[0]?.url || displayImage;
+      }
+      // Then old photos array
+      else if (product.photos && product.photos.length > 0) {
+        displayImage = product.photos[0]?.url || displayImage;
+      }
+      
+      productObj.displayImage = displayImage;
+      
+      return productObj;
+    });
+
+    // Debug logs
+    processedProducts.forEach((p, idx) => {
+      console.log(`Related Product ${idx + 1}:`, {
+        name: p.name,
+        displayPrice: p.displayPrice,
+        system: p.system,
+        hasDiscount: p.hasDiscount,
+        basePrice: p.basePrice,
+        price: p.price,
+        colorVariations: p.colorVariations ? Object.keys(p.colorVariations).length : 0
+      });
+    });
 
     res.status(200).send({
       success: true,
-      products,
+      products: processedProducts,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Related product error:", error);
     res.status(400).send({
       success: false,
       message: "Error fetching related products",
-      error,
+      error: error.message,
     });
   }
 };

@@ -20,7 +20,7 @@ const Header = () => {
   const [search, setSearch] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
-console.log("All categories in header",categories)
+// console.log("All categories in header",categories)
   // Example category icons
   const categoryIcons = {
     books: <FaBook style={{ color: "#4cc9f0" }} />,
@@ -139,21 +139,12 @@ console.log("All categories in header",categories)
     >
       HealthProo
     </p>
-    <p
-      className="mb-0"
-      style={{ 
-        fontSize: "12px", 
-        color: "#00BFA6", // slogan er moto halka color
-        fontWeight:'bold'
-      }}
-    >
-      Your Health is Our Priority
-    </p>
+ 
   </div>
 </div>
 
               {/* ✅ Mobile Only Name (Centered) */}
-  {isMobile && (
+  {/* {isMobile && (
     <div className="flex-grow-1 text-center">
       <p
         style={{
@@ -167,7 +158,7 @@ console.log("All categories in header",categories)
         HealthProo
       </p>
     </div>
-  )}
+  )} */}
             {/* Desktop Search - Hidden on mobile */}
          {!isMobile && (
   <div className="flex-grow-1 mx-4 flex justify-center">

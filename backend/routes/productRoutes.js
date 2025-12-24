@@ -14,6 +14,7 @@ import {
   relatedProductController,
   productCategoryController,
   productSubcategoryController,
+  getSimilarProductsController,
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 import multer from "multer";
@@ -105,5 +106,8 @@ router.get("/product-category/:slug", productCategoryController);
 
 // ✅ SUBCATEGORY WISE PRODUCT
 router.get("/subcategory/:subSlug", productSubcategoryController);
+
+// ✅ নতুন রাউট যোগ করুন
+router.get("/similar-products/:slug", getSimilarProductsController);
 
 export default router;
