@@ -185,44 +185,58 @@ const ProductDetails = () => {
     };
   };
   // getProduct ফাংশনে
-  const getProduct = async () => {
-    try {
-      const { data } = await axios.get(`${API}/api/v1/product/get-product-variation/${params.slug}`);
+// ProductDetails.js - getProduct ফাংশন
+const getProduct = async () => {
+  try {
+    const { data } = await axios.get(`${API}/api/v1/product/get-product-variation/${params.slug}`);
 
-      console.log("Full product data:", data.product);
-      console.log("Categories array:", data.product?.categories);
-      console.log("Category field:", data.product?.category);
+    console.log("📌 Full product data:", data.product);
+    console.log("📌 Categories:", data.product?.categories);
+    console.log("📌 First category object:", data.product?.categories?.[0]);
 
-      // Test: যদি categories array থাকে
-      if (data.product?.categories?.[0]) {
-        console.log("First category ID:", data.product.categories[0]._id || data.product.categories[0]);
-        console.log("First category:", data.product.categories[0]);
-      }
+    setProduct(data?.product || {});
+    setNormalizedProduct(normalizeProductData(data?.product || {}));
 
-      setProduct(data?.product || {});
-      setNormalizedProduct(normalizeProductData(data?.product || {}));
+    // ✅ Get category ID for similar products
+    let categoryId = null;
+    let categoryInfo = null;
 
-      // Test getSimilarProduct with different approaches
-      if (data.product?._id) {
-        // Approach 1: Try with categories[0]
-        if (data.product.categories?.[0]) {
-          const catId = data.product.categories[0]._id || data.product.categories[0];
-          console.log("Testing with category ID:", catId);
-          getSimilarProduct(data.product._id, catId);
-        }
-        // Approach 2: Try with category field
-        else if (data.product.category) {
-          const catId = data.product.category._id || data.product.category;
-          console.log("Testing with category field:", catId);
-          getSimilarProduct(data.product._id, catId);
-        }
-      }
-
-    } catch (error) {
-      console.log("Error fetching product:", error);
-      toast.error("Failed to load product");
+    // Approach 1: Try with categories[0]._id
+    if (data.product?.categories?.[0]?._id) {
+      categoryId = data.product.categories[0]._id;
+      categoryInfo = data.product.categories[0];
+      console.log("✅ Using categories[0]._id:", categoryId);
     }
-  };
+    // Approach 2: Try with categories[0] (if it's just an ObjectId)
+    else if (data.product?.categories?.[0]) {
+      categoryId = data.product.categories[0];
+      console.log("✅ Using categories[0] (raw):", categoryId);
+    }
+    // Approach 3: Try with category field
+    else if (data.product?.category?._id) {
+      categoryId = data.product.category._id;
+      console.log("✅ Using category._id:", categoryId);
+    }
+    // Approach 4: Try with category field (raw)
+    else if (data.product?.category) {
+      categoryId = data.product.category;
+      console.log("✅ Using category (raw):", categoryId);
+    }
+
+    console.log("📌 Final categoryId to use:", categoryId);
+
+    if (data.product?._id && categoryId) {
+      getSimilarProduct(data.product._id, categoryId);
+    } else {
+      console.log("❌ No category found, fetching recent products");
+      getRecentProducts(data.product?._id);
+    }
+
+  } catch (error) {
+    console.log("❌ Error fetching product:", error);
+    toast.error("Failed to load product");
+  }
+};
   // const getProduct = async () => {
   //   try {
   //     const { data } = await axios.get(`${API}/api/v1/product/get-product-variation/${params.slug}`);
@@ -470,96 +484,123 @@ const ProductDetails = () => {
   };
 
   // ProductDetails.js - getSimilarProduct ফাংশনটি এইভাবে পরিবর্তন করুন
-  const getSimilarProduct = async (pid, cid) => {
-    try {
-      console.log("=== START getSimilarProduct ===");
-      console.log("Product ID:", pid);
-      console.log("Category ID:", cid);
-      console.log("Category ID type:", typeof cid);
-      console.log("Category ID value:", JSON.stringify(cid));
+ // ProductDetails.js - getSimilarProduct ফাংশন
+const getSimilarProduct = async (pid, cid) => {
+  try {
+    console.log("=== START getSimilarProduct ===");
+    console.log("Product ID:", pid);
+    console.log("Category ID/Value:", cid);
+    console.log("Category type:", typeof cid);
 
-      // যদি cid undefined/null হয়
-      if (!cid || cid === 'undefined' || cid === 'null') {
-        console.log("Category ID is invalid, using fallback");
-
-        // Fallback: শুধু recent products নিয়ে আসুন
-        const { data } = await axios.get(
-          `${API}/api/v1/product/product-list/1?limit=8`
-        );
-
-        console.log("Fallback response:", data);
-
-        if (data?.products) {
-          const filteredProducts = data.products.filter(p => p._id !== pid);
-          console.log("Fallback products found:", filteredProducts.length);
-          setRelatedProducts(filteredProducts);
-        }
-        return;
-      }
-
-      console.log(`Calling API: ${API}/api/v1/product/related-product/${pid}/${cid}`);
-
-      const { data } = await axios.get(`${API}/api/v1/product/related-product/${pid}/${cid}`);
-
-      console.log("API Response Status:", data?.success);
-      console.log("API Response Data:", data);
-
-      if (data?.success) {
-        const products = data.products || [];
-        console.log(`API returned ${products.length} products`);
-
-        // Filter out current product
-        const filteredProducts = products.filter(product => {
-          return product._id !== pid;
-        });
-
-        console.log(`After filtering current product: ${filteredProducts.length} products`);
-
-        // প্রতিটি প্রোডাক্টের ডাটা লগ করুন
-        filteredProducts.forEach((p, idx) => {
-          console.log(`Product ${idx + 1}:`, {
-            id: p._id,
-            name: p.name,
-            hasDefaultPhotos: p.defaultPhotos?.length > 0,
-            hasPhotos: p.photos?.length > 0,
-            basePrice: p.basePrice,
-            price: p.price,
-            defaultPhotos: p.defaultPhotos,
-            photos: p.photos
-          });
-        });
-
-        setRelatedProducts(filteredProducts);
-      } else {
-        console.log("API returned success false");
-        setRelatedProducts([]);
-      }
-
-      console.log("=== END getSimilarProduct ===");
-    } catch (error) {
-      console.log("=== ERROR in getSimilarProduct ===");
-      console.log("Error message:", error.message);
-      console.log("Error response:", error.response?.data);
-      console.log("Error status:", error.response?.status);
-
-      // Fallback
-      try {
-        const { data } = await axios.get(
-          `${API}/api/v1/product/product-list/1?limit=8`
-        );
-
-        if (data?.products) {
-          const filteredProducts = data.products.filter(p => p._id !== pid);
-          console.log("Error fallback products:", filteredProducts.length);
-          setRelatedProducts(filteredProducts);
-        }
-      } catch (fallbackError) {
-        console.log("Fallback also failed:", fallbackError);
-        setRelatedProducts([]);
-      }
+    // ✅ Check if cid is a valid ObjectId
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(cid);
+    
+    if (!isValidObjectId) {
+      console.log("❌ cid is not a valid ObjectId, fetching recent products");
+      getRecentProducts(pid);
+      return;
     }
-  };
 
+    console.log(`✅ Calling API: ${API}/api/v1/product/related-product/${pid}/${cid}`);
+
+    const { data } = await axios.get(`${API}/api/v1/product/related-product/${pid}/${cid}`);
+
+    console.log("API Response:", {
+      success: data?.success,
+      count: data?.products?.length,
+      message: data?.message
+    });
+
+    if (data?.success) {
+      const products = data.products || [];
+      console.log(`✅ API returned ${products.length} products`);
+      
+      // Filter out current product (just in case)
+      const filteredProducts = products.filter(product => {
+        return product._id !== pid;
+      });
+
+      console.log(`✅ After filtering: ${filteredProducts.length} products`);
+      
+      // প্রতিটি প্রোডাক্ট ডিবাগ করুন
+      filteredProducts.forEach((p, idx) => {
+        console.log(`📦 Product ${idx + 1}:`, {
+          id: p._id,
+          name: p.name,
+          categories: p.categories,
+          displayPrice: p.displayPrice,
+          hasDiscount: p.hasDiscount
+        });
+      });
+
+      setRelatedProducts(filteredProducts);
+      
+    } else {
+      console.log("⚠️ API returned success false, fetching recent products");
+      getRecentProducts(pid);
+    }
+
+    console.log("=== END getSimilarProduct ===");
+  } catch (error) {
+    console.error("❌ Error in getSimilarProduct:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+
+    // Fallback to recent products
+    getRecentProducts(pid);
+  }
+};
+// ProductDetails.js - getRecentProducts ফাংশন
+const getRecentProducts = async (currentProductId) => {
+  try {
+    console.log("🔄 Fetching recent products as fallback");
+    
+    const { data } = await axios.get(
+      `${API}/api/v1/product/product-list/1?limit=9`
+    );
+
+    if (data?.products) {
+      // বর্তমান প্রোডাক্ট বাদ দিন এবং 8টি নিন
+      const filteredProducts = data.products
+        .filter(p => p._id !== currentProductId)
+        .slice(0, 8);
+      
+      console.log(`✅ Showing ${filteredProducts.length} recent products`);
+      
+      // Add display price logic
+      const productsWithDisplayPrice = filteredProducts.map(p => {
+        const productObj = p;
+        
+        // Calculate display price
+        if (p.useSimpleProduct === false && p.colorVariations) {
+          const colors = Object.keys(p.colorVariations || {});
+          if (colors.length > 0) {
+            const firstColor = colors[0];
+            const variations = p.colorVariations[firstColor];
+            if (variations && variations.length > 0) {
+              productObj.displayPrice = variations[0].price;
+              productObj.displayDiscountPrice = variations[0].discountPrice;
+              productObj.hasDiscount = variations[0].discountPrice > 0;
+            }
+          }
+        } else {
+          productObj.displayPrice = p.basePrice || p.price || 0;
+          productObj.displayDiscountPrice = p.baseDiscountPrice || p.discountPrice || 0;
+          productObj.hasDiscount = (p.baseDiscountPrice || p.discountPrice) > 0;
+        }
+        
+        return productObj;
+      });
+      
+      setRelatedProducts(productsWithDisplayPrice);
+    }
+  } catch (error) {
+    console.error("❌ Error fetching recent products:", error);
+    setRelatedProducts([]);
+  }
+};
   // Fetch reviews after product loads
   useEffect(() => {
     if (product._id) fetchReviews();
@@ -1036,6 +1077,8 @@ const ProductDetails = () => {
                             />
                           ) : (
                             // Show color name if no image
+                            <>
+                            {!isSelected && (
                             <div
                               style={{
                                 width: "50px",
@@ -1056,6 +1099,8 @@ const ProductDetails = () => {
                                 {color}
                               </span>
                             </div>
+                          ) }
+                          </>
                           )}
                           {isSelected && (
                             <div
@@ -1078,19 +1123,26 @@ const ProductDetails = () => {
                             </div>
                           )}
                         </div>
-                        <p style={{
-                          textAlign: "center",
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                          margin: "4px 0 0 0",
-                          maxWidth: "55px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          color: isSelected ? "#00a297" : "#333"
-                        }}>
-                          {color}
-                        </p>
+                    <p
+  style={{
+    // width: "60px",
+    height: "45px",
+    margin: "4px 0 0 0",
+    display: "flex",
+    alignItems: "center",      // ⬆⬇ vertical center
+    justifyContent: "center",  // ⬅➡ horizontal center
+    fontSize: "12px",
+    fontWeight: "bold",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    color: isSelected ? "#00a297" : "#333",
+    textAlign: "center",
+  }}
+>
+  {color}
+</p>
+
                       </div>
                     );
                   })}
@@ -1279,31 +1331,30 @@ const ProductDetails = () => {
               >
                 Add to Cart
               </button>
-              <div>
+              <div >
                 {product.videoUrl ? (
                   <>
-                    <a
-                      href={product.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        padding: '10px 20px',
-                        borderRadius: '6px',
-                        textDecoration: 'none',
-                        fontWeight: '500',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s ease'
-                      }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#FF0000'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = '#FF0000'}
-                    >
+                <a
+  href={product.videoUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    backgroundColor: '#FF0000',
+    color: 'white',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontWeight: '500',
+    border: 'none',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap'   // ✅ this line fixes it
+  }}
+>
+
                       {/* Play Icon */}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1315,6 +1366,7 @@ const ProductDetails = () => {
                       >
                         <path d="M8 5v14l11-7z" />
                       </svg>
+                      Product video
 
                     </a>
                   </>

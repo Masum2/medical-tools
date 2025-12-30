@@ -361,19 +361,26 @@ const HomePage = () => {
           {/* Products Grid */}
           <div className="col-md-9">
             {loading && products.length === 0 ? (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "300px",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "#00a297",
-                }}
-              >
-                Healthproo ...
-              </div>
+              // <div
+              //   style={{
+              //     display: "flex",
+              //     justifyContent: "center",
+              //     alignItems: "center",
+              //     height: "300px",
+              //     fontSize: "24px",
+              //     fontWeight: "bold",
+              //     color: "#00a297",
+              //   }}
+              // >
+              //   Healthproo ...
+              // </div>
+                 <div className="flex justify-center items-center py-10">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full"
+              />
+            </div>
             ) : products.length === 0 ? (
               <div
                 style={{
@@ -522,9 +529,16 @@ const HomePage = () => {
 
                 {/* Loading below products (Load More) */}
                 {loading && products.length > 0 && (
-                  <div className="text-center mt-3 mb-5" style={{ fontSize: "18px", color: "#00a297" }}>
-                    Healthproo ...
-                  </div>
+                  // <div className="text-center mt-3 mb-5" style={{ fontSize: "18px", color: "#00a297" }}>
+                  //   Healthproo ...
+                  // </div>
+                     <div className="flex justify-center items-center py-10">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full"
+              />
+            </div>
                 )}
               </>
             )}

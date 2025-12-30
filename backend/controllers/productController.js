@@ -1111,16 +1111,64 @@ export const productListController = async (req, res) => {
 // ------------------ RELATED PRODUCTS ------------------
 // controllers/productController.js - relatedProductController ফাংশনটি পরিবর্তন করুন
 // controllers/productController.js - relatedProductController
+// controllers/productController.js - relatedProductController ফাংশন
 export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
 
-    console.log("Related products request:", { pid, cid });
+    console.log("📌 Related products request:", { pid, cid });
+    console.log("📌 cid type:", typeof cid);
 
+    // ✅ Import mongoose (যদি না import করা থাকে)
+    const mongoose = require('mongoose');
+
+    // ✅ Check if cid is a valid ObjectId
+    let categoryId;
+    if (mongoose.Types.ObjectId.isValid(cid)) {
+      categoryId = cid;
+      console.log("📌 cid is a valid ObjectId");
+    } else {
+      // If cid is a slug, find category by slug first
+      console.log("📌 cid is not an ObjectId, trying as slug...");
+      const category = await categoryModel.findOne({ slug: cid });
+      if (category) {
+        categoryId = category._id;
+        console.log("📌 Found category by slug:", category.name);
+      } else {
+        // Try as category name
+        const categoryByName = await categoryModel.findOne({ 
+          name: { $regex: new RegExp(`^${cid}$`, 'i') } 
+        });
+        if (categoryByName) {
+          categoryId = categoryByName._id;
+          console.log("📌 Found category by name:", categoryByName.name);
+        }
+      }
+    }
+
+    if (!categoryId) {
+      console.log("❌ No valid category ID found");
+      return res.status(200).json({
+        success: true,
+        message: "No category found for related products",
+        products: [],
+      });
+    }
+
+    console.log("📌 Final categoryId to search:", categoryId);
+
+    // ✅ Query products with this category
     const products = await productModel
       .find({
-        categories: { $in: [cid] },
-        _id: { $ne: pid },
+        $and: [
+          { _id: { $ne: pid } },
+          { 
+            $or: [
+              { categories: { $in: [categoryId] } },
+              { category: categoryId } // পুরানো সিস্টেমের জন্য
+            ]
+          }
+        ]
       })
       .select(
         "name slug description price discountPrice " +
@@ -1135,7 +1183,7 @@ export const relatedProductController = async (req, res) => {
       .populate("categories", "name slug")
       .sort({ createdAt: -1 });
 
-    console.log(`Found ${products.length} related products`);
+    console.log(`✅ Found ${products.length} related products`);
 
     // ✅ Product List Controller এর মতো একই logic ব্যবহার করুন
     const processedProducts = products.map(product => {
@@ -1224,23 +1272,22 @@ export const relatedProductController = async (req, res) => {
 
     // Debug logs
     processedProducts.forEach((p, idx) => {
-      console.log(`Related Product ${idx + 1}:`, {
+      console.log(`📌 Related Product ${idx + 1}:`, {
         name: p.name,
         displayPrice: p.displayPrice,
         system: p.system,
         hasDiscount: p.hasDiscount,
-        basePrice: p.basePrice,
-        price: p.price,
-        colorVariations: p.colorVariations ? Object.keys(p.colorVariations).length : 0
+        categories: p.categories?.map(c => c.name || c)
       });
     });
 
     res.status(200).send({
       success: true,
+      count: processedProducts.length,
       products: processedProducts,
     });
   } catch (error) {
-    console.error("Related product error:", error);
+    console.error("❌ Related product error:", error);
     res.status(400).send({
       success: false,
       message: "Error fetching related products",
@@ -1274,24 +1321,138 @@ export const productCategoryController = async (req, res) => {
 };
 export const productSubcategoryController = async (req, res) => {
   try {
-    const { subSlug } = req.params; // URL থেকে subcategory slug / name
-    console.log("Subcategory received:", subSlug);
+    const { subSlug } = req.params;
+    console.log("📌 Subcategory request:", subSlug);
 
-    // Case-insensitive match
-    const products = await productModel
-      .find({ subcategories: { $regex: `^${subSlug}$`, $options: "i" } })
-      .select("-photos.data") // buffer বাদ দিলাম
-      .populate("category", "name slug"); // category info
+    // Decode URL
+    const decodedSubSlug = decodeURIComponent(subSlug);
+    console.log("📌 Decoded subcategory:", decodedSubSlug);
 
-    console.log("Products found:", products.length);
+    // Special handling for "&" character
+    const searchString = decodedSubSlug.replace(/&/g, '&');
+    console.log("📌 Search string:", searchString);
+
+    // ✅ Build multiple search patterns
+    const searchPatterns = [
+      // Exact match with case insensitive
+      new RegExp(`^${searchString}$`, 'i'),
+      // Contains match
+      new RegExp(searchString, 'i'),
+      // Space variations
+      new RegExp(searchString.replace(/\s+/g, '\\s+'), 'i')
+    ];
+
+    console.log("📌 Search patterns:", searchPatterns.map(p => p.toString()));
+
+    // ✅ Try each pattern
+    let products = [];
+    for (const pattern of searchPatterns) {
+      const foundProducts = await productModel
+        .find({ 
+          subcategories: pattern 
+        })
+        .select("-__v")
+        .populate("categories", "name slug") // ✅ শুধু categories populate করুন
+        .sort({ createdAt: -1 })
+        .lean();
+
+      if (foundProducts.length > 0) {
+        console.log(`✅ Found ${foundProducts.length} products with pattern: ${pattern}`);
+        products = foundProducts;
+        break;
+      }
+    }
+
+    // ✅ If still no products, try direct search in array
+    if (products.length === 0) {
+      console.log("🔄 Trying direct array search...");
+      
+      // Get all products and filter manually
+      const allProducts = await productModel
+        .find({})
+        .select("-__v")
+        .populate("categories", "name slug")
+        .sort({ createdAt: -1 })
+        .lean();
+
+      products = allProducts.filter(product => {
+        if (!product.subcategories || !Array.isArray(product.subcategories)) {
+          return false;
+        }
+        
+        return product.subcategories.some(sub => 
+          sub && sub.toLowerCase().includes(searchString.toLowerCase())
+        );
+      });
+
+      console.log(`✅ Found ${products.length} products with manual filter`);
+    }
+
+    // ✅ Process products
+    const processedProducts = products.map(product => {
+      const productObj = { ...product };
+      
+      // Convert Map to Object
+      if (product.colorVariations && product.colorVariations.size > 0) {
+        const colorVariationsObj = {};
+        for (const [color, variations] of product.colorVariations) {
+          colorVariationsObj[color] = variations;
+        }
+        productObj.colorVariations = colorVariationsObj;
+      }
+      
+      // Add display price
+      if (product.useSimpleProduct === false && product.colorVariations) {
+        const colors = Object.keys(productObj.colorVariations || {});
+        if (colors.length > 0) {
+          const firstColor = colors[0];
+          const variations = productObj.colorVariations[firstColor];
+          if (variations && variations.length > 0) {
+            productObj.displayPrice = variations[0].price;
+            productObj.displayDiscountPrice = variations[0].discountPrice;
+            productObj.hasDiscount = variations[0].discountPrice > 0;
+          }
+        }
+      } else {
+        productObj.displayPrice = product.basePrice || 0;
+        productObj.displayDiscountPrice = product.baseDiscountPrice || 0;
+        productObj.hasDiscount = product.baseDiscountPrice > 0;
+      }
+      
+      // Add display image
+      if (product.defaultPhotos && product.defaultPhotos.length > 0) {
+        productObj.displayImage = product.defaultPhotos[0]?.url;
+      } else if (product.photos && product.photos.length > 0) {
+        productObj.displayImage = product.photos[0]?.url;
+      } else if (product.colorImages && product.colorImages.length > 0) {
+        productObj.displayImage = product.colorImages[0]?.images?.[0]?.url;
+      } else {
+        productObj.displayImage = "/default-image.jpg";
+      }
+      
+      return productObj;
+    });
+
+    // Debug info
+    console.log("📦 Processed products:", processedProducts.length);
+    if (processedProducts.length > 0) {
+      console.log("📦 First product sample:", {
+        name: processedProducts[0].name,
+        subcategories: processedProducts[0].subcategories,
+        displayPrice: processedProducts[0].displayPrice,
+        displayImage: processedProducts[0].displayImage,
+        categories: processedProducts[0].categories
+      });
+    }
 
     res.status(200).send({
       success: true,
-      count: products.length,
-      products,
+      count: processedProducts.length,
+      subcategory: decodedSubSlug,
+      products: processedProducts,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in productSubcategoryController:", error);
     res.status(500).send({
       success: false,
       message: "Error fetching products by subcategory",
