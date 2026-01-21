@@ -26,7 +26,7 @@ const ProductDetails = () => {
   const [auth] = useAuth();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [cart, setCart] = useCart();
+  const [ setCart] = useCart();
   const API = process.env.REACT_APP_API;
   console.log("relatedProducts ", relatedProducts)
   // Normalized product data

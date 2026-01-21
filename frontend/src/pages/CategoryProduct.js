@@ -14,7 +14,7 @@ const CategoryProduct = () => {
   const [category, setCategory] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [cart, setCart] = useCart();
+  const [setCart] = useCart();
   const [loading, setLoading] = useState(false);
   const API = process.env.REACT_APP_API;
   useEffect(() => {

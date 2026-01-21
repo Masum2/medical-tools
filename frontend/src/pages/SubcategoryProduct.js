@@ -11,7 +11,7 @@ const SubcategoryProducts = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useCart();
+  const [ setCart] = useCart();
   const API = process.env.REACT_APP_API;
 
   // Fetch products for subcategory

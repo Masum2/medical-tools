@@ -11,7 +11,7 @@ import axios from "axios";
 const Shop = () => {
   const navigate = useNavigate();
   const categories = useCategory();
-  const [cart, setCart] = useCart();
+  const [ setCart] = useCart();
   const API = process.env.REACT_APP_API;
   const { products, loadCategories, setProducts, total, setTotal } = useProduct();
   const [page, setPage] = useState(1);
@@ -35,7 +35,7 @@ useEffect(() => {
     const init = async () => {
       setLoading(true);
       try {
-        const [catData, productData] = await Promise.all([
+        const [productData] = await Promise.all([
           loadCategories(),
           axios.get(`${API}/api/v1/product/product-list/1?limit=${limit}`)
         ]);
@@ -49,22 +49,7 @@ useEffect(() => {
     init();
   }, []);
 
-  // fetch products by page
-  const fetchProducts = async (pageNum) => {
-    try {
-      const { data } = await axios.get(
-        `${API}/api/v1/product/product-list/${pageNum}?limit=${limit}`
-      );
-      if (pageNum === 1) {
-        setProducts(data.products);
-      } else {
-        setProducts((prev) => [...prev, ...data.products]);
-      }
-      setTotal(data.total);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+
 
   // Load More function
   const loadMore = async () => {
