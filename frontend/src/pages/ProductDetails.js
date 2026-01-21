@@ -31,6 +31,18 @@ const ProductDetails = () => {
   console.log("relatedProducts ", relatedProducts)
   // Normalized product data
   const [normalizedProduct, setNormalizedProduct] = useState({});
+const [copied, setCopied] = useState(false);
+const handleCopy = () => {
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => {
+      setCopied(true); // show ✅
+      toast.success("Link copied to clipboard!");
+
+      // Hide the check after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    })
+    .catch(() => toast.error("Failed to copy link"));
+};
 
   // States for color-based variations
   const [selectedColor, setSelectedColor] = useState("");
@@ -118,6 +130,7 @@ const ProductDetails = () => {
   const [allSizes, setAllSizes] = useState([]);
   const [allColors, setAllColors] = useState([]);
   const [colorImages, setColorImages] = useState({}); // Store color-specific images
+const [loading, setLoading] = useState(true);
 
   // Fetch product
   useEffect(() => {
@@ -188,6 +201,7 @@ const ProductDetails = () => {
 // ProductDetails.js - getProduct ফাংশন
 const getProduct = async () => {
   try {
+      setLoading(true);
     const { data } = await axios.get(`${API}/api/v1/product/get-product-variation/${params.slug}`);
 
     console.log("📌 Full product data:", data.product);
@@ -235,6 +249,9 @@ const getProduct = async () => {
   } catch (error) {
     console.log("❌ Error fetching product:", error);
     toast.error("Failed to load product");
+  }
+  finally{
+    setLoading(false); // stop loading
   }
 };
   // const getProduct = async () => {
@@ -681,7 +698,26 @@ const getRecentProducts = async (currentProductId) => {
     <Layout>
       <div className="container py-4 bg-white">
         {/* Breadcrumb */}
-        <div
+          {loading ? (
+ <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+          fontSize: "24px",
+          color: "#00a297",
+          flexDirection: "column",
+        }}
+      >
+        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3">Loading product...</p>
+      </div>
+          ):(
+            <>
+   <div
           style={{
             paddingBottom: "5px",
             fontSize: "14px",
@@ -1379,6 +1415,9 @@ const getRecentProducts = async (currentProductId) => {
             </div>
           </div>
         </div>
+        </>
+          )}
+     
         {/* Share Button in Button Group */}
 
         {/* Social Share Quick Links (Optional - ছোট আইকন হিসেবে) */}
@@ -1717,25 +1756,21 @@ const getRecentProducts = async (currentProductId) => {
             }}
           />
           <button
-            onClick={() => shareProduct("copy")}
+            onClick={handleCopy}
             className="btn btn-outline-secondary btn-sm"
             type="button"
             style={{
-              backgroundColor: "#00a297",
+             backgroundColor: copied ? "#28a745" : "#00a297",
               color: "white",
               border: "none",
               padding: "10px 20px",
               fontWeight: "500",
               transition: "all 0.3s"
             }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#00887e";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#00a297";
-            }}
+          onMouseEnter={(e) => { if(!copied) e.target.style.backgroundColor = "#00887e"; }}
+    onMouseLeave={(e) => { if(!copied) e.target.style.backgroundColor = "#00a297"; }}
           >
-            Copy
+           {copied ? "Copied" : "Copy"} {copied && <span></span>}
           </button>
         </div>
         <p className="small text-muted mt-2" style={{ fontSize: "0.8rem", textAlign: "center" }}>
