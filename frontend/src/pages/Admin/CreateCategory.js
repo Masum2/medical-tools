@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Layout from "./../../components/Layout/Layout";
+import React, { useCallback, useEffect, useState } from "react";
+
 import AdminMenu from "./../../components/Layout/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -26,22 +26,27 @@ const CreateCategory = () => {
   const API = process.env.REACT_APP_API;
 
   // Fetch all categories
-  const getAllCategory = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`${API}/api/v1/category/get-category`);
-      if (data.success) setCategories(data.category);
-       setLoading(false)
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong in getting category");
-    }
-  };
 
-  useEffect(() => {
+const getAllCategory = useCallback(async () => {
+  try {
+    setLoading(true);
+    const { data } = await axios.get(`${API}/api/v1/category/get-category`);
+    if (data?.success) setCategories(data.category);
+  } catch (error) {
+    console.log(error);
+    toast.error("Something went wrong in getting category");
+  } finally {
+    setLoading(false);
+  }
+}, [API]);
+
+useEffect(() => {
+  if (API) {
     getAllCategory();
-   
-  }, []);
+  }
+}, [getAllCategory]);
+
+
 
   // Handle Add Category
   const handleSubmit = async (e) => {

@@ -12,10 +12,10 @@ const CategoryProduct = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [total] = useState(0);
   const [page, setPage] = useState(1);
   const [setCart] = useCart();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const API = process.env.REACT_APP_API;
   useEffect(() => {
     if (params?.slug) getPrductsByCat();

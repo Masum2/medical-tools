@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "./../components/Layout/Layout";
 import { useSearch } from "../context/search";
 import { useNavigate } from "react-router-dom";
-import { FaRegHeart } from "react-icons/fa";
+
 import { IoCartOutline } from "react-icons/io5";
 import { toast } from "react-hot-toast";
 import { useCart } from "../context/cart";
@@ -10,8 +10,8 @@ import { useCart } from "../context/cart";
 const Search = () => {
   const [values] = useSearch();
   const navigate = useNavigate();
-  const API = process.env.REACT_APP_API;
-  const [cart, setCart] = useCart();
+ 
+  const [setCart] = useCart();
 
   // ✅ make sure it's always an array
   const results = Array.isArray(values?.results) ? values.results : [];

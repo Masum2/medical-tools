@@ -6,27 +6,38 @@ import Spinner from "../Spinner";
 
 export default function PrivateRoute() {
   const [ok, setOk] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [auth] = useAuth();
-const API = process.env.REACT_APP_API;
+
+  const API = process.env.REACT_APP_API;
+
   useEffect(() => {
     const authCheck = async () => {
       try {
+        if (!API || !auth?.token) {
+          setOk(false);
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get(`${API}/api/v1/auth/user-auth`, {
           headers: {
-            Authorization: auth?.token,
+            Authorization: auth.token,
           },
         });
-        if (res.data.ok) {
-          setOk(true);
-        } else {
-          setOk(false);
-        }
+
+        setOk(res.data?.ok === true);
       } catch (err) {
         setOk(false);
+      } finally {
+        setLoading(false);
       }
     };
-    if (auth?.token) authCheck();
-  }, [auth?.token]);
 
-  return ok ? <Outlet /> : auth?.token ? <Spinner /> : <Navigate to="/login" />;
+    authCheck();
+  }, [auth?.token, API]);
+
+  if (loading) return <Spinner />;
+
+  return ok ? <Outlet /> : <Navigate to="/login" />;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import { NavLink } from "react-router-dom";
@@ -11,22 +11,24 @@ const AdminReview = () => {
   const [replyText, setReplyText] = useState({});
   const API = process.env.REACT_APP_API;
 
-  const fetchProducts = async () => {
-    try {
-      const { data } = await axios.get(`${API}/api/v1/product/get-product`, {
-        headers: { Authorization: auth?.token },
-      });
-      // show only products with reviews
-      setProducts((data.products || []).filter((p) => p.reviews.length > 0));
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to fetch products");
-    }
-  };
+  const fetchProducts = useCallback(async () => {
+  try {
+    const { data } = await axios.get(
+      `${API}/api/v1/product/get-product`,
+      { headers: { Authorization: auth?.token } }
+    );
+    setProducts((data.products || []).filter(p => p.reviews.length > 0));
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    toast.error("Failed to fetch products");
+  }
+}, [API, auth?.token]);
 
-  useEffect(() => {
+ useEffect(() => {
+  if (API && auth?.token) {
     fetchProducts();
-  }, []);
+  }
+}, [fetchProducts]);
 
   const handleReplySubmit = async (productId, reviewId) => {
     if (!replyText[reviewId]) {

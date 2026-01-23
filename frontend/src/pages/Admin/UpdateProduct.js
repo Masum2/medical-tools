@@ -20,7 +20,7 @@ const UpdateProduct = () => {
   const API = process.env.REACT_APP_API;
 
   const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
+  const [,setSubcategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   const [photos, setPhotos] = useState(Array(5).fill(null));
@@ -142,7 +142,7 @@ const UpdateProduct = () => {
       }
     };
     getAllCategory();
-  }, []);
+  }, [API]);
 
   // ✅ Load product details - UPDATED VERSION
   useEffect(() => {
@@ -272,7 +272,7 @@ const UpdateProduct = () => {
     if (params.slug) {
       getProduct();
     }
-  }, [params.slug, categories]);
+  }, [params.slug, categories,API]);
 
   // Handle multiple category select
   const handleCategoryChange = (catId) => {

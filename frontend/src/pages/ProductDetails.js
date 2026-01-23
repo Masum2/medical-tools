@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import Layout from "./../components/Layout/Layout";
 import axios from "axios";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { FaStar, FaRegStar, FaStarHalfAlt, FaFire } from "react-icons/fa";
-import { IoCartOutline } from "react-icons/io5";
+import { useParams, useNavigate } from "react-router-dom";
+import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import "../styles/ProductDetailsStyles.css";
 import { useAuth } from "../context/auth";
 import { FaAngleRight } from "react-icons/fa";
-import { FaRegHeart } from "react-icons/fa";
-import { FaPlay } from "react-icons/fa";
+
 import {
   FaFacebook,
   FaTwitter,
@@ -26,9 +25,10 @@ const ProductDetails = () => {
   const [auth] = useAuth();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [ setCart] = useCart();
+  const [setCart] = useCart();
   const API = process.env.REACT_APP_API;
   console.log("relatedProducts ", relatedProducts)
+  const [quantity] = useState(1);
   // Normalized product data
   const [normalizedProduct, setNormalizedProduct] = useState({});
 const [copied, setCopied] = useState(false);
@@ -51,7 +51,7 @@ const handleCopy = () => {
   const [currentVariation, setCurrentVariation] = useState(null);
 
   // Other states
-  const [quantity, setQuantity] = useState(1);
+ 
   const [rating, setRating] = useState(0);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ name: "", stars: 0, comment: "" });
@@ -69,7 +69,7 @@ const handleCopy = () => {
         ? product.description.replace(/<[^>]+>/g, '').substring(0, 100)
         : "Amazing product at best price!"
     );
-    const productImage = images[0] || "/default-image.jpg";
+  
 
     let shareUrl = "";
 
@@ -104,25 +104,7 @@ const handleCopy = () => {
   };
 
   // Web Share API (for mobile devices)
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product.name,
-          text: product.description
-            ? product.description.replace(/<[^>]+>/g, '').substring(0, 100)
-            : "Check out this amazing product!",
-          url: window.location.href,
-        });
-        toast.success("Shared successfully!");
-      } catch (error) {
-        console.log("Sharing cancelled or failed:", error);
-      }
-    } else {
-      // Fallback to custom share modal
-      setShowShareModal(true);
-    }
-  };
+
   // Video modal state
   const [showVideoModal, setShowVideoModal] = useState(false);
 
@@ -213,12 +195,12 @@ const getProduct = async () => {
 
     // ✅ Get category ID for similar products
     let categoryId = null;
-    let categoryInfo = null;
+   
 
     // Approach 1: Try with categories[0]._id
     if (data.product?.categories?.[0]?._id) {
       categoryId = data.product.categories[0]._id;
-      categoryInfo = data.product.categories[0];
+    
       console.log("✅ Using categories[0]._id:", categoryId);
     }
     // Approach 2: Try with categories[0] (if it's just an ObjectId)
@@ -392,13 +374,7 @@ const getProduct = async () => {
   };
 
   // Video modal open/close functions
-  const openVideoModal = () => {
-    if (!product.videoUrl) {
-      toast.error("No video available for this product");
-      return;
-    }
-    setShowVideoModal(true);
-  };
+
 
   const closeVideoModal = () => {
     setShowVideoModal(false);
@@ -493,12 +469,7 @@ const getProduct = async () => {
   };
 
   // Get current display quantity - এটা শুধু internal use এর জন্য
-  const getDisplayQuantity = () => {
-    if (currentVariation) {
-      return currentVariation.quantity || 0;
-    }
-    return normalizedProduct.displayQuantity || 0;
-  };
+
 
   // ProductDetails.js - getSimilarProduct ফাংশনটি এইভাবে পরিবর্তন করুন
  // ProductDetails.js - getSimilarProduct ফাংশন
@@ -635,14 +606,7 @@ const getRecentProducts = async (currentProductId) => {
     }
   };
 
-  // Quantity handler
-  const handleQuantityChange = (type) => {
-    if (type === "inc") {
-      setQuantity(quantity + 1);
-    } else if (type === "dec" && quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
+ 
 
   // Render stars
   const renderStars = (value = rating) => {

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useRef } from "react";
+
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/auth";
-import Layout from "../../components/Layout/Layout";
-import { NavLink, useNavigate } from "react-router-dom";
+
+import { NavLink } from "react-router-dom";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import { QRCodeCanvas } from "qrcode.react";
 import { toWords } from 'number-to-words';
@@ -22,7 +22,7 @@ const AdminOrders = () => {
   const [showModal, setShowModal] = useState(false);
 
   const API = process.env.REACT_APP_API;
-  const navigate = useNavigate();
+
 
   const fetchOrders = async (page = 1) => {
     try {
@@ -437,7 +437,7 @@ const AdminOrders = () => {
       fontWeight: "bold",
       fontSize: "20px",
       textAlign: "center",
-      border: "1px solid #fff",
+   
       padding: "4px 10px",
       borderRadius: "5px",
       backgroundColor: "rgba(0,0,0,0.1)",

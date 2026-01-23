@@ -1,37 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import AdminMenu from "../../components/Layout/AdminMenu";
-import Layout from "../../components/Layout/Layout";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
    const API = process.env.REACT_APP_API;
  
   // Fetch Users
-const getAllUsers = async () => {
+const getAllUsers = useCallback(async () => {
+  if (!auth?.token || !API) return;
   try {
     const { data } = await axios.get(`${API}/api/v1/auth/all-users`, {
-      headers: {
-          Authorization: auth?.token,
-      },
+      headers: { Authorization: auth.token },
     });
-    console.log("API Response:", data); // 👈 এখানে দেখুন আসলে কি আসছে
-    if (data?.success) {
-      setUsers(data.users);
-    }
+    console.log("API Response:", data);
+    if (data?.success) setUsers(data.users);
   } catch (error) {
     console.log("Error fetching users:", error);
   }
-};
+}, [auth?.token, API]);
 
 useEffect(() => {
-  if (auth?.token) {
-    getAllUsers();
-  }
-}, [auth?.token]);
+  getAllUsers();
+}, [getAllUsers]);
 
   return (
     <div className="container-fluid p-0">

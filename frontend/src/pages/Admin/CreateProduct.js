@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../components/Layout/Layout";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import { PlusOutlined } from "@ant-design/icons";
 import { Checkbox, Select } from "antd";
@@ -20,7 +19,7 @@ const CreateProduct = () => {
   const API = process.env.REACT_APP_API;
 
   const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
+  const [,setSubcategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
   const [photos, setPhotos] = useState([]);
@@ -81,17 +80,20 @@ const CreateProduct = () => {
   ];
 
   // Load categories
-  useEffect(() => {
-    const getAllCategory = async () => {
-      try {
-        const { data } = await axios.get(`${API}/api/v1/category/get-category`);
-        if (data.success) setCategories(data.category);
-      } catch (error) {
-        toast.error("Error loading categories");
-      }
-    };
-    getAllCategory();
-  }, []);
+useEffect(() => {
+    if (API) {
+      const getAllCategory = async () => {
+        try {
+          const { data } = await axios.get(`${API}/api/v1/category/get-category`);
+          if (data.success) setCategories(data.category);
+        } catch (error) {
+          toast.error("Error loading categories");
+        }
+      };
+      getAllCategory();
+    }
+}, [API]);
+
 
   // Handle multiple category select
   const handleCategoryChange = (catId) => {

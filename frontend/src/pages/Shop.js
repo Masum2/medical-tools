@@ -3,15 +3,15 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Layout from "../components/Layout/Layout";
 import { useCart } from "../context/cart";
 import { useProduct } from "../context/product";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import useCategory from "../hooks/useCategory";
 import axios from "axios";
 
 const Shop = () => {
-  const navigate = useNavigate();
+  
   const categories = useCategory();
-  const [ setCart] = useCart();
+  const [,setCart] = useCart();
   const API = process.env.REACT_APP_API;
   const { products, loadCategories, setProducts, total, setTotal } = useProduct();
   const [page, setPage] = useState(1);
@@ -35,7 +35,7 @@ useEffect(() => {
     const init = async () => {
       setLoading(true);
       try {
-        const [productData] = await Promise.all([
+        const [, productData] = await Promise.all([
           loadCategories(),
           axios.get(`${API}/api/v1/product/product-list/1?limit=${limit}`)
         ]);
@@ -122,46 +122,7 @@ useEffect(() => {
     };
   };
 
-  // ✅ Get variation summary for display
-  const getVariationSummary = (product) => {
-    // Color Variations System
-    if (product.useSimpleProduct === false && product.colorVariations) {
-      const colorKeys = Object.keys(product.colorVariations);
-      const colors = colorKeys;
-      const sizes = new Set();
-      let totalVariations = 0;
-      
-      colorKeys.forEach(color => {
-        const variations = product.colorVariations[color];
-        if (variations) {
-          totalVariations += variations.length;
-          variations.forEach(v => sizes.add(v.size));
-        }
-      });
-      
-      return {
-        sizes: Array.from(sizes).slice(0, 3),
-        colors: colors.slice(0, 2),
-        totalVariations,
-        system: 'colorVariations'
-      };
-    }
-    
-    // OLD System: variations array
-    if (product.variations && product.variations.length > 0) {
-      const sizes = [...new Set(product.variations.map(v => v.size))];
-      const colors = [...new Set(product.variations.map(v => v.color))];
-      
-      return {
-        sizes: sizes.slice(0, 3),
-        colors: colors.slice(0, 2),
-        totalVariations: product.variations.length,
-        system: 'variations'
-      };
-    }
-    
-    return null;
-  };
+
 
   // ✅ Check if product has variations
   const hasVariations = (product) => {
@@ -318,9 +279,9 @@ useEffect(() => {
           {/* Product Grid */}
           <div className="product-grid">
             {products.map((p) => {
-              const variationsExist = hasVariations(p);
+             
               const displayPrice = getDisplayPrice(p);
-              const variationSummary = variationsExist ? getVariationSummary(p) : null;
+              
               const productImage = getProductImage(p);
 
               return (

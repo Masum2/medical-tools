@@ -116,7 +116,7 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [page, searchTerm]);
+  }, [page, searchTerm, API]);
 
   // Initial load
   useEffect(() => {

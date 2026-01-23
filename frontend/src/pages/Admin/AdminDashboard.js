@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminMenu from "../../components/Layout/AdminMenu";
-import Layout from "./../../components/Layout/Layout";
-import { useAuth } from "../../context/auth";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import { useProduct } from "../../context/product";
 import { useCart } from "../../context/cart";
@@ -9,12 +8,12 @@ import toast from "react-hot-toast";
 import axios from "axios";
 
 const AdminDashboard = () => {
-  const [auth] = useAuth();
+ 
   const navigate = useNavigate();
-  const { products, setProducts, categories, total, setTotal, loadProducts, loadCategories } = useProduct();
+  const { products, setProducts, total, loadProducts, loadCategories } = useProduct();
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [cart, setCart] = useCart();
+  const [setCart] = useCart();
   const API = process.env.REACT_APP_API;
     // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
@@ -27,7 +26,7 @@ const AdminDashboard = () => {
       setLoading(false);
     };
     init();
-  }, []);
+  }, [loadCategories, loadProducts, products.length]);
 
   // ---------------- LOAD MORE ----------------
   useEffect(() => {
@@ -46,7 +45,7 @@ const AdminDashboard = () => {
       }
     };
     fetchMore();
-  }, [page]);
+  }, [page, API, setProducts]);
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">

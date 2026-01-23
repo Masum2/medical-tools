@@ -40,20 +40,7 @@ const UserMenu = () => {
   const handleHover = (e) => (e.currentTarget.style.background = "#1b263b");
   const handleLeave = (e, isOpen) =>
     (e.currentTarget.style.background = isOpen ? "#0d1b2a" : "#0d1b2a");
-  const parentMenuStyle = (isOpen) => ({
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "12px 15px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    fontWeight: 500,
-    cursor: "pointer",
-    color: "#fff",
-    background: "#0d1b2a",
-    borderLeft: isOpen ? "4px solid #20c997" : "4px solid transparent",
-    transition: "all 0.2s ease",
-  });
+
 
   return (
   <div

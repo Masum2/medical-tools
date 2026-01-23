@@ -10,7 +10,7 @@ const CartPage = () => {
   const [auth] = useAuth();
   const [cart, setCart] = useCart();
   const navigate = useNavigate();
-  const API = process.env.REACT_APP_API;
+
 
   const incrementQty = (pid) => {
     const newCart = cart.map((item) =>

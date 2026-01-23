@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from "react";
 import Layout from "./../components/Layout/Layout";
-import { useAuth } from "../context/auth";
+
 import axios from "axios";
-import { Checkbox, Radio, Skeleton, Badge, Tag } from "antd";
+import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
-import { useNavigate } from "react-router-dom";
+
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
-import { IoCartOutline } from "react-icons/io5";
+
 import { useProduct } from "../context/product";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const [auth] = useAuth();
+ 
+  
   const {
     products,
     setProducts,
     categories,
-    setCategories,
+    
     total,
     setTotal,
     loadProducts,
@@ -30,7 +30,7 @@ const HomePage = () => {
   const [subChecked, setSubChecked] = useState([]);
   const [radio, setRadio] = useState([]);
   const [page, setPage] = useState(1);
-  const [cart, setCart] = useCart();
+  const [,setCart] = useCart();
   const [loading, setLoading] = useState(false);
   const API = process.env.REACT_APP_API;
   const limit = 10;
@@ -88,46 +88,7 @@ const HomePage = () => {
     };
   };
 
-  // ✅ Get variation summary for display
-  const getVariationSummary = (product) => {
-    // Color Variations System
-    if (product.useSimpleProduct === false && product.colorVariations) {
-      const colorKeys = Object.keys(product.colorVariations);
-      const colors = colorKeys;
-      const sizes = new Set();
-      let totalVariations = 0;
-      
-      colorKeys.forEach(color => {
-        const variations = product.colorVariations[color];
-        if (variations) {
-          totalVariations += variations.length;
-          variations.forEach(v => sizes.add(v.size));
-        }
-      });
-      
-      return {
-        sizes: Array.from(sizes).slice(0, 3),
-        colors: colors.slice(0, 2),
-        totalVariations,
-        system: 'colorVariations'
-      };
-    }
-    
-    // OLD System: variations array
-    if (product.variations && product.variations.length > 0) {
-      const sizes = [...new Set(product.variations.map(v => v.size))];
-      const colors = [...new Set(product.variations.map(v => v.color))];
-      
-      return {
-        sizes: sizes.slice(0, 3),
-        colors: colors.slice(0, 2),
-        totalVariations: product.variations.length,
-        system: 'variations'
-      };
-    }
-    
-    return null;
-  };
+
 
   // ✅ Check if product has variations
   const hasVariations = (product) => {
@@ -276,7 +237,7 @@ const HomePage = () => {
     "/images/book3.webp",
     "/images/book2.avif",
   ];
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [,setCurrentIndex] = useState(0);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -401,9 +362,9 @@ const HomePage = () => {
                 {/* Product Grid - Same as Shop page */}
                 <div className="product-grid">
                   {products.map((p) => {
-                    const variationsExist = hasVariations(p);
+                    
                     const displayPrice = getDisplayPrice(p);
-                    const variationSummary = variationsExist ? getVariationSummary(p) : null;
+                   
                     const productImage = getProductImage(p);
 
                     return (
@@ -455,46 +416,7 @@ const HomePage = () => {
                               )}
                             </div>
 
-                            {/* Price Range for Color Variations */}
-                            {/* {displayPrice.system === 'colorVariations' && displayPrice.minPrice !== displayPrice.maxPrice && (
-                              <div className="mb-1">
-                                <small className="text-success fw-bold">
-                                  ৳{displayPrice.minPrice} - ৳{displayPrice.maxPrice}
-                                </small>
-                              </div>
-                            )} */}
-
-                            {/* Variation Summary */}
-                            {/* {variationsExist && variationSummary && (
-                              <div className="mb-2 small text-muted">
-                                <div className="d-flex align-items-center gap-2 mb-1">
-                                  <span className="badge bg-info" style={{ fontSize: "10px" }}>
-                                    {variationSummary.totalVariations} Options
-                                  </span>
-                                  {variationSummary.sizes.length > 0 && (
-                                    <span>
-                                      <strong>Sizes:</strong> {variationSummary.sizes.join(', ')}
-                                      {variationSummary.sizes.length > 3 && "..."}
-                                    </span>
-                                  )}
-                                </div>
-                                {variationSummary.colors.length > 0 && (
-                                  <div>
-                                    <strong>Colors:</strong> {variationSummary.colors.join(', ')}
-                                    {variationSummary.colors.length > 2 && "..."}
-                                  </div>
-                                )}
-                              </div>
-                            )} */}
-
-                            {/* Simple Product Indicator */}
-                            {/* {p.useSimpleProduct === true && !variationsExist && (
-                              <div className="mb-2">
-                                <span className="badge bg-secondary" style={{ fontSize: "10px" }}>
-                                  Single Price
-                                </span>
-                              </div>
-                            )} */}
+                      
 
                             {/* Add to Cart Button */}
                             <button

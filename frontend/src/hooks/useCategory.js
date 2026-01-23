@@ -17,11 +17,12 @@ export default function useCategory() {
     }
   };
 
-  useEffect(() => {
-    if (!cachedCategories) {
-      getCategories(); // fetch only if cache is empty
-    }
-  }, []);
+useEffect(() => {
+  if (!cachedCategories && API) {
+    getCategories();
+  }
+}, [API]);
+
 
   return categories;
 }
