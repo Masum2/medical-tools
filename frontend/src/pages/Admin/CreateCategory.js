@@ -44,7 +44,7 @@ useEffect(() => {
   if (API) {
     getAllCategory();
   }
-}, [getAllCategory]);
+}, [getAllCategory,API]); // ✅ only this dependency needed
 
 
 

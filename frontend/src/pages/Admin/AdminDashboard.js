@@ -16,17 +16,20 @@ const AdminDashboard = () => {
   const [setCart] = useCart();
   const API = process.env.REACT_APP_API;
     // ---------------- INITIAL LOAD ----------------
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([
-        loadCategories(), // cached categories
-        products.length === 0 ? loadProducts(page) : Promise.resolve(), // only load if empty
-      ]);
-      setLoading(false);
-    };
-    init();
-  }, [loadCategories, loadProducts, products.length]);
+ useEffect(() => {
+  const init = async () => {
+    if (page !== 1) return; // 👈 important guard
+
+    setLoading(true);
+    await Promise.all([
+      loadCategories(),
+      products.length === 0 ? loadProducts(page) : Promise.resolve(),
+    ]);
+    setLoading(false);
+  };
+  init();
+}, [page, loadCategories, loadProducts, products.length]);
+
 
   // ---------------- LOAD MORE ----------------
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -68,30 +68,28 @@ const Products = () => {
   };
 
   // Fetch total product count
-  const getTotal = async () => {
-    try {
-      const { data } = await axios.get(`${API}/api/v1/product/product-count`);
-      setTotal(data.total || 0);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+const getTotal = useCallback(async () => {
+  try {
+    const { data } = await axios.get(`${API}/api/v1/product/product-count`);
+    setTotal(data.total || 0);
+  } catch (error) {
+    console.error(error);
+  }
+}, [API]);
 
-  // Fetch products per page
-  const getProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(
-        `${API}/api/v1/product/product-list/${page}`
-      );
-      setProducts(data?.products || []);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
-      setLoading(false);
-    }
-  };
+const getProducts = useCallback(async () => {
+  try {
+    setLoading(true);
+    const { data } = await axios.get(`${API}/api/v1/product/product-list/${page}`);
+    setProducts(data?.products || []);
+    setLoading(false);
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong");
+    setLoading(false);
+  }
+}, [API, page]);
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -118,12 +116,11 @@ const Products = () => {
     fetchProducts();
   }, [page, searchTerm, API]);
 
-  // Initial load
-  useEffect(() => {
-    getTotal();
-    getProducts();
-  }, []);
 
+useEffect(() => {
+  getTotal();
+  getProducts();
+}, [getTotal, getProducts]);
   // Delete product
   const handleDelete = async () => {
     try {

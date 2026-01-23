@@ -11,24 +11,26 @@ const AdminReview = () => {
   const [replyText, setReplyText] = useState({});
   const API = process.env.REACT_APP_API;
 
-  const fetchProducts = useCallback(async () => {
+const fetchProducts = useCallback(async () => {
   try {
-    const { data } = await axios.get(
-      `${API}/api/v1/product/get-product`,
-      { headers: { Authorization: auth?.token } }
-    );
+    const { data } = await axios.get(`${API}/api/v1/product/get-product`, {
+      headers: { Authorization: auth?.token },
+    });
     setProducts((data.products || []).filter(p => p.reviews.length > 0));
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error(error);
     toast.error("Failed to fetch products");
   }
 }, [API, auth?.token]);
 
- useEffect(() => {
+useEffect(() => {
   if (API && auth?.token) {
     fetchProducts();
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [fetchProducts]);
+
+
 
   const handleReplySubmit = async (productId, reviewId) => {
     if (!replyText[reviewId]) {
