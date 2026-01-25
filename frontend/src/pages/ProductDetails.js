@@ -25,10 +25,23 @@ const ProductDetails = () => {
   const [auth] = useAuth();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [setCart] = useCart();
+  const [,setCart] = useCart();
   const API = process.env.REACT_APP_API;
   console.log("relatedProducts ", relatedProducts)
-  const [quantity] = useState(1);
+const [quantity, setQuantity] = useState(1);
+
+  const handleQuantityChange = (type) => {
+  setQuantity((prev) => {
+    if (type === "inc") {
+      return prev + 1;
+    }
+    if (type === "dec" && prev > 1) {
+      return prev - 1;
+    }
+    return prev;
+  });
+};
+
   // Normalized product data
   const [normalizedProduct, setNormalizedProduct] = useState({});
 const [copied, setCopied] = useState(false);
@@ -1219,7 +1232,7 @@ const getRecentProducts = async (currentProductId) => {
             )}
 
             {/* Quantity Selector */}
-            {/* <div className="d-flex align-items-center mb-3">
+            <div className="d-flex align-items-center mb-3">
               <span className="me-2">Quantity:</span>
               <button 
                 onClick={() => handleQuantityChange("dec")} 
@@ -1241,7 +1254,7 @@ const getRecentProducts = async (currentProductId) => {
               >
                 +
               </button>
-            </div> */}
+            </div>
 
             {/* Buttons */}
             <div className="d-flex gap-3 mb-4">
