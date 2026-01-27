@@ -23,14 +23,11 @@ export const createProductController = async (req, res) => {
       shipping,
       categories,
       subcategories,
-      // ✅ নতুন ফিল্ড যোগ করুন
       colorVariations,
       colorImageData,
       availableColors,
       availableSizes,
-      // ✅ videoUrl field যোগ করুন
-      videoUrl
-
+      videoUrl,
     } = req.body;
 
     console.log("Received data:", {
@@ -55,37 +52,28 @@ export const createProductController = async (req, res) => {
       return res.status(400).json({ success: false, message: "Category is required" });
     }
 
-    // ✅ Check if using variation system
     const useVariationSystem = useVariations === "true" || useVariations === true;
-    
-    // ✅ Parse color variations if provided
+
     let parsedColorVariations = [];
     if (colorVariations && useVariationSystem) {
       parsedColorVariations = Array.isArray(colorVariations) ? colorVariations : JSON.parse(colorVariations);
-      
       if (parsedColorVariations.length === 0) {
         return res.status(400).json({ success: false, message: "At least one color variation is required" });
       }
     }
 
-    // ✅ Parse color image data
     let parsedColorImageData = [];
     if (colorImageData) {
       parsedColorImageData = Array.isArray(colorImageData) ? colorImageData : JSON.parse(colorImageData);
     }
 
-    // ✅ Upload default photos to Cloudinary
+    // ✅ Upload default photos
     let uploadedDefaultPhotos = [];
     if (req.files?.photos && req.files.photos.length > 0) {
       uploadedDefaultPhotos = await Promise.all(
         req.files.photos.map(async (file) => {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "products",
-          });
-          // Remove temp file
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+          const result = await cloudinary.uploader.upload(file.path, { folder: "products" });
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
           return { url: result.secure_url, public_id: result.public_id };
         })
       );
@@ -103,26 +91,30 @@ export const createProductController = async (req, res) => {
         ? (Array.isArray(subcategories) ? subcategories : JSON.parse(subcategories || "[]"))
         : [],
       defaultPhotos: uploadedDefaultPhotos,
-      // ✅ Simple product flag
       useSimpleProduct: !useVariationSystem,
-        // ✅ videoUrl যোগ করুন (optional)
-     videoUrl: videoUrl?.trim() || "", // ✅ এখানে পরিবর্তন করুন
+      videoUrl: videoUrl?.trim() || "",
     };
 
-    // ✅ Handle NEW color-based variation system
+    // ✅ Check for duplicate product by slug
+    const existingProduct = await productModel.findOne({ slug: productData.slug });
+    if (existingProduct) {
+      return res.status(400).json({
+        success: false,
+        message: "This product is already uploaded",
+      });
+    }
+
+    // ✅ Handle color-based variation system
     if (useVariationSystem && parsedColorVariations.length > 0) {
-      // Initialize colorVariations as Map
-      productData.colorVariations = new Map();
+      productData.colorVariations = {}; // ✅ Use plain object instead of Map
       productData.colorImages = [];
-      
-      // Process color images if available
+
       const colorPhotoFiles = req.files?.colorImages || [];
       console.log(`Found ${colorPhotoFiles.length} color image files`);
-      
-      // ✅ Process each color variation
+
       for (const colorVar of parsedColorVariations) {
         const color = colorVar.color;
-        
+
         // Find images for this specific color
         const photosForThisColor = [];
         if (colorPhotoFiles.length > 0 && parsedColorImageData.length > 0) {
@@ -132,33 +124,23 @@ export const createProductController = async (req, res) => {
             }
           }
         }
-        
-        // Upload color-specific photos to Cloudinary
+
+        // Upload color-specific photos
         let uploadedColorImages = [];
         if (photosForThisColor.length > 0) {
           uploadedColorImages = await Promise.all(
             photosForThisColor.map(async (file) => {
-              const result = await cloudinary.uploader.upload(file.path, {
-                folder: "products/colors",
-              });
-              // Remove temp file
-              if (fs.existsSync(file.path)) {
-                fs.unlinkSync(file.path);
-              }
+              const result = await cloudinary.uploader.upload(file.path, { folder: "products/colors" });
+              if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
               return { url: result.secure_url, public_id: result.public_id };
             })
           );
         }
-        
-        // Add color images to product data
+
         if (uploadedColorImages.length > 0) {
-          productData.colorImages.push({
-            color: color,
-            images: uploadedColorImages
-          });
+          productData.colorImages.push({ color, images: uploadedColorImages });
         }
-        
-        // Process sizes for this color
+
         const colorVariationsArray = colorVar.sizes.map(size => ({
           size: size.size,
           price: parseFloat(size.price),
@@ -166,63 +148,44 @@ export const createProductController = async (req, res) => {
           quantity: parseInt(size.quantity),
           sku: `${slugify(name)}-${color}-${size.size}`.toUpperCase().replace(/\s+/g, '-')
         }));
-        
-        // Add to colorVariations Map (Mongoose will convert this)
-        productData.colorVariations.set(color, colorVariationsArray);
+
+        // ✅ Add to object instead of Map
+        productData.colorVariations[color] = colorVariationsArray;
       }
-      
-      // Set available colors and sizes
+
       productData.availableColors = parsedColorVariations.map(cv => cv.color);
-      productData.availableSizes = [...new Set(
-        parsedColorVariations.flatMap(cv => cv.sizes.map(s => s.size))
-      )];
-      
+      productData.availableSizes = [...new Set(parsedColorVariations.flatMap(cv => cv.sizes.map(s => s.size)))];
+
       const product = new productModel(productData);
       await product.save();
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Product with color variations created successfully",
         product,
       });
-
     } else {
-      // ✅ Simple product system (without variations)
-      const {
-        basePrice,
-        baseDiscountPrice,
-        baseQuantity,
-        color, // Simple color array
-        size  // Simple size array
-      } = req.body;
-      
-      if (!basePrice) {
-        return res.status(400).json({ success: false, message: "Base price is required" });
-      }
-      if (!baseQuantity) {
-        return res.status(400).json({ success: false, message: "Base quantity is required" });
-      }
+      // ✅ Simple product system
+      const { basePrice, baseDiscountPrice, baseQuantity, color, size } = req.body;
+
+      if (!basePrice) return res.status(400).json({ success: false, message: "Base price is required" });
+      if (!baseQuantity) return res.status(400).json({ success: false, message: "Base quantity is required" });
 
       productData.basePrice = parseFloat(basePrice);
       productData.baseDiscountPrice = baseDiscountPrice ? parseFloat(baseDiscountPrice) : 0;
       productData.baseQuantity = parseInt(baseQuantity);
       productData.useSimpleProduct = true;
-      
-      // Handle simple color/size arrays
-      const simpleColors = color ? 
-        (Array.isArray(color) ? color : JSON.parse(color || "[]")) 
-        : [];
-      const simpleSizes = size ? 
-        (Array.isArray(size) ? size : JSON.parse(size || "[]")) 
-        : [];
-      
+
+      const simpleColors = color ? (Array.isArray(color) ? color : JSON.parse(color || "[]")) : [];
+      const simpleSizes = size ? (Array.isArray(size) ? size : JSON.parse(size || "[]")) : [];
+
       productData.availableColors = simpleColors;
       productData.availableSizes = simpleSizes;
 
       const product = new productModel(productData);
       await product.save();
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Product created successfully",
         product,
@@ -231,13 +194,11 @@ export const createProductController = async (req, res) => {
 
   } catch (error) {
     console.error("Create Product Error:", error);
-    
+
     // ✅ Clean up uploaded files in case of error
     if (req.files) {
       Object.values(req.files).flat().forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       });
     }
 
@@ -248,6 +209,8 @@ export const createProductController = async (req, res) => {
     });
   }
 };
+
+
 
 
 
